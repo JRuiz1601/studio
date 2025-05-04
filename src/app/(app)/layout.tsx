@@ -1,8 +1,10 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import {
   Home,
   ShieldCheck,
@@ -29,6 +31,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // For mobile menu
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: Home },
@@ -40,12 +43,13 @@ const profileMenuItems = [
    { href: '/profile/edit', label: 'Edit Profile', icon: User },
    { href: '/profile/settings', label: 'Settings', icon: Settings },
    { href: '/terms', label: 'Terms & Conditions', icon: null }, // Handled separately or link here
-   // Add Logout functionality later
 ];
 
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter(); // Initialize useRouter
+  const { toast } = useToast(); // Initialize useToast
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
@@ -62,6 +66,18 @@ export default function AppLayout({ children }: { children: ReactNode }) {
      if (names.length === 1) return names[0].charAt(0).toUpperCase();
      return `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase();
    };
+
+  const handleLogout = () => {
+      // TODO: Add actual sign-out logic (e.g., Firebase sign out)
+      console.log("Logging out...");
+      toast({
+          title: "Logged Out",
+          description: "You have been successfully logged out.",
+      });
+      router.push('/auth/login'); // Redirect to login page
+      closeMobileMenu(); // Close mobile menu if open
+  };
+
 
   const Header = () => (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background px-4 md:px-6">
@@ -132,7 +148,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                             <Button
                                 variant='ghost'
                                 className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-                                // onClick={handleLogout} // Add logout handler later
+                                onClick={handleLogout} // Add logout handler here for mobile
                                 >
                                 <LogOut className="mr-2 h-4 w-4" />
                                 Logout
@@ -203,8 +219,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-             // onClick={handleLogout} // Add logout handler later
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer" // Added cursor-pointer
+             onClick={handleLogout} // Add logout handler here for desktop dropdown
             >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
