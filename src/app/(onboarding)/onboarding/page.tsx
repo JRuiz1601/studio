@@ -126,7 +126,7 @@ export default function OnboardingPage() {
                      title: 'Onboarding Complete!',
                      description: 'Welcome to Zyren. Redirecting to your dashboard.',
                  });
-                 router.push('/dashboard');
+                 router.push('/dashboard'); // Redirect to the main dashboard page
              } else {
                  throw new Error(result.message || 'Facial confirmation failed.');
              }

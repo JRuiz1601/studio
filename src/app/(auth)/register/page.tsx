@@ -55,7 +55,7 @@ export default function RegisterPage() {
       title: 'Registration Successful',
       description: 'Please proceed to facial recognition setup.',
     });
-    router.push('/auth/facial-recognition'); // Redirect to facial recognition setup
+    router.push('/auth/facial-recognition'); // Redirect to facial recognition setup within the auth group
   }
 
   return (
@@ -202,4 +202,3 @@ export default function RegisterPage() {
     </>
   );
 }
-
