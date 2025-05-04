@@ -51,7 +51,8 @@ export default function LoginPage() {
       title: 'Login Successful',
       description: 'Redirecting to onboarding...',
     });
-    router.push('/onboarding'); // Redirect to onboarding after successful login
+    // The (onboarding) folder is a route group, so /onboarding/onboarding maps to this path.
+    router.push('/onboarding/onboarding'); // Redirect to onboarding after successful login
   }
 
   async function handleFacialRecognition() {
@@ -69,7 +70,8 @@ export default function LoginPage() {
           title: 'Login Successful',
           description: 'Facial recognition verified.',
         });
-        router.push('/onboarding'); // Redirect on success
+        // The (onboarding) folder is a route group, so /onboarding/onboarding maps to this path.
+        router.push('/onboarding/onboarding'); // Redirect on success
       } else {
         setFacialRecognitionStatus({type: 'error', message: result.message || 'Facial recognition failed. Please try again or use password.'});
       }
@@ -161,7 +163,7 @@ export default function LoginPage() {
       </Button>
 
       <div className="mt-4 text-center text-sm">
-        <Link href="/auth/forgot-password" passHref>
+        <Link href="/forgot-password" passHref> {/* Updated link */}
           <span className="underline text-muted-foreground hover:text-primary cursor-pointer">
             Forgot your password?
           </span>
@@ -170,7 +172,7 @@ export default function LoginPage() {
 
       <div className="mt-6 text-center text-sm">
         Don&apos;t have an account?{' '}
-        <Link href="/auth/register" passHref>
+        <Link href="/register" passHref> {/* Updated link */}
           <span className="underline text-primary hover:text-primary/80 cursor-pointer">
             Register here
           </span>

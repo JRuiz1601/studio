@@ -55,7 +55,8 @@ export default function RegisterPage() {
       title: 'Registration Successful',
       description: 'Please proceed to facial recognition setup.',
     });
-    router.push('/auth/facial-recognition'); // Redirect to facial recognition setup within the auth group
+    // The (auth) folder is a route group, so /facial-recognition maps to this path.
+    router.push('/facial-recognition'); // Redirect to facial recognition setup
   }
 
   return (
@@ -193,7 +194,7 @@ export default function RegisterPage() {
 
       <div className="mt-6 text-center text-sm">
         Already have an account?{' '}
-        <Link href="/auth/login" passHref>
+        <Link href="/login" passHref> {/* Updated link */}
           <span className="underline text-primary hover:text-primary/80 cursor-pointer">
             Login here
           </span>

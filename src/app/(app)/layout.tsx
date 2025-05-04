@@ -74,7 +74,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           title: "Logged Out",
           description: "You have been successfully logged out.",
       });
-      router.push('/auth/login'); // Redirect to login page
+      // The (auth) folder is a route group, so /login maps to this path.
+      router.push('/login'); // Redirect to login page
       closeMobileMenu(); // Close mobile menu if open
   };
 

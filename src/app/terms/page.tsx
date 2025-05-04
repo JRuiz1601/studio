@@ -11,7 +11,8 @@ export default function TermsPage() {
           <div className="flex items-center justify-between">
              <CardTitle className="text-2xl font-semibold text-foreground">Terms and Conditions</CardTitle>
              <Button variant="ghost" size="icon" asChild>
-               <Link href="/auth/register"> {/* Link back to registration or appropriate page */}
+               {/* Updated link */}
+               <Link href="/register"> {/* Link back to registration or appropriate page */}
                  <ArrowLeft className="h-5 w-5" />
                  <span className="sr-only">Back</span>
                </Link>

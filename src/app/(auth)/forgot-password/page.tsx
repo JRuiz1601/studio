@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
 
       <div className="mt-6 text-center text-sm">
         Remembered your password?{' '}
-        <Link href="/auth/login" passHref>
+        <Link href="/login" passHref> {/* Updated link */}
           <span className="underline text-primary hover:text-primary/80 cursor-pointer">
             Back to Login
           </span>

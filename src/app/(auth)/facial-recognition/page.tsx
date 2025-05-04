@@ -86,7 +86,8 @@ export default function FacialRecognitionPage() {
       description: 'Redirecting to onboarding...',
     });
     // TODO: Add logic to save facial data reference if needed
-    router.push('/onboarding');
+    // The (onboarding) folder is a route group, so /onboarding/onboarding maps to this path.
+    router.push('/onboarding/onboarding');
   };
 
   const handleRetry = () => {

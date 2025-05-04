@@ -59,7 +59,8 @@ export default function SettingsPage() {
 
    const handleManageFacialRecognition = () => {
        // Navigate to the facial recognition management/setup page
-       router.push('/auth/facial-recognition'); // Re-use setup page or create a dedicated management one
+       // The (auth) folder is a route group, so /facial-recognition maps to this path.
+       router.push('/facial-recognition'); // Re-use setup page or create a dedicated management one
    };
 
    const handleRemoveFacialRecognition = async () => {
