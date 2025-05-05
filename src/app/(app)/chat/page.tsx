@@ -25,7 +25,7 @@ import { format } from 'date-fns'; // Import date-fns for formatting
 
 interface Message {
   id: string;
-  role: 'user' | 'ai' | 'system';
+  role: 'user' | 'ai' | 'system'; // 'ai' replaces 'model' for consistency
   content: string;
   timestamp: Date; // Added timestamp
   attachment?: { name: string; type: string };
@@ -108,8 +108,10 @@ export default function ChatPage() {
     if ((!messageContent && !attachment) || isLoading) return;
 
      // Clear initial system messages when user sends the first message manually
+     let currentMessages = messages;
      if (e && messages.length > 0 && messages.every(m => m.role === 'system')) {
-       setMessages([]);
+       currentMessages = []; // Prepare to clear, but keep for history context
+       setMessages([]); // Update UI immediately
      }
 
 
@@ -121,11 +123,24 @@ export default function ChatPage() {
       ...(attachment && { attachment }), // Add attachment info if present
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    // Add user message to state for UI update
+    const updatedMessages = [...currentMessages, userMessage];
+    setMessages(updatedMessages);
     setInputValue(''); // Clear input after sending
     setIsLoading(true);
     setIsAiTyping(true); // AI starts "typing"
     scrollToBottom(); // Scroll after adding user message
+
+    // --- Prepare history for Genkit ---
+    // Convert messages (excluding system messages and the last user message) to the format expected by Genkit
+    const historyForAI = updatedMessages
+      .filter(m => m.role === 'user' || m.role === 'ai') // Keep only user and AI messages for history
+      .slice(0, -1) // Exclude the latest user message we just added
+      .map(m => ({
+        role: m.role === 'ai' ? 'model' : 'user', // Map 'ai' role to 'model' for Genkit
+        content: m.content,
+      }));
+
 
     // --- AI Response Handling ---
     try {
@@ -137,11 +152,15 @@ export default function ChatPage() {
          // IMPORTANT: Genkit flow needs to be updated to handle potential file data URIs
       }
 
-      const aiResponse = await chatWithAI({ message: genkitInputMessage });
+       // Call chatWithAI with the current message and the formatted history
+      const aiResponse = await chatWithAI({
+         message: genkitInputMessage,
+         history: historyForAI, // Pass the conversation history
+      });
 
        const aiMessage: Message = {
           id: Date.now().toString() + '-ai', // Ensure unique ID
-          role: 'ai',
+          role: 'ai', // Keep role as 'ai' in the frontend state
           content: aiResponse.response,
           timestamp: new Date(), // Added timestamp
           structuredContent: aiResponse.structuredResponse, // Store structured response
@@ -160,7 +179,7 @@ export default function ChatPage() {
 
        const aiErrorMessage: Message = {
           id: Date.now().toString() + '-ai-error',
-          role: 'ai',
+          role: 'ai', // Keep role as 'ai' in frontend
           content: 'Lo siento, encontré un error. Por favor, intenta de nuevo.', // More empathetic error
           timestamp: new Date(), // Added timestamp
            // Provide a contact button in case of error
@@ -178,9 +197,10 @@ export default function ChatPage() {
   // Handler for clicking suggestion chips
    const handleSuggestionClick = (suggestion: string) => {
        // Clear initial system messages when a suggestion is clicked
-       if (messages.length > 0 && messages.every(m => m.role === 'system')) {
-          setMessages([]);
-       }
+       // We handle history clearing/preparation inside handleSendMessage now
+       // if (messages.length > 0 && messages.every(m => m.role === 'system')) {
+       //    setMessages([]);
+       // }
        handleSendMessage(undefined, suggestion);
    };
 
@@ -496,6 +516,8 @@ export default function ChatPage() {
                                                <Card key={`${message.id}-struct-${index}`} className="bg-background/50 border border-border">
                                                    <CardHeader className="p-3 pb-2">
                                                        <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                                                        {/* Add CardDescription if it exists in the schema */}
+                                                        {/* <CardDescription className="text-xs pt-1">{item.description}</CardDescription> */}
                                                    </CardHeader>
                                                    <CardContent className="p-3 pt-0 text-xs text-muted-foreground">
                                                        <p>{item.description}</p>

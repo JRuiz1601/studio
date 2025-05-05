@@ -39,10 +39,16 @@ const StructuredResponseSchema = z.array(
 
 
 // --- Input/Output Schemas ---
+// Define a schema for individual history messages
+const HistoryMessageSchema = z.object({
+  role: z.enum(['user', 'model']), // Use 'model' for AI responses
+  content: z.string()
+});
+
 const ChatInputSchema = z.object({
-  message: z.string().describe('The user\'s message to the AI.'),
-  // Optional: Add conversation history if needed for context persistence beyond a single turn
-  // history: z.array(z.object({ role: z.enum(['user', 'model']), content: z.string() })).optional(),
+  message: z.string().describe('The user\'s current message to the AI.'),
+  // Added conversation history field
+  history: z.array(HistoryMessageSchema).optional().describe('The history of the conversation so far, excluding the current user message.'),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
@@ -143,7 +149,7 @@ const getSavingsStatusTool = ai.defineTool(
 
 // --- Main Flow Function ---
 export async function chatWithAI(input: ChatInput): Promise<ChatOutput> {
-  // In a more complex scenario, you might fetch conversation history here
+  // The history is now passed directly in the input object
   return chatFlow(input);
 }
 
@@ -151,12 +157,12 @@ export async function chatWithAI(input: ChatInput): Promise<ChatOutput> {
 const chatPrompt = ai.definePrompt({
   name: 'chatPrompt',
   input: {
-    schema: ChatInputSchema,
+    schema: ChatInputSchema, // Use the updated schema with history
   },
   output: {
     schema: ChatOutputSchema, // Updated schema
   },
-  // Updated prompt incorporating the knowledge base, persona, tone, capabilities, tools, limitations, HYPERLEGIBILITY, and STRUCTURED OUTPUT instructions
+  // Updated prompt incorporating the knowledge base, persona, tone, capabilities, tools, limitations, HYPERLEGIBILITY, STRUCTURED OUTPUT, and HISTORY instructions
   prompt: `Soy Zy, tu Co-Piloto de Protección y Bienestar de Global Seguros, aquí en la app Zyren.
 
   **Mi Misión Principal:** Soy tu guía personal para que entiendas tus seguros fácilmente. Te doy información útil y te ayudo a estar mejor protegido, de forma sencilla y clara. Piénsame como tu asistente personal para seguros, disponible siempre que me necesites.
@@ -212,6 +218,15 @@ const chatPrompt = ai.definePrompt({
   *   "¡Hola! Soy Zy, tu Co-Piloto de Protección y Bienestar. ¿En qué puedo ayudarte hoy? Pregúntame sobre tus seguros, cómo funciona la app, ¡lo que necesites!"
   *   "¡Bienvenido/a a Zyren! Estoy aquí para hacer fáciles tus seguros. Puedes preguntarme, por ejemplo, '¿Qué seguros tengo activos?' o 'Explícame eso de los pagos flexibles'."
 
+  **Historial de Conversación (para mantener el contexto):**
+  {{#if history}}
+  Historial:
+  {{#each history}}
+  {{#if (eq role 'user')}}Usuario: {{content}}{{/if}}
+  {{#if (eq role 'model')}}Zy: {{content}}{{/if}}
+  {{/each}}
+  {{/if}}
+
   **Conversación Actual:**
 
   Usuario: {{{message}}}
@@ -233,7 +248,7 @@ const chatFlow = ai.defineFlow<
     enableExperimentalToolStreaming: true, // Recommended for better UX with tools
   },
   async (input) => {
-    // Call the prompt with the user's message
+    // Call the prompt with the user's message and history
     const llmResponse = await chatPrompt(input);
     const output = llmResponse.output;
 
