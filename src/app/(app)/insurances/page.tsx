@@ -15,7 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { AlertCircle, CheckCircle, Clock, History, SlidersHorizontal, Info, Skeleton } from 'lucide-react'; // Added Skeleton
+import { AlertCircle, CheckCircle, Clock, History, SlidersHorizontal, Info } from 'lucide-react'; // Removed Skeleton from here
+import { Skeleton } from '@/components/ui/skeleton'; // Added correct import for Skeleton
 import {
   Dialog,
   DialogContent,
@@ -59,10 +60,15 @@ export default function InsurancesPage() {
   // Format numbers inside useEffect to avoid hydration issues
   useEffect(() => {
       if (selectedPolicy) {
+          // Ensure coverageAmount is treated as a number
+          const coverage = Number(selectedPolicy.coverageAmount);
+          const minCoverage = coverage / 2 || 1000;
+          const maxCoverage = coverage * 2 || 50000;
+
           setFormattedSliderAmounts({
-              min: (selectedPolicy.coverageAmount / 2 || 1000).toLocaleString(),
-              max: (selectedPolicy.coverageAmount * 2 || 50000).toLocaleString(),
-              current: selectedPolicy.coverageAmount.toLocaleString()
+              min: minCoverage.toLocaleString(),
+              max: maxCoverage.toLocaleString(),
+              current: coverage.toLocaleString()
           });
       } else {
           setFormattedSliderAmounts(null);
@@ -96,12 +102,16 @@ export default function InsurancesPage() {
     if (selectedPolicy) {
       // Simulate premium change based on slider (e.g., coverage amount)
       const basePremium = selectedPolicy.premium;
+      // Ensure coverageAmount is treated as a number
+      const currentCoverage = Number(selectedPolicy.coverageAmount);
+      const newCoverage = value[0];
+
       // Example simulation: Premium increases with coverage amount
-      const simulated = basePremium + (value[0] - selectedPolicy.coverageAmount) * 0.001;
+      const simulated = basePremium + (newCoverage - currentCoverage) * 0.001;
       setSimulatedPremium(Math.max(10, Math.round(simulated))); // Ensure minimum premium
 
       // Update formatted current value for slider label
-      setFormattedSliderAmounts(prev => prev ? { ...prev, current: value[0].toLocaleString() } : null);
+      setFormattedSliderAmounts(prev => prev ? { ...prev, current: newCoverage.toLocaleString() } : null);
     }
   };
 
@@ -197,9 +207,9 @@ export default function InsurancesPage() {
                       </Label>
                       <Slider
                         id={`coverage-slider-${selectedPolicy.id}`}
-                        defaultValue={[selectedPolicy.coverageAmount]}
-                        max={selectedPolicy.coverageAmount * 2 || 50000} // Example max
-                        min={selectedPolicy.coverageAmount / 2 || 1000} // Example min
+                        defaultValue={[Number(selectedPolicy.coverageAmount)]} // Ensure initial value is number
+                        max={Number(selectedPolicy.coverageAmount) * 2 || 50000} // Example max
+                        min={Number(selectedPolicy.coverageAmount) / 2 || 1000} // Example min
                         step={1000}
                         onValueChange={handleSliderChange}
                         className="py-2"
@@ -262,4 +272,3 @@ const Label = ({ children, ...props }: React.LabelHTMLAttributes<HTMLLabelElemen
     {children}
   </label>
 );
-
