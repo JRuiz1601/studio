@@ -222,8 +222,7 @@ const chatPrompt = ai.definePrompt({
   {{#if history}}
   Historial:
   {{#each history}}
-  {{#if (eq role 'user')}}Usuario: {{content}}{{/if}}
-  {{#if (eq role 'model')}}Zy: {{content}}{{/if}}
+  {{role}}: {{content}}
   {{/each}}
   {{/if}}
 
@@ -276,3 +275,4 @@ const chatFlow = ai.defineFlow<
     return output;
   }
 );
+
