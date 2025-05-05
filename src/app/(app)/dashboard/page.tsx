@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link'; // Import Link for navigation
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -536,7 +536,7 @@ export default function DashboardPage() {
                                         ¿Sabías que tus datos de bienestar podrían ayudarte a pagar menos en tu seguro de Vida?
                                         <Button variant="link" size="sm" className="p-0 h-auto ml-1" asChild>
                                             <Link href="/profile/settings">Activa las Primas Adaptativas</Link>
-                                        </Button> para descubrirlo.
+                                        </Button>
                                     </p>
                                 </div>
                             )}
