@@ -265,10 +265,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
        <Button
          size="icon"
          className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6"
-         // onClick={() => { /* TODO: Open AI Chat */ }}
+         asChild // Use asChild to make the button behave like a Link
        >
-         <Bot className="h-6 w-6" />
-         <span className="sr-only">Chat with Zy</span>
+         <Link href="/chat">
+            <Bot className="h-6 w-6" />
+            <span className="sr-only">Chat with Zy</span>
+          </Link>
        </Button>
        <BottomNavBar />
     </div>
