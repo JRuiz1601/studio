@@ -7,7 +7,7 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter, // Added CardFooter import
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -276,7 +276,12 @@ export default function DashboardPage() {
                           <Separator />
                           <div className="flex items-center justify-between text-sm">
                              <span className="text-muted-foreground flex items-center gap-1"><Zap className="h-4 w-4"/> Nivel Estrés:</span>
-                             <span>{wearableData.stressLevel}%</span>
+                             <div className="flex flex-col items-end">
+                                <span>{wearableData.stressLevel}%</span>
+                                {wearableData.stressLevel > 60 && ( // Example threshold for high stress
+                                  <span className="text-xs text-destructive">Alerta: Estrés aumentó un 20%</span>
+                                )}
+                             </div>
                           </div>
                            <Separator />
                            <div className="flex items-center justify-between text-sm">
