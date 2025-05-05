@@ -21,7 +21,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
    Cloud, MapPin, HeartPulse, Zap, BatteryCharging, WifiOff, CreditCard, FileWarning, ShieldCheck,
-   TrendingUp, AlertTriangle, Lightbulb, ShieldAlert, ShieldX, Shield, GraduationCap, Users, PhoneCall // Added relevant icons
+   TrendingUp, AlertTriangle, Lightbulb, ShieldAlert, ShieldX, Shield, GraduationCap, Users, PhoneCall,
+   Sparkles, CheckCircle // Added relevant icons
 } from 'lucide-react'; // Added new icons
 import Image from 'next/image';
 import type { Location } from '@/services/gps';
@@ -35,8 +36,7 @@ import { Button } from '@/components/ui/button'; // Import Button
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'; // Import Alert components
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"; // Import chart components
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'; // Import Recharts components
-// Removed Progress import as it's replaced by semaphore icon
-// import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils'; // Import cn for conditional classes
 
 type RiskStatus = 'low' | 'medium' | 'high';
 
@@ -74,8 +74,6 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const [riskStatus, setRiskStatus] = useState<RiskStatus>('low');
-  // Removed protectionPercentage state
-  // const [protectionPercentage, setProtectionPercentage] = useState(0);
   const [location, setLocation] = useState<Location | null>(null);
   const [weather, setWeather] = useState<Weather | null>(null);
   const [wearableStatus, setWearableStatus] = useState<WearableConnectionStatus | null>(null);
@@ -133,7 +131,6 @@ export default function DashboardPage() {
          const calculatedRisk: RiskStatus = 'medium'; // Example calculation for demonstration
          setRiskStatus(calculatedRisk);
 
-         // Removed protection percentage calculation
      }
      fetchData();
 
@@ -180,7 +177,14 @@ export default function DashboardPage() {
       }
   };
 
-   // Updated recommendations with better icons and XAI text
+  // Function to get qualitative stress level
+  const getStressLevelLabel = (level: number): string => {
+      if (level < 30) return 'Bajo';
+      if (level < 60) return 'Medio';
+      return 'Alto';
+  };
+
+  // Updated recommendations with better icons and XAI text
    const recommendations: Recommendation[] = [
     // Dynamically generate recommendations based on data
     ...(weather && weather.temperatureFarenheit > 85 ? [{ id: 'rec1', title: 'Alerta por Calor', description: 'Con el calor actual, recuerda mantenerte hidratado y evitar actividades extenuantes.', type: 'weather', icon: Cloud } as Recommendation] : []),
@@ -228,9 +232,6 @@ export default function DashboardPage() {
                   </Link>
                </Button>
            </div>
-
-           {/* Removed Progress Bar */}
-           {/* Removed "Mejorar mi protección" button */}
         </CardContent>
       </Card>
 
@@ -329,15 +330,12 @@ export default function DashboardPage() {
                  </div>
              </CardContent>
            </Card>
-
         </div>
-
 
        {/* 4. Sección: Recomendaciones Clave */}
        <div className="space-y-4">
          <h2 className="text-xl font-semibold">Recomendaciones Clave para Ti</h2>
          {recommendations.length > 0 ? (
-             // TODO: Implement Carousel/Horizontal Scroll
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                  {recommendations.map((rec) => (
                   <Card key={rec.id} className="flex flex-col">
@@ -352,11 +350,11 @@ export default function DashboardPage() {
                     <CardContent className="flex-1 pt-2 pb-4">
                        {/* Content if needed */}
                     </CardContent>
-                    <CardFooter className="pt-0">
+                     <CardFooter className="pt-0">
                         <Button variant="secondary" size="sm" className="w-full" asChild>
                            <Link href={`/recommendations#${rec.id}`}>Ver Detalles</Link>
                         </Button>
-                    </CardFooter>
+                     </CardFooter>
                   </Card>
                 ))}
               </div>
@@ -367,13 +365,13 @@ export default function DashboardPage() {
             )}
        </div>
 
-      {/* 5. Sección: Tu Bienestar y Seguros */}
+      {/* 5. Sección: Tu Bienestar y Seguros - REDESIGNED */}
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-1" className="border-b-0">
            <Card>
              <AccordionTrigger className="px-6 py-4 hover:no-underline">
                 <CardTitle className="text-lg font-medium flex items-center gap-2">
-                  <HeartPulse className="h-5 w-5" /> Tu Bienestar y Seguros
+                  <Sparkles className="h-5 w-5 text-yellow-500" /> ¡Tu Bienestar te Premia!
                 </CardTitle>
              </AccordionTrigger>
              <AccordionContent className="px-6 pb-4">
@@ -382,57 +380,89 @@ export default function DashboardPage() {
                          <Skeleton className="h-5 w-5 mr-2 rounded-full" /> Cargando datos de bienestar...
                      </div>
                  ) : wearableStatus === 'connected' && wearableBattery && wearableData ? (
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Wearable:</span>
-                          <Badge variant="default" className="bg-green-500 hover:bg-green-600">Conectado</Badge>
-                        </div>
-                        <Separator />
-                         {/* Basic Insight Widget */}
-                          <div className="flex items-center justify-between text-sm">
-                             <span className="text-muted-foreground flex items-center gap-1"><HeartPulse className="h-4 w-4"/> Ritmo Cardíaco:</span>
-                             <span>{wearableData.heartRate} lpm <span className="text-xs">(Promedio)</span></span>
+                    <div className="space-y-4">
+                        {/* Wearable Status & Battery */}
+                        <div className="flex items-center justify-between text-sm border p-3 rounded-md">
+                          <div className="flex items-center gap-2">
+                             {/* Placeholder Smartwatch Icon */}
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                             </svg>
+                             <span className="font-medium">Smartwatch:</span>
+                             <Badge variant="default" className="bg-green-500 hover:bg-green-600">Conectado</Badge>
                           </div>
-                          <Separator />
-                          <div className="flex items-center justify-between text-sm">
-                             <span className="text-muted-foreground flex items-center gap-1"><Zap className="h-4 w-4"/> Nivel Estrés:</span>
-                             <div className="flex flex-col items-end">
-                                <span>{wearableData.stressLevel}%</span>
-                                {wearableData.stressLevel > 60 && ( // Example threshold for high stress
-                                   <Alert variant="destructive" className="p-1 px-2 mt-1 text-xs">
-                                      <AlertTriangle className="h-3 w-3" />
-                                      <AlertDescription>Estrés aumentó 20%</AlertDescription> {/* Added message */}
-                                   </Alert>
-                                )}
-                             </div>
-                          </div>
-                           <Separator />
-                           <div className="flex items-center justify-between text-sm">
-                             <span className="text-muted-foreground">Batería Wearable:</span>
-                             <div className="flex items-center gap-1">
-                                {wearableBattery.isCharging && <BatteryCharging className="h-4 w-4 text-yellow-500" />}
-                               <span>{wearableBattery.percentage}%</span>
+                           <div className="flex items-center gap-1">
+                             {wearableBattery.isCharging && <BatteryCharging className="h-4 w-4 text-yellow-500" />}
+                            <span className="text-xs font-medium">{wearableBattery.percentage}%</span>
+                            {/* Simple Battery Bar */}
+                             <div className="w-8 h-2 bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-primary" style={{ width: `${wearableBattery.percentage}%` }}></div>
                              </div>
                            </div>
-                           {/* Updated text for wellness-premium connection */}
-                           {adaptivePremiumsActive ? (
-                             <p className="text-xs text-muted-foreground pt-2">Tus hábitos saludables actuales están ayudando a [mantener/reducir] la prima de tu [Seguro X]. ¡Sigue así!</p>
-                           ) : (
-                              <p className="text-xs text-muted-foreground pt-2">
-                                 ¿Sabías que podrías optimizar tus primas conectando tus datos de bienestar?
-                                 <Button variant="link" size="sm" className="p-0 h-auto ml-1" asChild>
-                                    <Link href="/profile/settings">Actívalo en Configuración.</Link>
-                                 </Button>
-                              </p>
-                           )}
-                           {/* Link to a dedicated wellness section or settings */}
-                           {/* <Button variant="link" size="sm" className="p-0 h-auto mt-1">Ver más detalles</Button> */}
+                        </div>
+
+                        {/* Insights Clave */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                             {/* Heart Rate */}
+                             <Card className="p-3">
+                                <CardContent className="p-0 flex items-center gap-3">
+                                  <HeartPulse className="h-6 w-6 text-red-500" />
+                                  <div>
+                                     <p className="text-sm text-muted-foreground">Ritmo Cardíaco</p>
+                                     <p className="text-lg font-bold">{wearableData.heartRate} <span className="text-xs font-normal">lpm</span></p>
+                                     <p className="text-xs text-muted-foreground">(Promedio hoy)</p>
+                                  </div>
+                                </CardContent>
+                             </Card>
+                              {/* Stress Level */}
+                             <Card className="p-3">
+                                <CardContent className="p-0 flex items-center gap-3">
+                                   <Zap className={cn("h-6 w-6",
+                                       wearableData.stressLevel < 30 ? "text-green-500" :
+                                       wearableData.stressLevel < 60 ? "text-yellow-500" :
+                                       "text-orange-500"
+                                    )} />
+                                  <div>
+                                     <p className="text-sm text-muted-foreground">Nivel Estrés</p>
+                                      <p className="text-lg font-bold">{getStressLevelLabel(wearableData.stressLevel)} <span className="text-xs font-normal">({wearableData.stressLevel}%)</span></p>
+                                     {wearableData.stressLevel > 60 && (
+                                       <Alert variant="destructive" className="p-1 px-2 mt-1 text-xs flex items-center gap-1">
+                                          <AlertTriangle className="h-3 w-3" />
+                                          <span>Estrés aumentó</span> {/* Simplified message */}
+                                       </Alert>
+                                      )}
+                                  </div>
+                                </CardContent>
+                             </Card>
+                        </div>
+
+                        {/* XAI Connection */}
+                        <div className="border p-3 rounded-md bg-accent/30">
+                            {adaptivePremiumsActive ? (
+                                <div className="flex items-start gap-2 text-sm">
+                                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+                                    <p className="text-accent-foreground">
+                                        <span className="font-semibold">¡Excelente!</span> Tus niveles de actividad constantes están ayudando a optimizar la prima de tu Seguro de Vida. ¡Sigue así! 💪
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="flex items-start gap-2 text-sm">
+                                    <Lightbulb className="h-5 w-5 text-yellow-500 mt-0.5 shrink-0" />
+                                    <p className="text-muted-foreground">
+                                        ¿Sabías que tus datos de bienestar podrían ayudarte a pagar menos en tu seguro de Vida?
+                                        <Button variant="link" size="sm" className="p-0 h-auto ml-1" asChild>
+                                            <Link href="/profile/settings">Activa las Primas Adaptativas</Link>
+                                        </Button> para descubrirlo.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                  ) : (
                     <div className="flex flex-col items-center text-center text-muted-foreground py-4">
                         <WifiOff className="h-10 w-10 mb-2" />
                         <p className="text-sm mb-2">Wearable desconectado o no configurado.</p>
-                        <Button variant="outline" size="sm">Configurar Wearable</Button>
+                        <Button variant="outline" size="sm">Conectar ahora</Button> {/* Changed label */}
                     </div>
                  )}
              </AccordionContent>
@@ -449,14 +479,12 @@ export default function DashboardPage() {
              <CreditCard className="mr-3 h-5 w-5 shrink-0" />
              <div className="flex flex-col">
                  <span className="font-medium">Pagar Próxima Cuota</span>
-                 {/* <span className="text-xs text-muted-foreground">Vence el DD/MM</span> */}
              </div>
            </Button>
            <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
              <FileWarning className="mr-3 h-5 w-5 shrink-0" />
              <div className="flex flex-col">
                 <span className="font-medium">Reportar Incidente</span>
-                {/* <span className="text-xs text-muted-foreground">Iniciar reclamación</span> */}
              </div>
            </Button>
            <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90" asChild>
@@ -464,16 +492,11 @@ export default function DashboardPage() {
                  <ShieldCheck className="mr-3 h-5 w-5 shrink-0" />
                  <div className="flex flex-col">
                      <span className="font-medium">Ver Mis Seguros</span>
-                     {/* <span className="text-xs text-muted-foreground">[N] pólizas activas</span> */}
                  </div>
                </Link>
            </Button>
          </div>
        </div>
-
     </div>
   );
-
-
 }
-
