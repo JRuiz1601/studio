@@ -19,31 +19,41 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"; // Import Dropdown components
+import { Badge } from '@/components/ui/badge'; // Import Badge for chips
 
 interface Message {
   id: string;
   role: 'user' | 'ai' | 'system';
   content: string;
   attachment?: { name: string; type: string };
+  suggestions?: string[]; // Added suggestions for system messages
 }
 
-// Updated initial messages/tips reflecting Zy's persona
+// Updated initial messages/tips reflecting Zy's persona and suggestions
 const initialMessages: Message[] = [
   {
     id: 'system-welcome',
     role: 'system',
     content: "¡Hola! Soy Zy, tu Co-Piloto de Protección y Bienestar. ¿En qué puedo ayudarte hoy?",
+    suggestions: [
+      "Ver mis seguros actuales",
+      "¿Cómo puedo ahorrar en mis primas?",
+      "Explicarme el Seguro Educativo",
+      "Reportar un incidente",
+      "¿Mi protección es adecuada?",
+    ],
   },
-   {
-    id: 'system-tip1',
-    role: 'system',
-    content: "Pregúntame sobre tus seguros: '¿Qué coberturas tengo activas?' o 'Detalles de mi póliza de salud'.",
-   },
-   {
-    id: 'system-tip2',
-    role: 'system',
-    content: "Puedo explicarte cómo funciona Zyren: '¿Qué son las primas adaptativas?' o '¿Cómo funciona el seguro automático?'.",
-   },
+  // Removed old tip messages
+  //  {
+  //   id: 'system-tip1',
+  //   role: 'system',
+  //   content: "Pregúntame sobre tus seguros: '¿Qué coberturas tengo activas?' o 'Detalles de mi póliza de salud'.",
+  //  },
+  //  {
+  //   id: 'system-tip2',
+  //   role: 'system',
+  //   content: "Puedo explicarte cómo funciona Zyren: '¿Qué son las primas adaptativas?' o '¿Cómo funciona el seguro automático?'.",
+  //  },
 ];
 
 
@@ -103,8 +113,8 @@ export default function ChatPage() {
 
     if ((!messageContent && !attachment) || isLoading) return;
 
-     // Clear initial system messages when user sends the first message
-     if (messages.length > 0 && messages.every(m => m.role === 'system')) {
+     // Clear initial system messages when user sends the first message manually
+     if (e && messages.length > 0 && messages.every(m => m.role === 'system')) {
        setMessages([]);
      }
 
@@ -164,6 +174,15 @@ export default function ChatPage() {
        inputRef.current?.focus(); // Refocus input after response/error
     }
   };
+
+  // Handler for clicking suggestion chips
+   const handleSuggestionClick = (suggestion: string) => {
+       // Clear initial system messages when a suggestion is clicked
+       if (messages.length > 0 && messages.every(m => m.role === 'system')) {
+          setMessages([]);
+       }
+       handleSendMessage(undefined, suggestion);
+   };
 
   // --- Document Attachment ---
   const handleAttachDocument = () => {
@@ -406,12 +425,31 @@ export default function ChatPage() {
                        <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
-                   {/* System Message Styling */}
+                   {/* System Message Styling & Suggestions */}
                    {message.role === 'system' && (
-                      <div className="text-center w-full max-w-md mx-auto my-2 p-3 bg-accent/50 border border-accent rounded-md text-xs text-accent-foreground flex items-center justify-center gap-2">
-                          {message.content.includes('support') || message.content.includes('call') ? <LifeBuoy className="h-4 w-4 shrink-0" /> : <Info className="h-4 w-4 shrink-0" />}
-                          <span>{message.content}</span>
-                      </div>
+                      <div className="w-full max-w-xl mx-auto my-2">
+                         <div className="text-center p-3 bg-accent/50 border border-accent rounded-md text-sm text-accent-foreground flex items-center justify-center gap-2 mb-3">
+                              {message.content.includes('support') || message.content.includes('call') ? <LifeBuoy className="h-5 w-5 shrink-0" /> : <Info className="h-5 w-5 shrink-0" />}
+                              <span>{message.content}</span>
+                          </div>
+                         {/* Render suggestion chips/buttons */}
+                          {message.suggestions && message.suggestions.length > 0 && (
+                              <div className="flex flex-wrap justify-center gap-2 mt-2">
+                                 {message.suggestions.map((suggestion, index) => (
+                                    <Button
+                                        key={`${message.id}-suggestion-${index}`}
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-xs h-auto py-1 px-3 bg-background/70 hover:bg-accent"
+                                        onClick={() => handleSuggestionClick(suggestion)}
+                                        disabled={isLoading}
+                                    >
+                                        {suggestion}
+                                    </Button>
+                                 ))}
+                              </div>
+                          )}
+                       </div>
                    )}
 
                    {/* User and AI Message Bubbles */}
@@ -544,5 +582,7 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
 
     
