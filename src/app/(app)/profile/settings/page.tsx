@@ -26,7 +26,7 @@ import { useRouter } from 'next/navigation';
 type DataPriority = 'wearable' | 'mobile_context';
 
 const mockSettings = {
-  dataPriority: 'wearable' as DataPriority,
+  dataPriority: 'mobile_context' as DataPriority, // Default changed to mobile_context
   expertMode: false,
   facialRecognitionEnabled: true, // Assume it's enabled after setup
   // Add darkMode setting - default to system preference initially
@@ -34,7 +34,7 @@ const mockSettings = {
 
 
 export default function SettingsPage() {
-  const [dataPriority, setDataPriority] = useState<DataPriority>(mockSettings.dataPriority);
+  const [dataPriority, setDataPriority] = useState<DataPriority>(mockSettings.dataPriority); // Initialize with mockSettings default
   const [expertMode, setExpertMode] = useState<boolean>(mockSettings.expertMode);
    // Dark Mode State - initialize from localStorage or system preference
    const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -145,8 +145,8 @@ export default function SettingsPage() {
                        <TooltipContent side="left" className="max-w-xs">
                          <p>Choose the primary data source Zyren should prioritize for risk assessment and premium adjustments (if applicable).</p>
                          <ul className="list-disc list-inside text-xs mt-2 space-y-1">
-                            <li><strong>Wearable:</strong> Prioritizes real-time heart rate, stress levels, etc. Provides the most accurate, personalized insights.</li>
-                            <li><strong>Mobile + Context:</strong> Relies on phone sensors (activity, location) and contextual data (weather, traffic). Less granular but still effective.</li>
+                            <li><strong>Mobile + Context (Default):</strong> Relies on phone sensors (activity, location) and contextual data (weather, traffic).</li>
+                            <li><strong>Wearable (Optional Upgrade):</strong> Prioritizes real-time heart rate, stress levels, etc. Provides the most accurate, personalized insights. Requires setup/delivery.</li>
                          </ul>
                        </TooltipContent>
                    </Tooltip>
@@ -157,19 +157,19 @@ export default function SettingsPage() {
                  className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                  disabled={isLoading}
                >
-                 <Label htmlFor="priority-wearable" className={`flex flex-col items-start space-y-2 rounded-md border p-4 cursor-pointer hover:border-primary ${dataPriority === 'wearable' ? 'border-primary bg-primary/5' : ''}`}>
-                   <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="wearable" id="priority-wearable" />
-                      <span>Wearable Data</span>
-                   </div>
-                   <span className="text-sm text-muted-foreground">Prioritize data from connected wearables (heart rate, stress).</span>
-                 </Label>
                  <Label htmlFor="priority-mobile" className={`flex flex-col items-start space-y-2 rounded-md border p-4 cursor-pointer hover:border-primary ${dataPriority === 'mobile_context' ? 'border-primary bg-primary/5' : ''}`}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="mobile_context" id="priority-mobile" />
-                      <span>Mobile + Context</span>
+                      <span>Mobile + Context (Default)</span>
                     </div>
                    <span className="text-sm text-muted-foreground">Use phone sensors and contextual information.</span>
+                 </Label>
+                 <Label htmlFor="priority-wearable" className={`flex flex-col items-start space-y-2 rounded-md border p-4 cursor-pointer hover:border-primary ${dataPriority === 'wearable' ? 'border-primary bg-primary/5' : ''}`}>
+                   <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="wearable" id="priority-wearable" />
+                      <span>Wearable Data (Optional)</span>
+                   </div>
+                   <span className="text-sm text-muted-foreground">Prioritize data from connected wearables. Activation may require setup/delivery process.</span>
                  </Label>
                </RadioGroup>
              </div>

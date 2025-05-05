@@ -84,10 +84,9 @@ export default function FacialRecognitionPage() {
     toast({
       title: 'Facial Recognition Setup Complete',
       description: 'Redirecting to onboarding...',
-    });
+    })
     // TODO: Add logic to save facial data reference if needed
-    // The (onboarding) folder is a route group, so /onboarding/onboarding maps to this path.
-    router.push('/onboarding/onboarding');
+    router.push('/dashboard');
   };
 
   const handleRetry = () => {
@@ -167,7 +166,7 @@ export default function FacialRecognitionPage() {
        case 'validating':
          return <Button disabled className="w-full"><Loader className="animate-spin mr-2 h-4 w-4" />{status === 'scanning' ? 'Scanning...' : 'Validating...'}</Button>;
        case 'success':
-         return <Button onClick={handleContinue} className="w-full">Continue to Onboarding</Button>;
+         return <Button onClick={handleContinue} className="w-full">Continue to Dashboard</Button>;
        case 'error':
          return <Button onClick={handleRetry} variant="outline" className="w-full">Retry Scan</Button>;
        case 'idle':
