@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link'; // Import Link
+import { Card, CardContent, CardDescription, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Info, X } from 'lucide-react';
@@ -13,9 +14,10 @@ interface Notification {
   type: 'info' | 'warning' | 'success' | 'error';
   timestamp: Date;
   read: boolean;
+  link?: string; // Optional link for "Ver Detalles"
 }
 
-// Mock data for simulated notifications
+// Mock data for simulated notifications with links
 const initialNotifications: Notification[] = [
   {
     id: 'n1',
@@ -24,6 +26,7 @@ const initialNotifications: Notification[] = [
     type: 'success',
     timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
     read: false,
+    link: '/insurances#accident1', // Link to the specific policy if possible
   },
   {
     id: 'n2',
@@ -32,6 +35,7 @@ const initialNotifications: Notification[] = [
     type: 'warning',
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
     read: false,
+    link: '/profile/settings', // Link to settings or wearable section
   },
   {
     id: 'n3',
@@ -40,6 +44,7 @@ const initialNotifications: Notification[] = [
     type: 'info',
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
     read: true,
+    link: '/recommendations#rec_pension_boost', // Link to specific recommendation
   },
    {
     id: 'n4',
@@ -48,6 +53,7 @@ const initialNotifications: Notification[] = [
     type: 'info',
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
     read: true,
+    link: '/insurances#health1', // Link to billing or policy page
    },
     {
       id: 'n5',
@@ -56,6 +62,7 @@ const initialNotifications: Notification[] = [
       type: 'info',
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
       read: true,
+      link: '/profile/edit', // Link to profile edit page
     },
 ];
 
@@ -115,31 +122,44 @@ export default function NotificationsPage() {
               key={notification.id}
               className={`relative overflow-hidden transition-opacity ${notification.read ? 'opacity-70' : 'bg-card'}`}
             >
-              <CardContent className="p-4 flex items-start gap-4">
-                <div className="mt-1 shrink-0">
-                  {getNotificationIcon(notification.type)}
-                </div>
-                <div className="flex-1 space-y-1">
-                  <CardTitle className="text-base font-medium">{notification.title}</CardTitle>
-                  <CardDescription className="text-sm">{notification.description}</CardDescription>
-                  <p className="text-xs text-muted-foreground">
-                     {/* Format timestamp (e.g., using date-fns) */}
-                     {notification.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {notification.timestamp.toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex flex-col gap-1 items-end">
-                    {!notification.read && (
-                        <Button variant="ghost" size="sm" onClick={() => markAsRead(notification.id)} className="h-auto p-1 text-xs">
-                           Mark read
+               <div className="flex"> {/* Flex container for content and actions */}
+                  <CardContent className="p-4 flex items-start gap-4 flex-1"> {/* Content takes most space */}
+                    <div className="mt-1 shrink-0">
+                      {getNotificationIcon(notification.type)}
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <CardTitle className="text-base font-medium">{notification.title}</CardTitle>
+                      <CardDescription className="text-sm">{notification.description}</CardDescription>
+                      <p className="text-xs text-muted-foreground">
+                         {/* Format timestamp (e.g., using date-fns) */}
+                         {notification.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {notification.timestamp.toLocaleDateString()}
+                      </p>
+                       {/* "Ver Detalles" Button */}
+                       {notification.link && (
+                         <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-primary">
+                           <Link href={notification.link}>
+                             Ver Detalles
+                           </Link>
+                         </Button>
+                       )}
+                    </div>
+                  </CardContent>
+
+                  {/* Actions Column */}
+                   <div className="flex flex-col gap-1 items-end p-4 border-l border-border/50">
+                       {!notification.read && (
+                           <Button variant="ghost" size="sm" onClick={() => markAsRead(notification.id)} className="h-auto p-1 text-xs whitespace-nowrap">
+                              Mark read
+                           </Button>
+                        )}
+                        <Button variant="ghost" size="icon" onClick={() => deleteNotification(notification.id)} className="h-6 w-6 text-muted-foreground hover:text-destructive">
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Delete notification</span>
                         </Button>
-                     )}
-                     <Button variant="ghost" size="icon" onClick={() => deleteNotification(notification.id)} className="h-6 w-6 text-muted-foreground hover:text-destructive">
-                       <X className="h-4 w-4" />
-                       <span className="sr-only">Delete notification</span>
-                     </Button>
+                   </div>
                 </div>
 
-              </CardContent>
+
                {/* Optional: Add subtle indicator for unread */}
                {!notification.read && (
                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
