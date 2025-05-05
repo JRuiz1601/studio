@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect, type FormEvent, useCallback } from 'react';
-import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info, LifeBuoy, Phone, Headset } from 'lucide-react'; // Added Headset, removed LifeBuoy from direct use in trigger
+import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info, LifeBuoy, Phone, Headset } from 'lucide-react'; // Added Headset
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,11 +20,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"; // Import Dropdown components
 import { Badge } from '@/components/ui/badge'; // Import Badge for chips
+import { format } from 'date-fns'; // Import date-fns for formatting
 
 interface Message {
   id: string;
   role: 'user' | 'ai' | 'system';
   content: string;
+  timestamp: Date; // Added timestamp
   attachment?: { name: string; type: string };
   suggestions?: string[]; // Added suggestions for system messages
 }
@@ -35,6 +37,7 @@ const initialMessages: Message[] = [
     id: 'system-welcome',
     role: 'system',
     content: "¡Hola! Soy Zy, tu Co-Piloto de Protección y Bienestar. ¿En qué puedo ayudarte hoy?",
+    timestamp: new Date(), // Added timestamp
     suggestions: [
       "Ver mis seguros actuales",
       "¿Cómo puedo ahorrar en mis primas?",
@@ -112,6 +115,7 @@ export default function ChatPage() {
       id: Date.now().toString() + '-user',
       role: 'user',
       content: messageContent,
+      timestamp: new Date(), // Added timestamp
       ...(attachment && { attachment }), // Add attachment info if present
     };
 
@@ -137,6 +141,7 @@ export default function ChatPage() {
           id: Date.now().toString() + '-ai', // Ensure unique ID
           role: 'ai',
           content: aiResponse.response,
+          timestamp: new Date(), // Added timestamp
         };
 
         // Add AI response
@@ -154,6 +159,7 @@ export default function ChatPage() {
           id: Date.now().toString() + '-ai-error',
           role: 'ai',
           content: 'Lo siento, encontré un error. Por favor, intenta de nuevo.', // More empathetic error
+          timestamp: new Date(), // Added timestamp
         };
        setMessages((prev) => [...prev, aiErrorMessage]);
 
@@ -327,6 +333,7 @@ export default function ChatPage() {
           id: Date.now().toString() + '-system-support',
           role: 'system',
           content: 'You requested to chat with a human agent. We are connecting you now.',
+          timestamp: new Date(), // Added timestamp
       };
        setMessages((prev) => [...prev, supportMessage]);
        scrollToBottom();
@@ -351,6 +358,7 @@ export default function ChatPage() {
           id: Date.now().toString() + '-system-call',
           role: 'system',
           content: `Initiating call to support...`,
+          timestamp: new Date(), // Added timestamp
       };
      setMessages((prev) => [...prev, callMessage]);
      scrollToBottom();
@@ -404,73 +412,88 @@ export default function ChatPage() {
                 <div
                   key={message.id}
                   className={cn(
-                    'flex items-end gap-3 animate-in fade-in duration-300',
-                     message.role === 'user' ? 'justify-end' : message.role === 'system' ? 'justify-center' : 'justify-start'
+                    'flex flex-col gap-1', // Changed to flex-col and added gap-1 for timestamp
+                    message.role === 'user' ? 'items-end' : message.role === 'system' ? 'items-center' : 'items-start'
                   )}
                 >
-                  {/* AI Avatar (left side) */}
-                  {message.role === 'ai' && (
-                    <Avatar className={cn("h-8 w-8 border flex-shrink-0")}>
-                       {/* Use Bot icon as fallback */}
-                       <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
-                       {/* Optionally use an image if you have one: <AvatarImage src="/path/to/zy-avatar.png" alt="Zy Avatar" /> */}
-                    </Avatar>
-                  )}
-                   {/* System Message Styling & Suggestions */}
-                   {message.role === 'system' && (
-                      <div className="w-full max-w-xl mx-auto my-2">
-                         <div className="text-center p-3 bg-accent/50 border border-accent rounded-md text-sm text-accent-foreground flex items-center justify-center gap-2 mb-3">
-                              {/* Use appropriate icon based on message content */}
-                              {message.content.includes('support') || message.content.includes('call') ? <LifeBuoy className="h-5 w-5 shrink-0" /> : <Info className="h-5 w-5 shrink-0" />}
-                              <span className="whitespace-pre-wrap">{message.content}</span>
-                          </div>
-                         {/* Render suggestion chips/buttons */}
-                          {message.suggestions && message.suggestions.length > 0 && (
-                              <div className="flex flex-wrap justify-center gap-2 mt-2">
-                                 {message.suggestions.map((suggestion, index) => (
-                                    <Button
-                                        key={`${message.id}-suggestion-${index}`}
-                                        variant="outline"
-                                        size="sm"
-                                        className="text-xs h-auto py-1 px-3 bg-background/70 hover:bg-accent"
-                                        onClick={() => handleSuggestionClick(suggestion)}
-                                        disabled={isLoading}
-                                    >
-                                        {suggestion}
-                                    </Button>
-                                 ))}
-                              </div>
-                          )}
-                       </div>
-                   )}
+                   <div className={cn(
+                     'flex items-end gap-3 w-full animate-in fade-in duration-300',
+                     message.role === 'user' ? 'justify-end' : message.role === 'system' ? 'justify-center' : 'justify-start'
+                   )}>
 
-                   {/* User and AI Message Bubbles */}
-                  {message.role !== 'system' && (
-                    <div
-                      className={cn(
-                        'rounded-lg px-4 py-2 max-w-[75%] shadow-sm',
-                        message.role === 'user'
-                           ? 'bg-muted text-muted-foreground rounded-br-none' // User bubble style - Switched to muted gray
-                           : 'bg-accent text-accent-foreground rounded-bl-none' // AI bubble style - Switched to accent color
+                      {/* AI Avatar (left side) */}
+                      {message.role === 'ai' && (
+                        <Avatar className={cn("h-8 w-8 border flex-shrink-0")}>
+                           <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
+                        </Avatar>
                       )}
-                    >
-                       {/* Content - Render markdown-like formatting */}
-                       <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />') }} />
-                       {/* Attachment info */}
-                       {message.attachment && (
-                           <div className="mt-2 pt-1 border-t border-primary/30 text-xs opacity-80 flex items-center gap-1">
-                               <Paperclip className="h-3 w-3" />
-                               <span>{message.attachment.name}</span>
+                       {/* System Message Styling & Suggestions */}
+                       {message.role === 'system' && (
+                          <div className="w-full max-w-xl mx-auto my-2">
+                             <div className="text-center p-3 bg-accent/50 border border-accent rounded-md text-sm text-accent-foreground flex items-center justify-center gap-2 mb-3">
+                                  {message.content.includes('support') || message.content.includes('call') ? <LifeBuoy className="h-5 w-5 shrink-0" /> : <Info className="h-5 w-5 shrink-0" />}
+                                  <span className="whitespace-pre-wrap">{message.content}</span>
+                              </div>
+                             {/* Render suggestion chips/buttons */}
+                              {message.suggestions && message.suggestions.length > 0 && (
+                                  <div className="flex flex-wrap justify-center gap-2 mt-2">
+                                     {message.suggestions.map((suggestion, index) => (
+                                        <Button
+                                            key={`${message.id}-suggestion-${index}`}
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-xs h-auto py-1 px-3 bg-background/70 hover:bg-accent"
+                                            onClick={() => handleSuggestionClick(suggestion)}
+                                            disabled={isLoading}
+                                        >
+                                            {suggestion}
+                                        </Button>
+                                     ))}
+                                  </div>
+                              )}
                            </div>
                        )}
-                    </div>
-                  )}
-                   {/* User Avatar (right side) */}
-                  {message.role === 'user' && (
-                    <Avatar className="h-8 w-8 border flex-shrink-0">
-                       <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
-                    </Avatar>
-                  )}
+
+                       {/* User and AI Message Bubbles */}
+                      {message.role !== 'system' && (
+                        <div
+                          className={cn(
+                            'rounded-lg px-4 py-2 max-w-[75%] shadow-sm',
+                            message.role === 'user'
+                               ? 'bg-primary/80 text-primary-foreground rounded-br-none' // User bubble style - Primary accent
+                               : 'bg-muted text-muted-foreground rounded-bl-none' // AI bubble style - Muted gray
+                          )}
+                        >
+                           {/* Content - Render markdown-like formatting */}
+                           <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />') }} />
+                           {/* Attachment info */}
+                           {message.attachment && (
+                               <div className="mt-2 pt-1 border-t border-primary/30 text-xs opacity-80 flex items-center gap-1">
+                                   <Paperclip className="h-3 w-3" />
+                                   <span>{message.attachment.name}</span>
+                               </div>
+                           )}
+                        </div>
+                      )}
+                       {/* User Avatar (right side) */}
+                      {message.role === 'user' && (
+                        <Avatar className="h-8 w-8 border flex-shrink-0">
+                           <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                        </Avatar>
+                      )}
+                   </div>
+
+                     {/* Timestamp below the bubble */}
+                     {message.role !== 'system' && (
+                        <div className={cn(
+                           'text-xs text-muted-foreground px-1',
+                           message.role === 'user' ? 'pr-[calc(2rem+0.75rem)]' : 'pl-[calc(2rem+0.75rem)]' // Align timestamp based on role
+                        )}>
+                            {/* Format: Today, 10:30 AM or 5/15/2024, 10:30 AM */}
+                            {format(message.timestamp, 'PP, p')}
+                        </div>
+                     )}
+
                 </div>
               ))}
                {/* AI Typing Indicator */}
