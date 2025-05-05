@@ -242,26 +242,26 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
 
   const BottomNavBar = () => (
-    // Fixed position, white background, top border/shadow for separation
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background shadow-[0_-1px_3px_rgba(0,0,0,0.1)] md:hidden">
+    // Fixed position, background, subtle top border/shadow for separation
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/50 bg-background shadow-[0_-2px_4px_rgba(0,0,0,0.05)] md:hidden">
       <div className="flex h-16 items-center justify-around px-2">
         {navItems.map((item) => {
           // Determine if the current path starts with the item's href
-          // Special case for dashboard ('/') to match exactly
           const isActive = item.href === '/dashboard'
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
+            ? pathname === item.href // Exact match for dashboard
+            : pathname.startsWith(item.href) && item.href !== '/dashboard'; // StartsWith for others, excluding dashboard
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium transition-colors', // flex-1 for equal distribution, adjusted padding/gap
+                 'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium transition-colors duration-150 ease-in-out rounded-md', // Added rounding and transition
                 isActive
-                  ? 'text-primary' // Active state color
-                  : 'text-muted-foreground hover:text-foreground' // Inactive state color
+                  ? 'text-primary font-semibold bg-primary/5' // Active state: primary color, bolder font, subtle background
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50' // Inactive state: muted color, hover effect
               )}
+              aria-current={isActive ? 'page' : undefined} // Improve accessibility
             >
               <item.icon className="h-5 w-5" />
               <span>{item.label}</span>
@@ -282,19 +282,23 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full flex-col">
        <Header />
-       <main className="flex-1 overflow-y-auto bg-muted/40 pb-16 md:pb-0"> {/* Add padding-bottom for mobile nav */}
+       <main className="flex-1 overflow-y-auto bg-muted/40 pb-20 md:pb-0"> {/* Increased padding-bottom for mobile nav */}
          {children}
        </main>
-        {/* Floating Action Button - Conditional Link and Icon */}
-        <Link href={fabHref} passHref>
-            <Button
-            variant="default" // Or a more prominent variant
-            size="icon"
-            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6" // Position above bottom nav on mobile, fixed on desktop
+        {/* Floating Action Button */}
+        <Link href={fabHref} passHref legacyBehavior>
+            <a
             aria-label={fabAriaLabel}
+            className={cn(
+                "fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6",
+                "flex items-center justify-center", // Center the icon
+                "bg-primary text-primary-foreground", // Use primary colors
+                "hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", // Hover/Focus states
+                "transition-transform hover:scale-105" // Add subtle scale animation on hover
+            )}
             >
             <FabIcon className="h-7 w-7" />
-            </Button>
+            </a>
         </Link>
        <BottomNavBar />
     </div>
