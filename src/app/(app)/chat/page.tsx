@@ -411,9 +411,9 @@ export default function ChatPage() {
                   {/* AI Avatar (left side) */}
                   {message.role === 'ai' && (
                     <Avatar className={cn("h-8 w-8 border flex-shrink-0")}>
-                       {/* Replace with robot avatar or keep bot icon */}
+                       {/* Use Bot icon as fallback */}
                        <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
-                       {/* Example using Image: <AvatarImage src="/path/to/robot-avatar.png" alt="Zy Avatar" /> */}
+                       {/* Optionally use an image if you have one: <AvatarImage src="/path/to/zy-avatar.png" alt="Zy Avatar" /> */}
                     </Avatar>
                   )}
                    {/* System Message Styling & Suggestions */}
@@ -542,7 +542,7 @@ export default function ChatPage() {
             <Input
               ref={inputRef}
               type="text"
-              placeholder={isRecording ? "Grabando... Habla ahora" : "Escribe tu mensaje..."}
+              placeholder={isRecording ? "Grabando... Habla ahora" : "Pregúntale a Zy lo que necesites..."} // Updated placeholder
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               disabled={isLoading || isRecording} // Disable input while loading or recording
