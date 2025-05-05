@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, type FormEvent, useCallback } from 'react';
-import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info } from 'lucide-react';
+import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info, LifeBuoy } from 'lucide-react'; // Added LifeBuoy
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -295,6 +295,31 @@ export default function ChatPage() {
     }
   };
 
+  // --- Contact Human Support ---
+  const handleContactSupport = () => {
+    if (isLoading) return;
+    // Simulate request to contact support
+    setIsLoading(true); // Show loading state briefly
+    toast({
+        title: 'Connecting to Support',
+        description: 'Please wait while we connect you with a human agent...',
+    });
+    // In a real app, this would trigger an API call or redirect to a support chat/form
+    setTimeout(() => {
+      setIsLoading(false);
+      // Example: Display a system message
+      const supportMessage: Message = {
+          id: Date.now().toString() + '-system-support',
+          role: 'system',
+          content: 'You requested to speak with a human agent. We are connecting you now.',
+      };
+       setMessages((prev) => [...prev, supportMessage]);
+       scrollToBottom();
+       // TODO: Implement actual connection logic or navigation
+       // router.push('/support-chat');
+    }, 1500);
+  };
+
 
   return (
     <div className="container mx-auto p-4 md:p-6 flex flex-col h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))] relative overflow-hidden">
@@ -356,7 +381,7 @@ export default function ChatPage() {
                    {/* System Message Styling */}
                    {message.role === 'system' && (
                       <div className="text-center w-full max-w-md mx-auto my-2 p-3 bg-accent/50 border border-accent rounded-md text-xs text-accent-foreground flex items-center justify-center gap-2">
-                          <Info className="h-4 w-4 shrink-0" />
+                          {message.content.includes('support') ? <LifeBuoy className="h-4 w-4 shrink-0" /> : <Info className="h-4 w-4 shrink-0" />}
                           <span>{message.content}</span>
                       </div>
                    )}
@@ -428,11 +453,24 @@ export default function ChatPage() {
                {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                <span className="sr-only">{isRecording ? 'Detener Grabación' : 'Usar Entrada de Voz'}</span>
              </Button>
+             {/* Contact Support Button */}
+             <Button
+                 type="button"
+                 variant="ghost"
+                 size="icon"
+                 onClick={handleContactSupport}
+                 disabled={isLoading}
+                 aria-label="Contactar Soporte Humano"
+                 className="text-muted-foreground hover:text-primary" // Subtle styling
+             >
+                <LifeBuoy className="h-5 w-5" />
+                <span className="sr-only">Contactar Soporte Humano</span>
+             </Button>
 
             <Input
               ref={inputRef}
               type="text"
-              placeholder={isRecording ? "Grabando... Habla ahora" : "Escribe tu mensaje o usa la voz..."}
+              placeholder={isRecording ? "Grabando... Habla ahora" : "Escribe tu mensaje..."}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               disabled={isLoading || isRecording} // Disable input while loading or recording
