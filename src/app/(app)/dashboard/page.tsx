@@ -151,7 +151,7 @@ export default function DashboardPage() {
       {/* 1. Saludo Personalizado */}
        <div className="mb-4">
          <h1 className="text-2xl font-semibold">Hola {userName},</h1>
-         <p className="text-muted-foreground">{greeting || <Skeleton className="h-5 w-24 inline-block" />}</p> {/* Display greeting or skeleton */}
+         <div className="text-muted-foreground">{greeting || <Skeleton className="h-5 w-24 inline-block" />}</div> {/* Display greeting or skeleton */}
        </div>
 
       {/* 2. Widget Principal: Nivel de Protección */}
@@ -339,5 +339,5 @@ export default function DashboardPage() {
 
     </div>
   );
-}
 
+    
