@@ -351,7 +351,7 @@ export default function ChatPage() {
                  )}>
                   <Image
                      // Use a placeholder image URL
-                     src="https://picsum.photos/100/100" // Replace with actual avatar URL later
+                     src="https://picsum.photos/100/100" // Placeholder image
                      alt="Zy Avatar"
                      layout="fill"
                      objectFit="contain"
@@ -359,7 +359,7 @@ export default function ChatPage() {
                        "drop-shadow-md", // Add some shadow for floating effect
                        isAiTyping ? ' ' : ' ' // Add conditional classes if needed
                      )}
-                     data-ai-hint="friendly AI robot" // AI hint for image generation
+                     data-ai-hint="friendly AI robot" // Updated AI hint
                    />
                </div>
           </div>
