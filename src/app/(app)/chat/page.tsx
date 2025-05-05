@@ -345,16 +345,24 @@ export default function ChatPage() {
               <CardTitle className="text-lg font-semibold">
                 Chat with Zy
               </CardTitle>
-               {/* Floating Robot Avatar - Using Avatar component */}
-                <Avatar className={cn(
-                    "relative h-10 w-10 md:h-12 md:w-12 transition-opacity duration-500 animate-float border",
+               {/* Floating Robot Avatar - Using Image component as placeholder */}
+               <div className={cn(
+                    "relative h-12 w-12 transition-opacity duration-500 animate-float",
                     isAiTyping ? 'opacity-100 animate-pulse-speak' : 'opacity-70'
                  )}>
-                    {/* <AvatarImage src="/zyren-friendly-robot-placeholder.svg" alt="Zy Avatar" /> */}
-                    <AvatarFallback className={cn(isAiTyping ? 'bg-primary/20' : 'bg-muted')}>
-                        <Bot className="h-6 w-6 text-primary" />
-                    </AvatarFallback>
-                 </Avatar>
+                  <Image
+                     // Use a placeholder image URL
+                     src="https://picsum.photos/100/100" // Replace with actual avatar URL later
+                     alt="Zy Avatar"
+                     layout="fill"
+                     objectFit="contain"
+                     className={cn(
+                       "drop-shadow-md", // Add some shadow for floating effect
+                       isAiTyping ? ' ' : ' ' // Add conditional classes if needed
+                     )}
+                     data-ai-hint="friendly robot mascot" // AI hint for image generation
+                   />
+               </div>
           </div>
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden bg-muted/30">
@@ -371,7 +379,7 @@ export default function ChatPage() {
                   {/* AI Avatar (left side) */}
                   {message.role === 'ai' && (
                     <Avatar className={cn("h-8 w-8 border flex-shrink-0")}>
-                       {/* <AvatarImage src="URL_TO_ZY_IMAGE_SMALL" alt="Zy Avatar" /> */}
+                       {/* Keep smaller bubble avatar for consistency in chat flow */}
                        <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
@@ -501,4 +509,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
