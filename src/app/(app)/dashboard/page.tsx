@@ -52,6 +52,7 @@ export default function DashboardPage() {
   const [loadingWeather, setLoadingWeather] = useState(true);
   const [loadingWearable, setLoadingWearable] = useState(true);
   const [userName, setUserName] = useState('Usuario Zyren'); // Placeholder user name
+  const [greeting, setGreeting] = useState<string | null>(null); // State for greeting
 
 
   // Fetch data on component mount
@@ -99,6 +100,13 @@ export default function DashboardPage() {
          setRiskStatus('low'); // Default to low for now
      }
      fetchData();
+
+     // Set greeting on client side after mount
+     const hour = new Date().getHours();
+     if (hour < 12) setGreeting('Buenos días.');
+     else if (hour < 18) setGreeting('Buenas tardes.');
+     else setGreeting('Buenas noches.');
+
   }, []);
 
 
@@ -127,14 +135,6 @@ export default function DashboardPage() {
       }
     };
 
-   const getGreeting = () => {
-       const hour = new Date().getHours();
-       if (hour < 12) return 'Buenos días.';
-       if (hour < 18) return 'Buenas tardes.';
-       return 'Buenas noches.';
-   }
-
-
    const recommendations: Recommendation[] = [
     // Dynamically generate recommendations based on data
     ...(weather && weather.temperatureFarenheit > 85 ? [{ id: 'rec1', title: 'Alerta por Calor', description: 'Mantente hidratado y evita actividades extenuantes.', type: 'weather', icon: Cloud } as Recommendation] : []),
@@ -151,7 +151,7 @@ export default function DashboardPage() {
       {/* 1. Saludo Personalizado */}
        <div className="mb-4">
          <h1 className="text-2xl font-semibold">Hola {userName},</h1>
-         <p className="text-muted-foreground">{getGreeting()}</p>
+         <p className="text-muted-foreground">{greeting || <Skeleton className="h-5 w-24 inline-block" />}</p> {/* Display greeting or skeleton */}
        </div>
 
       {/* 2. Widget Principal: Nivel de Protección */}
@@ -340,3 +340,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
