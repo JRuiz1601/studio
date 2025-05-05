@@ -30,6 +30,8 @@ import { getWearableBatteryStatus, getWearableConnectionStatus, getWearableData 
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button'; // Import Button
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'; // Import Alert components
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"; // Import chart components
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'; // Import Recharts components
 
 type RiskStatus = 'low' | 'medium' | 'high';
 
@@ -41,6 +43,29 @@ interface Recommendation {
   type: 'weather' | 'location' | 'profile' | 'wearable';
   icon: React.ComponentType<{ className?: string }>;
 }
+
+// Mock data for the financial chart
+const chartData = [
+  { month: "Jan", inflation: 2.1, market: 100 },
+  { month: "Feb", inflation: 2.3, market: 102 },
+  { month: "Mar", inflation: 2.5, market: 101 },
+  { month: "Apr", inflation: 2.8, market: 105 },
+  { month: "May", inflation: 3.1, market: 103 },
+  { month: "Jun", inflation: 3.5, market: 108 },
+];
+
+// Chart configuration
+const chartConfig = {
+  inflation: {
+    label: "Inflación (%)",
+    color: "hsl(var(--destructive))", // Use destructive color for inflation
+  },
+  market: {
+    label: "Mercado (Índice)",
+    color: "hsl(var(--primary))", // Use primary color for market trend
+  },
+} satisfies ChartConfig;
+
 
 export default function DashboardPage() {
   const [riskStatus, setRiskStatus] = useState<RiskStatus>('low');
@@ -152,7 +177,8 @@ export default function DashboardPage() {
       {/* 1. Saludo Personalizado */}
        <div className="mb-4">
          <h1 className="text-2xl font-semibold">Hola {userName},</h1>
-         <div className="text-muted-foreground">{greeting || <Skeleton className="h-5 w-24 inline-block" />}</div> {/* Display greeting or skeleton */}
+         {/* Display greeting or skeleton - Use div instead of p for Skeleton */}
+         <div className="text-muted-foreground">{greeting || <Skeleton className="h-5 w-24 inline-block" />}</div>
        </div>
 
       {/* 2. Widget Principal: Nivel de Protección */}
@@ -219,6 +245,56 @@ export default function DashboardPage() {
                </CardTitle>
              </CardHeader>
              <CardContent className="space-y-3">
+                  {/* Interactive Chart */}
+                   <ChartContainer config={chartConfig} className="h-[100px] w-full">
+                      <LineChart
+                        accessibilityLayer
+                        data={chartData}
+                        margin={{
+                           left: -20, // Adjust left margin to fit labels
+                           right: 10,
+                           top: 5,
+                           bottom: 0,
+                        }}
+                      >
+                        <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted-foreground/30"/>
+                        <XAxis
+                           dataKey="month"
+                           tickLine={false}
+                           axisLine={false}
+                           tickMargin={8}
+                           tickFormatter={(value) => value.slice(0, 3)} // Shorten month names
+                            style={{ fontSize: '0.7rem', fill: 'hsl(var(--muted-foreground))' }} // Style XAxis ticks
+                        />
+                         <YAxis
+                           tickLine={false}
+                           axisLine={false}
+                           tickMargin={8}
+                           domain={['dataMin - 1', 'dataMax + 1']} // Adjust domain slightly
+                           style={{ fontSize: '0.7rem', fill: 'hsl(var(--muted-foreground))' }} // Style YAxis ticks
+                           />
+                        <ChartTooltip
+                          cursor={false}
+                          content={<ChartTooltipContent indicator="line" />}
+                        />
+                        <Line
+                          dataKey="inflation"
+                          type="monotone"
+                          stroke="var(--color-inflation)"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                        {/* Optional: Add market trend line if needed */}
+                        {/* <Line
+                          dataKey="market"
+                          type="monotone"
+                          stroke="var(--color-market)"
+                          strokeWidth={2}
+                          dot={false}
+                        /> */}
+                      </LineChart>
+                   </ChartContainer>
+
                  <Alert variant="destructive" className="p-3">
                    <AlertTriangle className="h-4 w-4" />
                    <AlertTitle className="text-sm font-semibold">Alerta de Inflación</AlertTitle>
@@ -256,7 +332,7 @@ export default function DashboardPage() {
                     <CardContent className="flex-1 pt-2 pb-4">
                        {/* Content if needed */}
                     </CardContent>
-                     <CardFooter className="pt-0">
+                    <CardFooter className="pt-0">
                         <Button variant="secondary" size="sm" className="w-full" asChild>
                            <Link href={`/recommendations#${rec.id}`}>Ver Detalles</Link>
                         </Button>
@@ -369,3 +445,4 @@ export default function DashboardPage() {
 
 
 }
+
