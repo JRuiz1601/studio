@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, type FormEvent, useCallback } from 'react';
-import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info } from 'lucide-react'; // Added Info
+import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,32 +11,32 @@ import { chatWithAI } from '@/ai/flows/chat-flow'; // Import the flow function
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import Image from 'next/image'; // Import Image
+import Image from 'next/image';
 
 interface Message {
   id: string;
-  role: 'user' | 'ai' | 'system'; // Added 'system' role for initial tips
+  role: 'user' | 'ai' | 'system';
   content: string;
-  attachment?: { name: string; type: string }; // Optional attachment info
+  attachment?: { name: string; type: string };
 }
 
-// Initial messages/tips to display
+// Updated initial messages/tips reflecting Zy's persona
 const initialMessages: Message[] = [
   {
     id: 'system-welcome',
     role: 'system',
-    content: "Welcome to Zyren Chat! How can I assist you today? Feel free to ask about your coverage, explore options, or get tips.",
+    content: "¡Hola! Soy Zy, tu Co-Piloto de Protección y Bienestar. ¿En qué puedo ayudarte hoy?",
   },
    {
-    id: 'system-faq1',
+    id: 'system-tip1',
     role: 'system',
-    content: "Tip: Ask me 'Do I have active coverage?' to quickly check your status.",
-  },
+    content: "Pregúntame sobre tus seguros: '¿Qué coberturas tengo activas?' o 'Detalles de mi póliza de salud'.",
+   },
    {
-    id: 'system-faq2',
+    id: 'system-tip2',
     role: 'system',
-    content: "FAQ: You can manage your policies under the 'Mis Seguros' section.",
-  },
+    content: "Puedo explicarte cómo funciona Zyren: '¿Qué son las primas adaptativas?' o '¿Cómo funciona el seguro automático?'.",
+   },
 ];
 
 
@@ -147,7 +147,7 @@ export default function ChatPage() {
        const aiErrorMessage: Message = {
           id: Date.now().toString() + '-ai-error',
           role: 'ai',
-          content: 'Sorry, I encountered an error. Please try again.',
+          content: 'Lo siento, encontré un error. Por favor, intenta de nuevo.', // More empathetic error
         };
        setMessages((prev) => [...prev, aiErrorMessage]);
 
@@ -170,7 +170,7 @@ export default function ChatPage() {
 
     console.log('File selected:', file.name, file.size, file.type);
     toast({
-        title: 'File Selected',
+        title: 'Archivo Seleccionado',
         description: `${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
     });
 
@@ -178,7 +178,7 @@ export default function ChatPage() {
     // TODO: In a real scenario, read the file content (e.g., as data URI for images/text)
     // or prepare it for upload before calling handleSendMessage.
     // For now, just send filename. Update Genkit flow if sending content.
-    handleSendMessage(undefined, `[Attached File: ${file.name}]`, { name: file.name, type: file.type });
+    handleSendMessage(undefined, `[Archivo Adjunto: ${file.name}]`, { name: file.name, type: file.type });
 
 
     // Reset file input to allow selecting the same file again
@@ -190,7 +190,7 @@ export default function ChatPage() {
    const requestMicPermission = async (): Promise<boolean> => {
        if (hasMicPermission === true) return true;
        if (typeof navigator?.mediaDevices?.getUserMedia !== 'function') {
-           toast({ title: 'Error', description: 'Audio recording is not supported in this browser.', variant: 'destructive' });
+           toast({ title: 'Error', description: 'La grabación de audio no es compatible con este navegador.', variant: 'destructive' });
            setHasMicPermission(false);
            return false;
        }
@@ -200,10 +200,10 @@ export default function ChatPage() {
            setHasMicPermission(true);
            return true;
        } catch (error) {
-           console.error('Microphone permission error:', error);
+           console.error('Error de permiso de micrófono:', error);
            toast({
-               title: 'Microphone Access Denied',
-               description: 'Please enable microphone permissions in your browser settings.',
+               title: 'Acceso al Micrófono Denegado',
+               description: 'Por favor, habilita los permisos de micrófono en la configuración de tu navegador.',
                variant: 'destructive',
            });
            setHasMicPermission(false);
@@ -228,11 +228,11 @@ export default function ChatPage() {
 
           mediaRecorderRef.current.onstop = async () => {
               const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' }); // Or appropriate MIME type
-              console.log('Recording stopped, Blob created:', audioBlob);
+              console.log('Grabación detenida, Blob creado:', audioBlob);
 
                toast({
-                 title: 'Processing Audio...',
-                 description: `Audio captured (${(audioBlob.size / 1024).toFixed(1)} KB).`,
+                 title: 'Procesando Audio...',
+                 description: `Audio capturado (${(audioBlob.size / 1024).toFixed(1)} KB).`,
                });
 
               // TODO: Process the audioBlob
@@ -243,7 +243,7 @@ export default function ChatPage() {
                // --- Placeholder for Transcription & Sending ---
                // Example: Simulate transcription delay and send placeholder
                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing
-               const transcribedText = "[Simulated Audio Transcription]"; // Replace with actual transcription
+               const transcribedText = "[Transcripción de Audio Simulada]"; // Replace with actual transcription
                handleSendMessage(undefined, transcribedText);
                // --- End Placeholder ---
 
@@ -254,8 +254,8 @@ export default function ChatPage() {
           };
 
            mediaRecorderRef.current.onerror = (event) => {
-               console.error("MediaRecorder error:", event);
-               toast({ title: "Recording Error", description: "An error occurred during recording.", variant: "destructive" });
+               console.error("Error de MediaRecorder:", event);
+               toast({ title: "Error de Grabación", description: "Ocurrió un error durante la grabación.", variant: "destructive" });
                setIsRecording(false);
                // Stop tracks on error too
                audioStreamRef.current?.getTracks().forEach(track => track.stop());
@@ -265,8 +265,8 @@ export default function ChatPage() {
 
           mediaRecorderRef.current.start();
       } catch (error) {
-          console.error("Failed to start recording:", error);
-          toast({ title: "Recording Error", description: "Could not start recording.", variant: "destructive" });
+          console.error("Error al iniciar grabación:", error);
+          toast({ title: "Error de Grabación", description: "No se pudo iniciar la grabación.", variant: "destructive" });
           setIsRecording(false);
            // Ensure tracks are stopped if setup failed
            audioStreamRef.current?.getTracks().forEach(track => track.stop());
@@ -298,8 +298,7 @@ export default function ChatPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 flex flex-col h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))] relative overflow-hidden">
-       {/* Particle Background - Requires a library like react-tsparticles or custom CSS */}
-       {/* Example Placeholder: <ParticleBackground /> */}
+       {/* Particle Background */}
        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-background via-muted/50 to-background dark:from-zinc-900 dark:via-zinc-800/50 dark:to-zinc-900">
           {/* Add particle effect here if desired */}
        </div>
@@ -319,21 +318,21 @@ export default function ChatPage() {
        {hasMicPermission === false && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Microphone Access Needed</AlertTitle>
+            <AlertTitle>Acceso al Micrófono Necesario</AlertTitle>
             <AlertDescription>
-              Please grant microphone permissions in your browser settings to use voice input.
+              Por favor, concede permisos de micrófono en la configuración de tu navegador para usar la entrada de voz.
             </AlertDescription>
           </Alert>
        )}
 
 
-      <Card className="flex flex-col flex-1 overflow-hidden shadow-lg rounded-lg border bg-card/80 backdrop-blur-sm z-10"> {/* Added backdrop blur */}
+      <Card className="flex flex-col flex-1 overflow-hidden shadow-lg rounded-lg border bg-card/80 backdrop-blur-sm z-10">
         <CardHeader className="border-b bg-card/80 flex flex-row items-center justify-between">
-          {/* Left side: Logo, Title */}
+          {/* Left side: Title */}
           <div className="flex items-center gap-3">
-              {/* Placeholder for removed Avatar */}
+              {/* Removed Avatar from here */}
               <CardTitle className="text-lg font-semibold">
-                Chat with Zy
+                Chat con Zy
               </CardTitle>
           </div>
         </CardHeader>
@@ -351,7 +350,6 @@ export default function ChatPage() {
                   {/* AI Avatar (left side) */}
                   {message.role === 'ai' && (
                     <Avatar className={cn("h-8 w-8 border flex-shrink-0")}>
-                       {/* Keep smaller bubble avatar for consistency in chat flow */}
                        <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
@@ -369,8 +367,8 @@ export default function ChatPage() {
                       className={cn(
                         'rounded-lg px-4 py-2 max-w-[75%] shadow-sm',
                         message.role === 'user'
-                          ? 'bg-primary/90 text-primary-foreground rounded-br-none' // User bubble style
-                          : 'bg-card text-card-foreground border border-border rounded-bl-none' // AI bubble style
+                           ? 'bg-primary/90 text-primary-foreground rounded-br-none' // User bubble style - Adjusted background
+                           : 'bg-card text-card-foreground border border-border rounded-bl-none' // AI bubble style - Using card background
                       )}
                     >
                        {/* Content */}
@@ -387,7 +385,6 @@ export default function ChatPage() {
                    {/* User Avatar (right side) */}
                   {message.role === 'user' && (
                     <Avatar className="h-8 w-8 border flex-shrink-0">
-                       {/* <AvatarImage src="URL_TO_USER_IMAGE" alt="User Avatar" /> */}
                        <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
@@ -414,9 +411,9 @@ export default function ChatPage() {
         <CardFooter className="border-t p-4 bg-card/80">
           <form onSubmit={handleSendMessage} className="flex w-full items-center space-x-2">
              {/* Document Attachment Button */}
-            <Button type="button" variant="ghost" size="icon" onClick={handleAttachDocument} disabled={isLoading || isRecording} aria-label="Attach Document">
+            <Button type="button" variant="ghost" size="icon" onClick={handleAttachDocument} disabled={isLoading || isRecording} aria-label="Adjuntar Documento">
               <Paperclip className="h-5 w-5" />
-              <span className="sr-only">Attach Document</span>
+              <span className="sr-only">Adjuntar Documento</span>
             </Button>
              {/* Voice Input Button */}
              <Button
@@ -426,25 +423,25 @@ export default function ChatPage() {
                 onClick={handleVoiceInput}
                 disabled={isLoading || hasMicPermission === false} // Disable if loading or no mic permission
                 className={cn(isRecording && "text-destructive hover:text-destructive")}
-                aria-label={isRecording ? 'Stop Recording' : 'Use Voice Input'}
+                aria-label={isRecording ? 'Detener Grabación' : 'Usar Entrada de Voz'}
               >
                {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-               <span className="sr-only">{isRecording ? 'Stop Recording' : 'Use Voice Input'}</span>
+               <span className="sr-only">{isRecording ? 'Detener Grabación' : 'Usar Entrada de Voz'}</span>
              </Button>
 
             <Input
               ref={inputRef}
               type="text"
-              placeholder={isRecording ? "Recording... Speak now" : "Type your message or use voice..."}
+              placeholder={isRecording ? "Grabando... Habla ahora" : "Escribe tu mensaje o usa la voz..."}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               disabled={isLoading || isRecording} // Disable input while loading or recording
               className="flex-1"
               autoComplete="off"
             />
-            <Button type="submit" size="icon" disabled={isLoading || isRecording || !inputValue.trim()} aria-label="Send Message">
+            <Button type="submit" size="icon" disabled={isLoading || isRecording || !inputValue.trim()} aria-label="Enviar Mensaje">
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              <span className="sr-only">Send</span>
+              <span className="sr-only">Enviar</span>
             </Button>
           </form>
         </CardFooter>
@@ -452,22 +449,7 @@ export default function ChatPage() {
 
         {/* Add global styles for animations if not already present */}
         <style jsx global>{`
-          /* Keep existing animations */
-          @keyframes float {
-            0%, 100% { transform: translateY(-5%); }
-            50% { transform: translateY(5%); }
-          }
-          .animate-float {
-            animation: float 6s ease-in-out infinite;
-          }
-
-          @keyframes pulse-speak { /* Example simple speaking animation */
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-          }
-          .animate-pulse-speak {
-             animation: pulse-speak 1s ease-in-out infinite;
-          }
+          /* Remove float and pulse-speak animations */
 
            @keyframes bounce-dot {
               0%, 80%, 100% { transform: scale(0); }
