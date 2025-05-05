@@ -35,11 +35,12 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { NotificationsProvider, useNotifications } from '@/context/notifications-context'; // Import context
 
-// Removed Chat from navItems as it's accessed via FAB
+// Updated navItems based on user specification for bottom navigation
 const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: Home },
   { href: '/insurances', label: 'Mis Seguros', icon: ShieldCheck },
-  { href: '/recommendations', label: 'Recomendaciones', icon: Lightbulb },
+  { href: '/recommendations', label: 'Ideas', icon: Lightbulb }, // Changed label to "Ideas"
+  { href: '/profile/settings', label: 'Ajustes', icon: Settings }, // Changed label to "Ajustes" and icon to Settings, linking to settings page
 ];
 
 const profileMenuItems = [
@@ -121,7 +122,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
                       <li key={item.href}>
                         <Link href={item.href} passHref>
                           <Button
-                            variant={pathname === item.href ? 'secondary' : 'ghost'}
+                            variant={pathname.startsWith(item.href) ? 'secondary' : 'ghost'} // Use startsWith for profile/settings matching
                             className="w-full justify-start"
                             onClick={closeMobileMenu}
                           >
@@ -249,8 +250,8 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
             key={item.href}
             href={item.href}
             className={cn(
-              'flex flex-col items-center justify-center gap-1 px-2 py-1 text-xs font-medium transition-colors',
-              pathname === item.href
+              'flex flex-col items-center justify-center gap-1 px-2 py-1 text-xs font-medium transition-colors flex-1', // Added flex-1 for equal distribution
+              pathname.startsWith(item.href) // Use startsWith to correctly highlight parent paths like /profile
                 ? 'text-primary'
                 : 'text-muted-foreground hover:text-foreground'
             )}
