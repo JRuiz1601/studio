@@ -36,7 +36,7 @@ const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: Home },
   { href: '/insurances', label: 'Mis Seguros', icon: ShieldCheck },
   { href: '/recommendations', label: 'Recomendaciones', icon: Lightbulb },
-  // { href: '/chat', label: 'Chat', icon: Bot }, // Removed Chat link from main nav
+  // Chat is now accessed via FAB
 ];
 
 const profileMenuItems = [
@@ -128,19 +128,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                         </Link>
                       </li>
                     ))}
-                    {/* Added Chat link back to mobile menu if needed */}
-                     <li>
-                        <Link href="/chat" passHref>
-                          <Button
-                            variant={pathname === '/chat' ? 'secondary' : 'ghost'}
-                            className="w-full justify-start"
-                            onClick={closeMobileMenu}
-                          >
-                            <Bot className="mr-2 h-4 w-4" />
-                            Chat
-                          </Button>
-                        </Link>
-                      </li>
+                     {/* Removed Chat link from mobile menu */}
                      <DropdownMenuSeparator />
                       {/* Profile items in mobile menu */}
                        <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Account</DropdownMenuLabel>
@@ -264,19 +252,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <span>{item.label}</span>
           </Link>
         ))}
-         {/* Added Chat icon back to bottom nav bar */}
-          <Link
-            href="/chat"
-            className={cn(
-              'flex flex-col items-center justify-center gap-1 px-2 py-1 text-xs font-medium transition-colors',
-              pathname === '/chat'
-                ? 'text-primary'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <Bot className="h-5 w-5" />
-            <span>Chat</span>
-          </Link>
+         {/* Removed Chat icon from bottom nav bar */}
       </div>
     </nav>
   );
