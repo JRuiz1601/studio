@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
     Accordion,
@@ -610,3 +611,4 @@ declare module "@/components/ui/progress" {
     indicatorClassName?: string;
   }
 }
+
