@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,7 +10,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
+  CardFooter, // Added CardFooter import
 } from '@/components/ui/card';
 import {
     Accordion,
@@ -38,6 +39,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'; // Import Recharts components
 import { cn } from '@/lib/utils'; // Import cn for conditional classes
 import { Progress } from '@/components/ui/progress'; // Import Progress
+import { translations } from '@/lib/translations'; // Import shared translations
 
 type RiskStatus = 'low' | 'medium' | 'high';
 
@@ -63,17 +65,17 @@ const chartData = [
   { month: "Jun", inflation: 3.5, market: 108 },
 ];
 
-// Chart configuration
-const chartConfig = {
+// Chart configuration - Adjusted labels based on translations structure
+const getChartConfig = (t: any): ChartConfig => ({
   inflation: {
-    label: "Inflación (%)",
+    label: t.inflationLabel,
     color: "hsl(var(--destructive))", // Use destructive color for inflation
   },
   market: {
-    label: "Mercado (Índice)",
+    label: t.marketLabel,
     color: "hsl(var(--primary))", // Use primary color for market trend
   },
-} satisfies ChartConfig;
+});
 
 
 export default function DashboardPage() {
@@ -90,6 +92,22 @@ export default function DashboardPage() {
   const [userName, setUserName] = useState('Usuario Zyren'); // Placeholder user name
   const [greeting, setGreeting] = useState<string | null>(null); // State for greeting
   const [adaptivePremiumsActive, setAdaptivePremiumsActive] = useState(true); // Mock state for adaptive premiums feature
+  const [language, setLanguage] = useState<string>('es'); // Default to Spanish
+
+   // Effect to get language from localStorage on mount
+   useEffect(() => {
+    const storedLang = localStorage.getItem('language');
+    if (storedLang && (storedLang === 'en' || storedLang === 'es')) {
+      setLanguage(storedLang);
+    }
+    // Set greeting based on fetched/default language
+    const hour = new Date().getHours();
+    const currentTranslations = translations[storedLang as keyof typeof translations || 'es'];
+    if (hour < 12) setGreeting(currentTranslations.greetingMorning);
+    else if (hour < 18) setGreeting(currentTranslations.greetingAfternoon);
+    else setGreeting(currentTranslations.greetingEvening);
+  }, []); // Run only once on mount
+
 
   // Fetch data on component mount
   useEffect(() => {
@@ -140,13 +158,11 @@ export default function DashboardPage() {
      }
      fetchData();
 
-     // Set greeting on client side after mount - Moved inside useEffect
-     const hour = new Date().getHours();
-     if (hour < 12) setGreeting('Buenos días.');
-     else if (hour < 18) setGreeting('Buenas tardes.');
-     else setGreeting('Buenas noches.');
-
   }, []);
+
+  // Get current translations based on language state
+  const t = translations[language as keyof typeof translations] || translations.es;
+  const chartConfig = getChartConfig(t);
 
 
   const getRiskStatusColor = (status: RiskStatus): string => {
@@ -168,18 +184,18 @@ export default function DashboardPage() {
    };
    const getRiskStatusText = (status: RiskStatus): string => {
      switch (status) {
-       case 'low': return 'Todo en orden';
-       case 'medium': return 'Revisa recomendaciones';
-       case 'high': return 'Acción requerida';
-       default: return 'Desconocido';
+       case 'low': return t.riskStatusLowText;
+       case 'medium': return t.riskStatusMediumText;
+       case 'high': return t.riskStatusHighText;
+       default: return t.riskStatusUnknownText;
      }
    };
    const getRiskStatusDescription = (status: RiskStatus): string => {
       switch (status) {
-        case 'low': return 'Tu protección está optimizada según tu perfil actual.'; // Updated text
-        case 'medium': return 'Revisa estas sugerencias para optimizar tu protección:'; // Updated text
-        case 'high': return 'Se requiere atención inmediata para mitigar riesgos.';
-        default: return 'No se puede determinar el estado de protección.';
+        case 'low': return t.riskStatusLowDesc;
+        case 'medium': return t.riskStatusMediumDesc;
+        case 'high': return t.riskStatusHighDesc;
+        default: return t.riskStatusUnknownDesc;
       }
     };
 
@@ -195,45 +211,47 @@ export default function DashboardPage() {
 
   // Function to get qualitative stress level
   const getStressLevelLabel = (level: number): string => {
-      if (level < 30) return 'Bajo';
-      if (level < 60) return 'Medio';
-      return 'Alto';
+      if (level < 30) return t.stressLevelLow;
+      if (level < 60) return t.stressLevelMedium;
+      return t.stressLevelHigh;
   };
 
-  // Updated recommendations with new structure
-   const recommendations: Recommendation[] = [
+   // Updated recommendations using translations
+   const getRecommendations = (t: any): Recommendation[] => [
        {
          id: 'rec_profile_update',
-         title: '¡Optimiza tus Recomendaciones!',
-         reason: 'Un perfil completo nos ayuda a darte sugerencias más precisas.',
-         benefit: 'Asegúrate de que tu protección y consejos se ajustan perfectamente a ti.',
-         ctaLabel: 'Revisar mi Perfil',
+         title: t.recProfileUpdateTitle,
+         reason: t.recProfileUpdateReason,
+         benefit: t.recProfileUpdateBenefit,
+         ctaLabel: t.recProfileUpdateCta,
          icon: Users, // Icon related to user profile
          priority: 'medium',
        },
        {
          id: 'rec_education_explore',
-         title: 'Asegura la U. de tus Hijos',
-         reason: 'Detectamos que tus dependientes (simulado) están en edad escolar.',
-         benefit: 'Garantiza sus estudios futuros sin importar imprevistos y empieza a ahorrar de forma planificada.',
-         ctaLabel: 'Explorar Seguro Educativo',
+         title: t.recEducationExploreTitle,
+         reason: t.recEducationExploreReason,
+         benefit: t.recEducationExploreBenefit,
+         ctaLabel: t.recEducationExploreCta,
          icon: GraduationCap, // Specific icon for education
          priority: 'medium',
        },
-       // Example of a weather-related recommendation (conditionally added if data supports it)
-       ...(weather && weather.temperatureFarenheit > 85 ? [{
-           id: 'rec_heat_alert',
-           title: 'Protégete del Calor',
-           reason: `La temperatura actual es ${weather.temperatureFarenheit}°F.`,
-           benefit: 'Recuerda mantenerte hidratado y evitar actividades extenuantes.',
-           ctaLabel: 'Ver Consejos de Salud',
-           icon: Cloud, // Or a specific Sun icon
-           priority: 'low',
-       } as Recommendation] : []),
+        // Example of a weather-related recommendation (conditionally added if data supports it)
+        ...(weather && weather.temperatureFarenheit > 85 ? [{
+            id: 'rec_heat_alert',
+            title: t.recHeatAlertTitle, // Needs translation key
+            reason: t.recHeatAlertReason(weather.temperatureFarenheit), // Needs translation key (with interpolation)
+            benefit: t.recHeatAlertBenefit, // Needs translation key
+            ctaLabel: t.recHeatAlertCta, // Needs translation key
+            icon: Cloud, // Or a specific Sun icon
+            priority: 'low',
+        } as Recommendation] : []),
    ].sort((a, b) => { // Simple sort: high > medium > low
       const priorityOrder = { high: 1, medium: 2, low: 3 };
       return (priorityOrder[a.priority || 'low'] || 4) - (priorityOrder[b.priority || 'low'] || 4);
    }).slice(0, 3); // Limit to 3 recommendations
+
+   const recommendations = getRecommendations(t);
 
 
   return (
@@ -241,16 +259,18 @@ export default function DashboardPage() {
 
       {/* 1. Saludo Personalizado */}
        <div className="mb-4">
-         <h1 className="text-2xl font-semibold">Hola {userName},</h1>
+         <h1 className="text-2xl font-semibold">{t.helloUser(userName)}</h1>
          {/* Display greeting or skeleton */}
-         <div className="text-muted-foreground">{greeting || <Skeleton className="h-5 w-24 inline-block" />}</div>
+         <div className="text-muted-foreground">
+             {greeting ? greeting : <Skeleton className="h-5 w-24 inline-block" />}
+         </div>
        </div>
 
       {/* 2. Widget Principal: Nivel de Protección - UPDATED */}
       <Card className="border-primary shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-medium">
-             Tu Nivel de Protección Hoy
+             {t.protectionLevelTitle}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -272,7 +292,7 @@ export default function DashboardPage() {
              {/* Protection Progress Bar */}
             <div className="space-y-1">
                 <div className="flex justify-between text-sm font-medium">
-                    <span>Nivel de Cobertura Estimado</span>
+                    <span>{t.coverageLevelLabel}</span>
                     <span>{riskProgress}%</span>
                 </div>
                 <Progress value={riskProgress} className="h-2" indicatorClassName={getProgressColorClass(riskStatus)} />
@@ -282,15 +302,15 @@ export default function DashboardPage() {
              {/* Conditional CTAs based on risk status */}
              {(riskStatus === 'medium' || riskStatus === 'high') && (
                  <Button variant="default" size="sm" asChild>
-                     <Link href='/recommendations'>Ver Recomendaciones</Link>
+                     <Link href='/recommendations'>{t.viewRecommendationsButton}</Link>
                  </Button>
              )}
              <Button variant="outline" size="sm" asChild>
                  {/* Link to a potential simulation or profile page */}
-                 <Link href='/profile/settings'>Simular Otro Perfil</Link>
+                 <Link href='/profile/settings'>{t.simulateProfileButton}</Link>
              </Button>
              <Button variant="secondary" size="sm" asChild>
-                 <Link href='/insurances'>Mejorar mi Protección</Link>
+                 <Link href='/insurances'>{t.improveProtectionButton}</Link>
              </Button>
          </CardFooter>
       </Card>
@@ -301,7 +321,7 @@ export default function DashboardPage() {
            <Card>
              <CardHeader className="pb-2">
                <CardTitle className="text-base font-medium flex items-center gap-2">
-                 <Cloud className="h-5 w-5 text-muted-foreground" /> Entorno Actual
+                 <Cloud className="h-5 w-5 text-muted-foreground" /> {t.currentEnvironmentTitle}
                </CardTitle>
              </CardHeader>
              <CardContent className="space-y-1">
@@ -314,13 +334,13 @@ export default function DashboardPage() {
                  <>
                   <p className="text-lg font-bold flex items-center gap-1">
                       {/* TODO: Add Weather Icon component based on weather.conditions */}
-                      {weather.temperatureFarenheit}°F <span className="text-sm font-normal text-muted-foreground">en {location ? `tu ubicación` : 'desconocida'}</span>
+                      {weather.temperatureFarenheit}°F <span className="text-sm font-normal text-muted-foreground">{t.weatherLocationText(location ? t.yourLocation : t.unknownLocation)}</span>
                   </p>
-                  <p className="text-sm text-muted-foreground">{weather.conditions}</p>
+                  <p className="text-sm text-muted-foreground">{weather.conditions}</p> {/* TODO: Translate conditions */}
                   {/* TODO: Add Traffic insight */}
                  </>
                ) : (
-                 <p className="text-sm text-muted-foreground">Datos de clima no disponibles.</p>
+                 <p className="text-sm text-muted-foreground">{t.weatherUnavailableText}</p>
                )}
              </CardContent>
            </Card>
@@ -329,7 +349,7 @@ export default function DashboardPage() {
            <Card>
              <CardHeader className="pb-2">
                <CardTitle className="text-base font-medium flex items-center gap-2">
-                 <TrendingUp className="h-5 w-5 text-muted-foreground" /> Mercado Financiero
+                 <TrendingUp className="h-5 w-5 text-muted-foreground" /> {t.financialMarketTitle}
                </CardTitle>
              </CardHeader>
              <CardContent className="space-y-3">
@@ -384,15 +404,15 @@ export default function DashboardPage() {
 
                  <Alert variant="destructive" className="p-3">
                    <AlertTriangle className="h-4 w-4" />
-                   <AlertTitle className="text-sm font-semibold">Alerta de Inflación</AlertTitle>
+                   <AlertTitle className="text-sm font-semibold">{t.inflationAlertTitle}</AlertTitle>
                    <AlertDescription className="text-xs">
-                      La inflación sigue en aumento. Protege tus ahorros.
+                      {t.inflationAlertDesc}
                    </AlertDescription>
                  </Alert>
                  <div className="flex items-start gap-2 text-sm">
                     <Lightbulb className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
                     <p className="text-muted-foreground">
-                      <span className="font-medium text-foreground">Tip Clave:</span> Considera diversificar tus inversiones y revisa opciones de ahorro con protección inflacionaria.
+                      <span className="font-medium text-foreground">{t.keyTipLabel}:</span> {t.keyTipContent}
                     </p>
                  </div>
              </CardContent>
@@ -403,7 +423,7 @@ export default function DashboardPage() {
        <div className="space-y-4">
          <h2 className="text-xl font-semibold flex items-center gap-2">
              <Brain className="h-6 w-6 text-primary" /> {/* New Title Icon */}
-             Ideas Inteligentes para tu Protección
+             {t.smartIdeasTitle}
          </h2>
          {recommendations.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -425,8 +445,8 @@ export default function DashboardPage() {
                     <CardContent className="flex-1 pt-1 pb-3 space-y-2">
                         {/* XAI Explanation */}
                         <div className="text-xs text-muted-foreground">
-                            <p><span className="font-semibold text-foreground">¿Por qué ahora?</span> {rec.reason}</p>
-                            <p><span className="font-semibold text-green-600">Beneficio:</span> {rec.benefit}</p>
+                            <p><span className="font-semibold text-foreground">{t.whyNowLabel}:</span> {rec.reason}</p>
+                            <p><span className="font-semibold text-green-600">{t.benefitLabel}:</span> {rec.benefit}</p>
                         </div>
                     </CardContent>
                      <CardFooter className="pt-2 pb-4 border-t flex flex-col sm:flex-row gap-2 justify-between items-center">
@@ -436,7 +456,7 @@ export default function DashboardPage() {
                         </Button>
                          {/* Optional Secondary Action */}
                          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground p-0 h-auto hover:text-foreground w-full sm:w-auto justify-center sm:justify-end">
-                             Quizás más tarde
+                             {t.maybeLaterButton}
                          </Button>
                      </CardFooter>
                   </Card>
@@ -444,7 +464,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <Card className="p-4 text-center border-dashed">
-                 <CardDescription>No hay ideas inteligentes para ti en este momento.</CardDescription>
+                 <CardDescription>{t.noRecommendationsText}</CardDescription>
               </Card>
             )}
        </div>
@@ -455,13 +475,13 @@ export default function DashboardPage() {
            <Card>
              <AccordionTrigger className="px-6 py-4 hover:no-underline">
                 <CardTitle className="text-lg font-medium flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-yellow-500" /> ¡Tu Bienestar te Premia!
+                  <Sparkles className="h-5 w-5 text-yellow-500" /> {t.wellbeingTitle}
                 </CardTitle>
              </AccordionTrigger>
              <AccordionContent className="px-6 pb-4">
                  {loadingWearable ? (
                      <div className="flex items-center justify-center text-muted-foreground py-4">
-                         <Skeleton className="h-5 w-5 mr-2 rounded-full" /> Cargando datos de bienestar...
+                         <Skeleton className="h-5 w-5 mr-2 rounded-full" /> {t.loadingWellbeingData}
                      </div>
                  ) : wearableStatus === 'connected' && wearableBattery && wearableData ? (
                     <div className="space-y-4">
@@ -472,8 +492,8 @@ export default function DashboardPage() {
                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                              </svg>
-                             <span className="font-medium">Smartwatch:</span>
-                             <Badge variant="default" className="bg-green-500 hover:bg-green-600">Conectado</Badge>
+                             <span className="font-medium">{t.smartwatchLabel}:</span>
+                             <Badge variant="default" className="bg-green-500 hover:bg-green-600">{t.connectedStatus}</Badge>
                           </div>
                            <div className="flex items-center gap-1">
                              {wearableBattery.isCharging && <BatteryCharging className="h-4 w-4 text-yellow-500" />}
@@ -492,9 +512,9 @@ export default function DashboardPage() {
                                 <CardContent className="p-0 flex items-center gap-3">
                                   <HeartPulse className="h-6 w-6 text-red-500" />
                                   <div>
-                                     <p className="text-sm text-muted-foreground">Ritmo Cardíaco</p>
-                                     <p className="text-lg font-bold">{wearableData.heartRate} <span className="text-xs font-normal">lpm</span></p>
-                                     <p className="text-xs text-muted-foreground">(Promedio hoy)</p>
+                                     <p className="text-sm text-muted-foreground">{t.heartRateLabel}</p>
+                                     <p className="text-lg font-bold">{wearableData.heartRate} <span className="text-xs font-normal">{t.heartRateUnit}</span></p>
+                                     <p className="text-xs text-muted-foreground">{t.averageTodayLabel}</p>
                                   </div>
                                 </CardContent>
                              </Card>
@@ -507,13 +527,13 @@ export default function DashboardPage() {
                                        "text-orange-500" // Changed to orange for high stress
                                     )} />
                                   <div>
-                                     <p className="text-sm text-muted-foreground">Nivel Estrés</p>
+                                     <p className="text-sm text-muted-foreground">{t.stressLevelLabel}</p>
                                       <p className="text-lg font-bold">{getStressLevelLabel(wearableData.stressLevel)} <span className="text-xs font-normal">({wearableData.stressLevel}%)</span></p>
                                       {/* Updated Alert for high stress */}
                                      {wearableData.stressLevel > 60 && (
                                        <Alert variant="destructive" className="p-1 px-2 mt-1 text-xs flex items-center gap-1 border-orange-500 text-orange-700 dark:text-orange-400">
                                           <AlertTriangle className="h-3 w-3" />
-                                          <span>Estrés aumentó</span> {/* Simplified */}
+                                          <span>{t.stressIncreasedAlert}</span> {/* Simplified and translated */}
                                        </Alert>
                                       )}
                                   </div>
@@ -527,16 +547,16 @@ export default function DashboardPage() {
                                 <div className="flex items-start gap-2 text-sm">
                                     <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                                     <p className="text-accent-foreground">
-                                        <span className="font-semibold">¡Excelente!</span> Tus niveles de actividad constantes están ayudando a optimizar la prima de tu Seguro de Vida. ¡Sigue así! 💪
+                                        <span className="font-semibold">{t.adaptivePremiumActiveTitle}</span> {t.adaptivePremiumActiveDesc('Vida')} {/* Replace 'Vida' with dynamic policy name */}
                                     </p>
                                 </div>
                             ) : (
                                 <div className="flex items-start gap-2 text-sm">
                                     <Lightbulb className="h-5 w-5 text-yellow-500 mt-0.5 shrink-0" />
                                     <p className="text-muted-foreground">
-                                        ¿Sabías que tus datos de bienestar podrían ayudarte a pagar menos en tu seguro de Vida?
+                                        {t.adaptivePremiumInactiveDesc('Vida')} {/* Replace 'Vida' */}
                                         <Button variant="link" size="sm" className="p-0 h-auto ml-1" asChild>
-                                            <Link href="/profile/settings">Activa las Primas Adaptativas</Link>
+                                            <Link href="/profile/settings">{t.activateAdaptivePremiumsButton}</Link>
                                         </Button>
                                     </p>
                                 </div>
@@ -546,8 +566,8 @@ export default function DashboardPage() {
                  ) : (
                     <div className="flex flex-col items-center text-center text-muted-foreground py-4">
                         <WifiOff className="h-10 w-10 mb-2" />
-                        <p className="text-sm mb-2">Wearable desconectado o no configurado.</p>
-                        <Button variant="outline" size="sm">Conectar ahora</Button> {/* Changed label */}
+                        <p className="text-sm mb-2">{t.wearableDisconnectedText}</p>
+                        <Button variant="outline" size="sm">{t.connectNowButton}</Button> {/* Changed label */}
                     </div>
                  )}
              </AccordionContent>
@@ -557,26 +577,26 @@ export default function DashboardPage() {
 
        {/* 6. Acceso Rápido */}
        <div className="space-y-4">
-         <h2 className="text-xl font-semibold">Acceso Rápido</h2>
+         <h2 className="text-xl font-semibold">{t.quickAccessTitle}</h2>
          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
            {/* Using default button style for more visibility */}
            <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
              <CreditCard className="mr-3 h-5 w-5 shrink-0" />
              <div className="flex flex-col">
-                 <span className="font-medium">Pagar Próxima Cuota</span>
+                 <span className="font-medium">{t.payNextInstallmentButton}</span>
              </div>
            </Button>
            <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
              <FileWarning className="mr-3 h-5 w-5 shrink-0" />
              <div className="flex flex-col">
-                <span className="font-medium">Reportar Incidente</span>
+                <span className="font-medium">{t.reportIncidentButton}</span>
              </div>
            </Button>
            <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90" asChild>
               <Link href="/insurances">
                  <ShieldCheck className="mr-3 h-5 w-5 shrink-0" />
                  <div className="flex flex-col">
-                     <span className="font-medium">Ver Mis Seguros</span>
+                     <span className="font-medium">{t.viewMyInsurancesButton}</span>
                  </div>
                </Link>
            </Button>
@@ -606,9 +626,10 @@ const ProgressIndicator = React.forwardRef<
 ProgressIndicator.displayName = "ProgressIndicator";
 
 // Augment Progress component to accept indicatorClassName prop
+// Note: This might not be strictly necessary if handled directly in Progress component,
+// but included here based on previous structure.
 declare module "@/components/ui/progress" {
   interface ProgressProps {
     indicatorClassName?: string;
   }
 }
-
