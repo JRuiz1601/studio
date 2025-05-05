@@ -16,7 +16,6 @@ import {
   Bot, // Import Bot icon
   Menu,
   X,
-  ArrowLeft, // Import ArrowLeft icon for back functionality
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -261,8 +260,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
    // Determine FAB target and icon based on current path
    const isChatPage = pathname === '/chat';
    const fabHref = isChatPage ? '/dashboard' : '/chat';
-   const FabIcon = isChatPage ? ArrowLeft : Bot;
-   const fabAriaLabel = isChatPage ? 'Back to Dashboard' : 'Chat with Zy';
+   // Always use the Bot icon
+   const FabIcon = Bot;
+   const fabAriaLabel = isChatPage ? 'Go to Dashboard' : 'Chat with Zy'; // Adjusted label for clarity
 
   return (
     <div className="flex min-h-screen w-full flex-col">
