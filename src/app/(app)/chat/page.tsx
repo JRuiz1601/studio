@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, type FormEvent } from 'react';
@@ -28,12 +29,17 @@ export default function ChatPage() {
   // Scroll to bottom when messages change
   useEffect(() => {
     if (scrollAreaRef.current) {
-      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      // Find the viewport element within the ScrollArea
+      const scrollElement = (scrollAreaRef.current.firstChild as HTMLElement)?.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollElement) {
-        scrollElement.scrollTop = scrollElement.scrollHeight;
+        // Use requestAnimationFrame for smoother scrolling after render
+        requestAnimationFrame(() => {
+          scrollElement.scrollTop = scrollElement.scrollHeight;
+        });
       }
     }
   }, [messages]);
+
 
   // Focus input on load
   useEffect(() => {
@@ -55,16 +61,15 @@ export default function ChatPage() {
     setInputValue('');
     setIsLoading(true);
 
+    const aiLoadingMessageId = Date.now().toString() + '-ai-loading';
+    const aiLoadingMessage: Message = {
+      id: aiLoadingMessageId,
+      role: 'ai',
+      content: '...', // Placeholder for loading
+    };
+    setMessages((prev) => [...prev, aiLoadingMessage]);
+
     try {
-       // Add a placeholder for AI response while loading
-        const aiLoadingMessage: Message = {
-          id: Date.now().toString() + '-ai-loading',
-          role: 'ai',
-          content: '...', // Or use a spinner component
-        };
-       setMessages((prev) => [...prev, aiLoadingMessage]);
-
-
       // Call the Genkit flow
       const aiResponse = await chatWithAI({ message: messageContent });
 
@@ -75,7 +80,7 @@ export default function ChatPage() {
         };
 
         // Replace loading placeholder with actual response
-        setMessages((prev) => prev.map(msg => msg.id === aiLoadingMessage.id ? aiMessage : msg));
+        setMessages((prev) => prev.map(msg => msg.id === aiLoadingMessageId ? aiMessage : msg));
 
     } catch (error) {
       console.error('Error chatting with AI:', error);
@@ -84,16 +89,14 @@ export default function ChatPage() {
         description: 'Failed to get response from AI. Please try again.',
         variant: 'destructive',
       });
-       // Remove loading placeholder on error
-       setMessages((prev) => prev.filter(msg => msg.id !== (Date.now().toString() + '-ai-loading'))); // Need consistent ID handling
-       // Or replace with an error message
+
+       // Replace loading placeholder with an error message
         const aiErrorMessage: Message = {
-          id: Date.now().toString() + '-ai-error',
+          id: aiLoadingMessageId, // Use the same ID to replace
           role: 'ai',
           content: 'Sorry, I encountered an error. Please try again.',
         };
-       setMessages((prev) => [...prev, aiErrorMessage]);
-
+       setMessages((prev) => prev.map(msg => msg.id === aiLoadingMessageId ? aiErrorMessage : msg));
 
     } finally {
       setIsLoading(false);
@@ -104,45 +107,49 @@ export default function ChatPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 flex flex-col h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))]"> {/* Adjust height considering header */}
-      <Card className="flex flex-col flex-1 overflow-hidden">
-        <CardHeader className="border-b">
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-6 w-6 text-primary" />
+      <Card className="flex flex-col flex-1 overflow-hidden shadow-lg rounded-lg border">
+        <CardHeader className="border-b bg-card">
+          <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+            <Avatar className={cn("h-8 w-8 border", isLoading && "animate-pulse")}>
+              <AvatarFallback><Bot className="h-4 w-4 text-primary" /></AvatarFallback>
+            </Avatar>
             Chat with Zy
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 p-0 overflow-hidden">
+        <CardContent className="flex-1 p-0 overflow-hidden bg-muted/30">
           <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
                   className={cn(
-                    'flex items-start gap-3',
+                    'flex items-end gap-3 animate-in fade-in duration-300', // Added animation
                     message.role === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
                   {message.role === 'ai' && (
-                    <Avatar className="h-8 w-8 border">
+                    <Avatar className={cn("h-8 w-8 border flex-shrink-0", isLoading && message.content === '...' && "animate-pulse")}>
                       <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
                   <div
                     className={cn(
-                      'rounded-lg px-3 py-2 max-w-[75%]',
+                      'rounded-lg px-4 py-2 max-w-[75%] shadow-sm',
                       message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
+                        ? 'bg-primary text-primary-foreground rounded-br-none' // Slightly different rounding for user
+                        : 'bg-card text-card-foreground border border-border rounded-bl-none' // Slightly different rounding for AI
                     )}
                   >
                      {message.content === '...' && isLoading ? ( // Render spinner for loading message
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <div className="flex items-center justify-center h-5">
+                           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        </div>
                      ) : (
                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                      )}
                   </div>
                   {message.role === 'user' && (
-                    <Avatar className="h-8 w-8 border">
+                    <Avatar className="h-8 w-8 border flex-shrink-0">
                       <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
@@ -151,7 +158,7 @@ export default function ChatPage() {
             </div>
           </ScrollArea>
         </CardContent>
-        <CardFooter className="border-t p-4">
+        <CardFooter className="border-t p-4 bg-card">
           <form onSubmit={handleSendMessage} className="flex w-full items-center space-x-2">
             <Input
               ref={inputRef}
