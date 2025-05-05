@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, type FormEvent, useCallback } from 'react';
@@ -386,7 +385,7 @@ export default function ChatPage() {
               className="flex-1"
               autoComplete="off"
             />
-            <Button type="submit" size="icon" disabled={isLoading || isRecording || !inputValue.trim()}>
+            <Button type="submit" size="icon" disabled={isLoading || isRecording || (!inputValue.trim() && messages.length === 0)}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               <span className="sr-only">Send</span>
             </Button>
