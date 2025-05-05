@@ -19,7 +19,10 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle, Cloud, MapPin, HeartPulse, Zap, BatteryCharging, WifiOff, CreditCard, FileWarning, ShieldCheck, TrendingUp, AlertTriangle, Lightbulb } from 'lucide-react'; // Added new icons
+import {
+  Cloud, MapPin, HeartPulse, Zap, BatteryCharging, WifiOff, CreditCard, FileWarning, ShieldCheck,
+  TrendingUp, AlertTriangle, Lightbulb, ShieldAlert, ShieldX, Shield // Added Shield icons
+} from 'lucide-react'; // Added new icons
 import Image from 'next/image';
 import type { Location } from '@/services/gps';
 import type { Weather } from '@/services/weather';
@@ -32,6 +35,7 @@ import { Button } from '@/components/ui/button'; // Import Button
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'; // Import Alert components
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"; // Import chart components
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'; // Import Recharts components
+import { Progress } from '@/components/ui/progress'; // Import Progress
 
 type RiskStatus = 'low' | 'medium' | 'high';
 
@@ -69,6 +73,7 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const [riskStatus, setRiskStatus] = useState<RiskStatus>('low');
+  const [protectionPercentage, setProtectionPercentage] = useState(0); // State for protection percentage
   const [location, setLocation] = useState<Location | null>(null);
   const [weather, setWeather] = useState<Weather | null>(null);
   const [wearableStatus, setWearableStatus] = useState<WearableConnectionStatus | null>(null);
@@ -121,9 +126,19 @@ export default function DashboardPage() {
              setLoadingWearable(false);
         }
 
-         // TODO: Calculate risk status based on fetched data
+         // TODO: Calculate risk status and protection percentage based on fetched data
          // Example: High risk if high stress and bad weather
-         setRiskStatus('low'); // Default to low for now
+         const calculatedRisk: RiskStatus = 'medium'; // Example calculation
+         setRiskStatus(calculatedRisk);
+         // Example percentage calculation based on risk
+         let calculatedPercentage = 0;
+         switch (calculatedRisk) {
+             case 'low': calculatedPercentage = 90; break;
+             case 'medium': calculatedPercentage = 65; break;
+             case 'high': calculatedPercentage = 30; break;
+             default: calculatedPercentage = 0;
+         }
+         setProtectionPercentage(calculatedPercentage);
      }
      fetchData();
 
@@ -138,10 +153,10 @@ export default function DashboardPage() {
 
   const getRiskStatusColor = (status: RiskStatus): string => {
     switch (status) {
-      case 'low': return 'bg-green-500'; // Consider using theme colors: bg-success?
-      case 'medium': return 'bg-yellow-500'; // Consider using theme colors: bg-warning?
-      case 'high': return 'bg-red-500'; // Consider using theme colors: bg-destructive
-      default: return 'bg-gray-500'; // Consider using theme colors: bg-muted
+      case 'low': return 'text-green-600';
+      case 'medium': return 'text-yellow-600';
+      case 'high': return 'text-red-600';
+      default: return 'text-gray-600';
     }
   };
    const getRiskStatusText = (status: RiskStatus): string => {
@@ -161,13 +176,22 @@ export default function DashboardPage() {
       }
     };
 
+  const getRiskStatusIcon = (status: RiskStatus): React.ReactElement => {
+      switch (status) {
+          case 'low': return <ShieldCheck className="h-5 w-5 text-green-500" />;
+          case 'medium': return <ShieldAlert className="h-5 w-5 text-yellow-500" />;
+          case 'high': return <ShieldX className="h-5 w-5 text-red-500" />;
+          default: return <Shield className="h-5 w-5 text-gray-500" />;
+      }
+  };
+
    const recommendations: Recommendation[] = [
     // Dynamically generate recommendations based on data
     ...(weather && weather.temperatureFarenheit > 85 ? [{ id: 'rec1', title: 'Alerta por Calor', description: 'Mantente hidratado y evita actividades extenuantes.', type: 'weather', icon: Cloud } as Recommendation] : []),
     //...(location ? [{ id: 'rec2', title: 'Contexto de Ubicación', description: `Condiciones actuales cerca de ${location.latitude.toFixed(2)}, ${location.longitude.toFixed(2)}.`, type: 'location', icon: MapPin } as Recommendation] : []),
     ...(wearableData && wearableData.stressLevel > 60 ? [{ id: 'rec3', title: 'Estrés Elevado Detectado', description: 'Considera tomar un breve descanso o practicar mindfulness.', type: 'wearable', icon: Zap } as Recommendation] : []),
-    { id: 'rec4', title: 'Revisa tu Perfil', description: 'Asegúrate que tus datos estén actualizados para recomendaciones precisas.', type: 'profile', icon: AlertCircle },
-    { id: 'rec5', title: 'Considera Seguro Educativo', description: 'Basado en la edad de tus dependientes (simulado).', type: 'profile', icon: AlertCircle }, // Example
+    { id: 'rec4', title: 'Revisa tu Perfil', description: 'Asegúrate que tus datos estén actualizados para recomendaciones precisas.', type: 'profile', icon: AlertTriangle }, // Changed icon
+    { id: 'rec5', title: 'Considera Seguro Educativo', description: 'Basado en la edad de tus dependientes (simulado).', type: 'profile', icon: AlertTriangle }, // Example Changed icon
   ].slice(0, 3); // Limit to 3 recommendations for the carousel
 
 
@@ -184,26 +208,44 @@ export default function DashboardPage() {
       {/* 2. Widget Principal: Nivel de Protección */}
       <Card className="border-primary shadow-md">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-medium">Tu Nivel de Protección Hoy</CardTitle>
-          <div className={`h-5 w-5 rounded-full ${getRiskStatusColor(riskStatus)} flex items-center justify-center text-white text-xs`}>
-             {/* Optionally add an icon based on status */}
+          <CardTitle className="text-lg font-medium flex items-center gap-2">
+             {getRiskStatusIcon(riskStatus)} {/* Added Icon */}
+             Tu Nivel de Protección Hoy
+          </CardTitle>
+           {/* Optional: Keep the colored dot if desired */}
+          {/* <div className={`h-5 w-5 rounded-full ${getRiskStatusColor(riskStatus)} flex items-center justify-center text-white text-xs`}>
              {riskStatus === 'low' && '✓'}
              {riskStatus === 'medium' && '!'}
              {riskStatus === 'high' && 'X'}
-          </div>
+          </div> */}
         </CardHeader>
-        <CardContent>
-          <p className={`text-xl font-bold capitalize text-${getRiskStatusColor(riskStatus).split('-')[1]}-600 mb-1`}>
+        <CardContent className="space-y-3"> {/* Added space-y-3 */}
+          <p className={`text-xl font-bold capitalize ${getRiskStatusColor(riskStatus)} mb-1`}>
              {getRiskStatusText(riskStatus)}
           </p>
           <p className="text-sm text-muted-foreground mb-3">
              {getRiskStatusDescription(riskStatus)}
           </p>
-           <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-              <Link href={riskStatus === 'medium' || riskStatus === 'high' ? '/recommendations' : '/insurances'}>
-                 {riskStatus === 'medium' || riskStatus === 'high' ? 'Ver Recomendaciones' : 'Ver Mis Seguros'}
-              </Link>
-            </Button>
+           {/* Progress Bar */}
+           <div className="space-y-1">
+              <div className="flex justify-between text-sm font-medium">
+                 <span>Nivel de Cobertura</span>
+                 <span>{protectionPercentage}%</span>
+              </div>
+              <Progress value={protectionPercentage} className="h-2" />
+           </div>
+
+           <div className="flex flex-col sm:flex-row gap-2 pt-2"> {/* Button container */}
+              <Button variant="link" size="sm" className="p-0 h-auto justify-start sm:justify-center" asChild>
+                <Link href={riskStatus === 'medium' || riskStatus === 'high' ? '/recommendations' : '/insurances'}>
+                   {riskStatus === 'medium' || riskStatus === 'high' ? 'Ver Recomendaciones' : 'Ver Mis Seguros'}
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                 {/* Placeholder functionality */}
+                 Mejorar mi protección
+              </Button>
+           </div>
         </CardContent>
       </Card>
 
