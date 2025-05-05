@@ -329,7 +329,7 @@ export default function ChatPage() {
 
       <Card className="flex flex-col flex-1 overflow-hidden shadow-lg rounded-lg border bg-card/80 backdrop-blur-sm z-10"> {/* Added backdrop blur */}
         <CardHeader className="border-b bg-card/80 flex flex-row items-center justify-between">
-          {/* Left side: Logo, Title, and Floating Avatar */}
+          {/* Left side: Logo, Title */}
           <div className="flex items-center gap-3">
               {/* Static Zyren Logo/Icon in Header */}
                <div className="h-10 w-10 relative">
@@ -344,22 +344,7 @@ export default function ChatPage() {
               <CardTitle className="text-lg font-semibold">
                 Chat with Zy
               </CardTitle>
-               {/* Floating Robot Avatar - Using Image component */}
-               <div className={cn(
-                    "relative h-12 w-12 transition-opacity duration-500 animate-float",
-                    isAiTyping ? 'opacity-100 animate-pulse-speak' : 'opacity-70'
-                 )}>
-                  <Image
-                     // Assume the robot image is saved in the public folder
-                     src="/zyren-ai-avatar.gif" // Updated image path
-                     alt="Zy AI Avatar"
-                     layout="fill"
-                     objectFit="contain"
-                     className="drop-shadow-md" // Add some shadow for floating effect
-                     data-ai-hint="friendly waving robot" // Updated AI hint
-                     unoptimized // Recommended for GIFs in next/image if optimization causes issues
-                   />
-               </div>
+               {/* Removed the floating robot avatar from here */}
           </div>
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden bg-muted/30">
@@ -477,6 +462,7 @@ export default function ChatPage() {
 
         {/* Add global styles for animations if not already present */}
         <style jsx global>{`
+          /* Keep existing animations */
           @keyframes float {
             0%, 100% { transform: translateY(-5%); }
             50% { transform: translateY(5%); }
