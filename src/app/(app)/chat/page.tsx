@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect, type FormEvent } from 'react';
-import { Send, User, Bot, Loader2 } from 'lucide-react';
+import { Send, User, Bot, Loader2, Paperclip, Mic } from 'lucide-react'; // Added Paperclip, Mic
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -105,16 +105,34 @@ export default function ChatPage() {
     }
   };
 
+   // Placeholder functions for new buttons
+   const handleAttachDocument = () => {
+     if (isLoading) return;
+     // TODO: Implement document attachment logic
+     toast({ title: 'Info', description: 'Document attachment feature not yet implemented.' });
+   };
+
+   const handleVoiceInput = () => {
+     if (isLoading) return;
+     // TODO: Implement voice input logic
+     toast({ title: 'Info', description: 'Voice input feature not yet implemented.' });
+   };
+
+
   return (
     <div className="container mx-auto p-4 md:p-6 flex flex-col h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))]"> {/* Adjust height considering header */}
       <Card className="flex flex-col flex-1 overflow-hidden shadow-lg rounded-lg border">
-        <CardHeader className="border-b bg-card">
-          <CardTitle className="flex items-center gap-3 text-lg font-semibold">
-            <Avatar className={cn("h-8 w-8 border", isLoading && "animate-pulse")}>
-              <AvatarFallback><Bot className="h-4 w-4 text-primary" /></AvatarFallback>
-            </Avatar>
-            Chat with Zy
-          </CardTitle>
+        <CardHeader className="border-b bg-card flex flex-row items-center justify-between">
+          <div className="flex items-center gap-3">
+              {/* Slightly larger, more prominent AI Avatar */}
+              <Avatar className={cn("h-10 w-10 border-2 border-primary shadow-md", isLoading && "animate-pulse")}>
+                <AvatarFallback><Bot className="h-5 w-5 text-primary" /></AvatarFallback>
+              </Avatar>
+              <CardTitle className="text-lg font-semibold">
+                Chat with Zy
+              </CardTitle>
+          </div>
+          {/* Optional: Add status or other elements here if needed */}
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden bg-muted/30">
           <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
@@ -123,7 +141,7 @@ export default function ChatPage() {
                 <div
                   key={message.id}
                   className={cn(
-                    'flex items-end gap-3 animate-in fade-in duration-300', // Added animation
+                    'flex items-end gap-3 animate-in fade-in duration-300',
                     message.role === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
@@ -136,8 +154,8 @@ export default function ChatPage() {
                     className={cn(
                       'rounded-lg px-4 py-2 max-w-[75%] shadow-sm',
                       message.role === 'user'
-                        ? 'bg-primary text-primary-foreground rounded-br-none' // Slightly different rounding for user
-                        : 'bg-card text-card-foreground border border-border rounded-bl-none' // Slightly different rounding for AI
+                        ? 'bg-primary/90 text-primary-foreground rounded-br-none' // Adjusted user bubble color
+                        : 'bg-card text-card-foreground border border-border rounded-bl-none' // AI bubble color remains card/muted
                     )}
                   >
                      {message.content === '...' && isLoading ? ( // Render spinner for loading message
@@ -160,10 +178,21 @@ export default function ChatPage() {
         </CardContent>
         <CardFooter className="border-t p-4 bg-card">
           <form onSubmit={handleSendMessage} className="flex w-full items-center space-x-2">
+             {/* Document Attachment Button */}
+            <Button type="button" variant="ghost" size="icon" onClick={handleAttachDocument} disabled={isLoading}>
+              <Paperclip className="h-5 w-5" />
+              <span className="sr-only">Attach Document</span>
+            </Button>
+             {/* Voice Input Button */}
+             <Button type="button" variant="ghost" size="icon" onClick={handleVoiceInput} disabled={isLoading}>
+               <Mic className="h-5 w-5" />
+               <span className="sr-only">Use Voice Input</span>
+             </Button>
+
             <Input
               ref={inputRef}
               type="text"
-              placeholder="Type your message..."
+              placeholder="Type your message or use voice..." // Updated placeholder
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               disabled={isLoading}
@@ -180,3 +209,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
