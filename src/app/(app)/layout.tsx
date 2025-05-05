@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -15,6 +16,7 @@ import {
   Bot, // Import Bot icon
   Menu,
   X,
+  ArrowLeft, // Import ArrowLeft icon for back functionality
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -68,7 +70,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
    };
 
   const handleLogout = () => {
-      // TODO: Add actual sign-out logic (e.g., Firebase sign out)
       console.log("Logging out...");
       toast({
           title: "Logged Out",
@@ -257,26 +258,30 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     </nav>
   );
 
+   // Determine FAB target and icon based on current path
+   const isChatPage = pathname === '/chat';
+   const fabHref = isChatPage ? '/dashboard' : '/chat';
+   const FabIcon = isChatPage ? ArrowLeft : Bot;
+   const fabAriaLabel = isChatPage ? 'Back to Dashboard' : 'Chat with Zy';
+
   return (
     <div className="flex min-h-screen w-full flex-col">
        <Header />
        <main className="flex-1 overflow-y-auto bg-muted/40 pb-16 md:pb-0"> {/* Add padding-bottom for mobile nav */}
          {children}
        </main>
-        {/* Re-added Floating Action Button for Chat */}
-        <Link href="/chat" passHref>
+        {/* Floating Action Button - Conditional Link and Icon */}
+        <Link href={fabHref} passHref>
             <Button
             variant="default" // Or a more prominent variant
             size="icon"
             className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6" // Position above bottom nav on mobile, fixed on desktop
-            aria-label="Chat with Zy"
+            aria-label={fabAriaLabel}
             >
-            <Bot className="h-7 w-7" />
+            <FabIcon className="h-7 w-7" />
             </Button>
         </Link>
        <BottomNavBar />
     </div>
   );
 }
-
-    
