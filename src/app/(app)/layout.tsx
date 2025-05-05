@@ -132,7 +132,6 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
                         </Link>
                       </li>
                     ))}
-                     {/* Removed Chat link from mobile menu */}
                      <DropdownMenuSeparator />
                       {/* Profile items in mobile menu */}
                        <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Account</DropdownMenuLabel>
@@ -190,7 +189,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
              <span className="sr-only">Notifications</span>
               {/* Unread Count Badge */}
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
                    {unreadCount > 9 ? '9+' : unreadCount} {/* Cap count display */}
                 </span>
               )}
@@ -243,24 +242,32 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
 
   const BottomNavBar = () => (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background md:hidden">
-      <div className="flex h-16 items-center justify-around">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              'flex flex-col items-center justify-center gap-1 px-2 py-1 text-xs font-medium transition-colors flex-1', // Added flex-1 for equal distribution
-              pathname.startsWith(item.href) // Use startsWith to correctly highlight parent paths like /profile
-                ? 'text-primary'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <item.icon className="h-5 w-5" />
-            <span>{item.label}</span>
-          </Link>
-        ))}
-         {/* Removed Chat icon from bottom nav bar */}
+    // Fixed position, white background, top border/shadow for separation
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background shadow-[0_-1px_3px_rgba(0,0,0,0.1)] md:hidden">
+      <div className="flex h-16 items-center justify-around px-2">
+        {navItems.map((item) => {
+          // Determine if the current path starts with the item's href
+          // Special case for dashboard ('/') to match exactly
+          const isActive = item.href === '/dashboard'
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium transition-colors', // flex-1 for equal distribution, adjusted padding/gap
+                isActive
+                  ? 'text-primary' // Active state color
+                  : 'text-muted-foreground hover:text-foreground' // Inactive state color
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );
