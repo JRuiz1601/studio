@@ -20,8 +20,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
-  Cloud, MapPin, HeartPulse, Zap, BatteryCharging, WifiOff, CreditCard, FileWarning, ShieldCheck,
-  TrendingUp, AlertTriangle, Lightbulb, ShieldAlert, ShieldX, Shield // Added Shield icons
+   Cloud, MapPin, HeartPulse, Zap, BatteryCharging, WifiOff, CreditCard, FileWarning, ShieldCheck,
+   TrendingUp, AlertTriangle, Lightbulb, ShieldAlert, ShieldX, Shield, GraduationCap, Users, PhoneCall // Added relevant icons
 } from 'lucide-react'; // Added new icons
 import Image from 'next/image';
 import type { Location } from '@/services/gps';
@@ -35,7 +35,8 @@ import { Button } from '@/components/ui/button'; // Import Button
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'; // Import Alert components
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"; // Import chart components
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'; // Import Recharts components
-import { Progress } from '@/components/ui/progress'; // Import Progress
+// Removed Progress import as it's replaced by semaphore icon
+// import { Progress } from '@/components/ui/progress';
 
 type RiskStatus = 'low' | 'medium' | 'high';
 
@@ -43,9 +44,9 @@ type RiskStatus = 'low' | 'medium' | 'high';
 interface Recommendation {
   id: string;
   title: string;
-  description: string;
-  type: 'weather' | 'location' | 'profile' | 'wearable';
-  icon: React.ComponentType<{ className?: string }>;
+  description: string; // Refined XAI text
+  type: 'weather' | 'location' | 'profile' | 'wearable' | 'financial'; // Added financial type
+  icon: React.ComponentType<{ className?: string }>; // Use more specific icons
 }
 
 // Mock data for the financial chart
@@ -73,7 +74,8 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const [riskStatus, setRiskStatus] = useState<RiskStatus>('low');
-  const [protectionPercentage, setProtectionPercentage] = useState(0); // State for protection percentage
+  // Removed protectionPercentage state
+  // const [protectionPercentage, setProtectionPercentage] = useState(0);
   const [location, setLocation] = useState<Location | null>(null);
   const [weather, setWeather] = useState<Weather | null>(null);
   const [wearableStatus, setWearableStatus] = useState<WearableConnectionStatus | null>(null);
@@ -84,7 +86,7 @@ export default function DashboardPage() {
   const [loadingWearable, setLoadingWearable] = useState(true);
   const [userName, setUserName] = useState('Usuario Zyren'); // Placeholder user name
   const [greeting, setGreeting] = useState<string | null>(null); // State for greeting
-
+  const [adaptivePremiumsActive, setAdaptivePremiumsActive] = useState(true); // Mock state for adaptive premiums feature
 
   // Fetch data on component mount
   useEffect(() => {
@@ -126,19 +128,12 @@ export default function DashboardPage() {
              setLoadingWearable(false);
         }
 
-         // TODO: Calculate risk status and protection percentage based on fetched data
-         // Example: High risk if high stress and bad weather
-         const calculatedRisk: RiskStatus = 'medium'; // Example calculation
+         // TODO: Calculate risk status based on fetched data (policies, profile, context)
+         // This calculation should replace the hardcoded value
+         const calculatedRisk: RiskStatus = 'medium'; // Example calculation for demonstration
          setRiskStatus(calculatedRisk);
-         // Example percentage calculation based on risk
-         let calculatedPercentage = 0;
-         switch (calculatedRisk) {
-             case 'low': calculatedPercentage = 90; break;
-             case 'medium': calculatedPercentage = 65; break;
-             case 'high': calculatedPercentage = 30; break;
-             default: calculatedPercentage = 0;
-         }
-         setProtectionPercentage(calculatedPercentage);
+
+         // Removed protection percentage calculation
      }
      fetchData();
 
@@ -169,8 +164,8 @@ export default function DashboardPage() {
    };
    const getRiskStatusDescription = (status: RiskStatus): string => {
       switch (status) {
-        case 'low': return 'Estás bien protegido según tu perfil actual.';
-        case 'medium': return 'Tenemos algunas sugerencias para optimizar tu protección.';
+        case 'low': return 'Tu protección está optimizada según tu perfil actual.'; // Updated text
+        case 'medium': return 'Revisa estas sugerencias para optimizar tu protección:'; // Updated text
         case 'high': return 'Se requiere atención inmediata para mitigar riesgos.';
         default: return 'No se puede determinar el estado de protección.';
       }
@@ -178,20 +173,20 @@ export default function DashboardPage() {
 
   const getRiskStatusIcon = (status: RiskStatus): React.ReactElement => {
       switch (status) {
-          case 'low': return <ShieldCheck className="h-5 w-5 text-green-500" />;
-          case 'medium': return <ShieldAlert className="h-5 w-5 text-yellow-500" />;
-          case 'high': return <ShieldX className="h-5 w-5 text-red-500" />;
-          default: return <Shield className="h-5 w-5 text-gray-500" />;
+          case 'low': return <ShieldCheck className="h-10 w-10 text-green-500" />; // Larger icon
+          case 'medium': return <ShieldAlert className="h-10 w-10 text-yellow-500" />; // Larger icon
+          case 'high': return <ShieldX className="h-10 w-10 text-red-500" />; // Larger icon
+          default: return <Shield className="h-10 w-10 text-gray-500" />; // Larger icon
       }
   };
 
+   // Updated recommendations with better icons and XAI text
    const recommendations: Recommendation[] = [
     // Dynamically generate recommendations based on data
-    ...(weather && weather.temperatureFarenheit > 85 ? [{ id: 'rec1', title: 'Alerta por Calor', description: 'Mantente hidratado y evita actividades extenuantes.', type: 'weather', icon: Cloud } as Recommendation] : []),
-    //...(location ? [{ id: 'rec2', title: 'Contexto de Ubicación', description: `Condiciones actuales cerca de ${location.latitude.toFixed(2)}, ${location.longitude.toFixed(2)}.`, type: 'location', icon: MapPin } as Recommendation] : []),
-    ...(wearableData && wearableData.stressLevel > 60 ? [{ id: 'rec3', title: 'Estrés Elevado Detectado', description: 'Considera tomar un breve descanso o practicar mindfulness.', type: 'wearable', icon: Zap } as Recommendation] : []),
-    { id: 'rec4', title: 'Revisa tu Perfil', description: 'Asegúrate que tus datos estén actualizados para recomendaciones precisas.', type: 'profile', icon: AlertTriangle }, // Changed icon
-    { id: 'rec5', title: 'Considera Seguro Educativo', description: 'Basado en la edad de tus dependientes (simulado).', type: 'profile', icon: AlertTriangle }, // Example Changed icon
+    ...(weather && weather.temperatureFarenheit > 85 ? [{ id: 'rec1', title: 'Alerta por Calor', description: 'Con el calor actual, recuerda mantenerte hidratado y evitar actividades extenuantes.', type: 'weather', icon: Cloud } as Recommendation] : []),
+    ...(wearableData && wearableData.stressLevel > 60 ? [{ id: 'rec3', title: 'Estrés Elevado Detectado', description: 'Tu nivel de estrés es más alto de lo usual. Considera un breve descanso o una pausa para relajarte.', type: 'wearable', icon: Zap } as Recommendation] : []),
+    { id: 'rec4', title: 'Revisa tu Perfil', description: 'Para darte recomendaciones más precisas, ¿revisamos si los datos de tu perfil están al día?', type: 'profile', icon: Users }, // Changed icon and text
+    { id: 'rec5', title: 'Explora Seguro Educativo', description: 'Como tus dependientes (simulado) están en edad escolar, te sugerimos explorar el Seguro Educativo.', type: 'profile', icon: GraduationCap }, // Changed icon and text
   ].slice(0, 3); // Limit to 3 recommendations for the carousel
 
 
@@ -201,51 +196,41 @@ export default function DashboardPage() {
       {/* 1. Saludo Personalizado */}
        <div className="mb-4">
          <h1 className="text-2xl font-semibold">Hola {userName},</h1>
-         {/* Display greeting or skeleton - Use div instead of p for Skeleton */}
+         {/* Display greeting or skeleton */}
          <div className="text-muted-foreground">{greeting || <Skeleton className="h-5 w-24 inline-block" />}</div>
        </div>
 
       {/* 2. Widget Principal: Nivel de Protección */}
       <Card className="border-primary shadow-md">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-medium flex items-center gap-2">
-             {getRiskStatusIcon(riskStatus)} {/* Added Icon */}
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-medium">
              Tu Nivel de Protección Hoy
           </CardTitle>
-           {/* Optional: Keep the colored dot if desired */}
-          {/* <div className={`h-5 w-5 rounded-full ${getRiskStatusColor(riskStatus)} flex items-center justify-center text-white text-xs`}>
-             {riskStatus === 'low' && '✓'}
-             {riskStatus === 'medium' && '!'}
-             {riskStatus === 'high' && 'X'}
-          </div> */}
         </CardHeader>
-        <CardContent className="space-y-3"> {/* Added space-y-3 */}
-          <p className={`text-xl font-bold capitalize ${getRiskStatusColor(riskStatus)} mb-1`}>
-             {getRiskStatusText(riskStatus)}
-          </p>
-          <p className="text-sm text-muted-foreground mb-3">
-             {getRiskStatusDescription(riskStatus)}
-          </p>
-           {/* Progress Bar */}
-           <div className="space-y-1">
-              <div className="flex justify-between text-sm font-medium">
-                 <span>Nivel de Cobertura</span>
-                 <span>{protectionPercentage}%</span>
-              </div>
-              <Progress value={protectionPercentage} className="h-2" />
+        <CardContent className="space-y-4 flex flex-col sm:flex-row items-center gap-4"> {/* Adjusted layout */}
+           {/* Semaphore Icon */}
+           <div className="flex-shrink-0">
+               {getRiskStatusIcon(riskStatus)}
            </div>
 
-           <div className="flex flex-col sm:flex-row gap-2 pt-2"> {/* Button container */}
-              <Button variant="link" size="sm" className="p-0 h-auto justify-start sm:justify-center" asChild>
-                <Link href={riskStatus === 'medium' || riskStatus === 'high' ? '/recommendations' : '/insurances'}>
-                   {riskStatus === 'medium' || riskStatus === 'high' ? 'Ver Recomendaciones' : 'Ver Mis Seguros'}
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                 {/* Placeholder functionality */}
-                 Mejorar mi protección
-              </Button>
+           {/* Status Text and CTA */}
+           <div className="flex-1 space-y-2">
+               <p className={`text-xl font-bold capitalize ${getRiskStatusColor(riskStatus)}`}>
+                  {getRiskStatusText(riskStatus)}
+               </p>
+               <p className="text-sm text-muted-foreground">
+                  {getRiskStatusDescription(riskStatus)}
+               </p>
+               {/* Conditional CTA Button */}
+               <Button variant="link" size="sm" className="p-0 h-auto justify-start" asChild>
+                  <Link href={riskStatus === 'medium' || riskStatus === 'high' ? '/recommendations' : '/insurances'}>
+                     {riskStatus === 'medium' || riskStatus === 'high' ? 'Ver Recomendaciones' : 'Ver Mis Seguros'}
+                  </Link>
+               </Button>
            </div>
+
+           {/* Removed Progress Bar */}
+           {/* Removed "Mejorar mi protección" button */}
         </CardContent>
       </Card>
 
@@ -326,14 +311,6 @@ export default function DashboardPage() {
                           strokeWidth={2}
                           dot={false}
                         />
-                        {/* Optional: Add market trend line if needed */}
-                        {/* <Line
-                          dataKey="market"
-                          type="monotone"
-                          stroke="var(--color-market)"
-                          strokeWidth={2}
-                          dot={false}
-                        /> */}
                       </LineChart>
                    </ChartContainer>
 
@@ -368,6 +345,7 @@ export default function DashboardPage() {
                        <rec.icon className="h-6 w-6 text-primary mt-1 shrink-0" />
                        <div className="flex-1">
                            <CardTitle className="text-base font-medium mb-1">{rec.title}</CardTitle>
+                           {/* Updated to use refined XAI text */}
                            <p className="text-xs text-muted-foreground leading-snug">{rec.description}</p>
                        </div>
                     </CardHeader>
@@ -423,7 +401,7 @@ export default function DashboardPage() {
                                 {wearableData.stressLevel > 60 && ( // Example threshold for high stress
                                    <Alert variant="destructive" className="p-1 px-2 mt-1 text-xs">
                                       <AlertTriangle className="h-3 w-3" />
-                                      <AlertDescription>Estrés aumentó 20%</AlertDescription>
+                                      <AlertDescription>Estrés aumentó 20%</AlertDescription> {/* Added message */}
                                    </Alert>
                                 )}
                              </div>
@@ -436,8 +414,18 @@ export default function DashboardPage() {
                                <span>{wearableBattery.percentage}%</span>
                              </div>
                            </div>
-                           <p className="text-xs text-muted-foreground pt-2">Mantén tus hábitos saludables para optimizar tus primas.</p>
-                           {/* TODO: Link to a dedicated wellness section or settings */}
+                           {/* Updated text for wellness-premium connection */}
+                           {adaptivePremiumsActive ? (
+                             <p className="text-xs text-muted-foreground pt-2">Tus hábitos saludables actuales están ayudando a [mantener/reducir] la prima de tu [Seguro X]. ¡Sigue así!</p>
+                           ) : (
+                              <p className="text-xs text-muted-foreground pt-2">
+                                 ¿Sabías que podrías optimizar tus primas conectando tus datos de bienestar?
+                                 <Button variant="link" size="sm" className="p-0 h-auto ml-1" asChild>
+                                    <Link href="/profile/settings">Actívalo en Configuración.</Link>
+                                 </Button>
+                              </p>
+                           )}
+                           {/* Link to a dedicated wellness section or settings */}
                            {/* <Button variant="link" size="sm" className="p-0 h-auto mt-1">Ver más detalles</Button> */}
                     </div>
                  ) : (
@@ -456,21 +444,22 @@ export default function DashboardPage() {
        <div className="space-y-4">
          <h2 className="text-xl font-semibold">Acceso Rápido</h2>
          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-           <Button variant="outline" className="justify-start text-left h-auto py-3">
+           {/* Using default button style for more visibility */}
+           <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
              <CreditCard className="mr-3 h-5 w-5 shrink-0" />
              <div className="flex flex-col">
                  <span className="font-medium">Pagar Próxima Cuota</span>
                  {/* <span className="text-xs text-muted-foreground">Vence el DD/MM</span> */}
              </div>
            </Button>
-           <Button variant="outline" className="justify-start text-left h-auto py-3">
+           <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
              <FileWarning className="mr-3 h-5 w-5 shrink-0" />
              <div className="flex flex-col">
                 <span className="font-medium">Reportar Incidente</span>
                 {/* <span className="text-xs text-muted-foreground">Iniciar reclamación</span> */}
              </div>
            </Button>
-           <Button variant="outline" className="justify-start text-left h-auto py-3" asChild>
+           <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90" asChild>
               <Link href="/insurances">
                  <ShieldCheck className="mr-3 h-5 w-5 shrink-0" />
                  <div className="flex flex-col">
