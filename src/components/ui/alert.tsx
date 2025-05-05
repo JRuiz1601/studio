@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -36,6 +37,7 @@ const AlertTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => (
+  // Ensure title is visually distinct and appropriately sized
   <h5
     ref={ref}
     className={cn("mb-1 font-medium leading-none tracking-tight", className)}
@@ -48,6 +50,7 @@ const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
+  // Ensure description text is legible and uses muted color
   <div
     ref={ref}
     className={cn("text-sm [&_p]:leading-relaxed", className)}

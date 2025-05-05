@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle, Cloud, MapPin, HeartPulse, Zap, BatteryCharging, WifiOff, CreditCard, FileWarning, ShieldCheck } from 'lucide-react'; // Added new icons
+import { AlertCircle, Cloud, MapPin, HeartPulse, Zap, BatteryCharging, WifiOff, CreditCard, FileWarning, ShieldCheck, TrendingUp, AlertTriangle, Lightbulb } from 'lucide-react'; // Added new icons
 import Image from 'next/image';
 import type { Location } from '@/services/gps';
 import type { Weather } from '@/services/weather';
@@ -29,6 +29,7 @@ import { getWeather } from '@/services/weather';
 import { getWearableBatteryStatus, getWearableConnectionStatus, getWearableData } from '@/services/wearable';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button'; // Import Button
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'; // Import Alert components
 
 type RiskStatus = 'low' | 'medium' | 'high';
 
@@ -180,8 +181,9 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* 3. Widget Contextual: Entorno Actual */}
+      {/* 3. Widgets Contextuales: Entorno Actual y Mercado Financiero */}
        <div className="grid gap-4 md:grid-cols-2">
+           {/* Entorno Actual Card */}
            <Card>
              <CardHeader className="pb-2">
                <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -189,7 +191,7 @@ export default function DashboardPage() {
                </CardTitle>
              </CardHeader>
              <CardContent className="space-y-1">
-                {loadingWeather ? (
+                {loadingWeather || loadingLocation ? (
                   <div className="space-y-2">
                       <Skeleton className="h-5 w-1/2" />
                       <Skeleton className="h-5 w-3/4" />
@@ -198,7 +200,7 @@ export default function DashboardPage() {
                  <>
                   <p className="text-lg font-bold flex items-center gap-1">
                       {/* TODO: Add Weather Icon component */}
-                      {weather.temperatureFarenheit}°F <span className="text-sm font-normal text-muted-foreground">en {location ? `${location.latitude.toFixed(1)}, ${location.longitude.toFixed(1)}` : 'tu ubicación'}</span>
+                      {weather.temperatureFarenheit}°F <span className="text-sm font-normal text-muted-foreground">en {location ? `tu ubicación` : 'desconocida'}</span>
                   </p>
                   <p className="text-sm text-muted-foreground">{weather.conditions}</p>
                   {/* TODO: Add Traffic insight */}
@@ -209,8 +211,30 @@ export default function DashboardPage() {
              </CardContent>
            </Card>
 
-            {/* Placeholder for Location Card if needed separately */}
-           {/* <Card> ... </Card> */}
+           {/* Mercado Financiero Card */}
+           <Card>
+             <CardHeader className="pb-2">
+               <CardTitle className="text-base font-medium flex items-center gap-2">
+                 <TrendingUp className="h-5 w-5 text-muted-foreground" /> Mercado Financiero
+               </CardTitle>
+             </CardHeader>
+             <CardContent className="space-y-3">
+                 <Alert variant="destructive" className="p-3">
+                   <AlertTriangle className="h-4 w-4" />
+                   <AlertTitle className="text-sm font-semibold">Alerta de Inflación</AlertTitle>
+                   <AlertDescription className="text-xs">
+                      La inflación sigue en aumento. Protege tus ahorros.
+                   </AlertDescription>
+                 </Alert>
+                 <div className="flex items-start gap-2 text-sm">
+                    <Lightbulb className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
+                    <p className="text-muted-foreground">
+                      <span className="font-medium text-foreground">Tip Clave:</span> Considera diversificar tus inversiones y revisa opciones de ahorro con protección inflacionaria.
+                    </p>
+                 </div>
+             </CardContent>
+           </Card>
+
         </div>
 
 
@@ -259,7 +283,7 @@ export default function DashboardPage() {
              <AccordionContent className="px-6 pb-4">
                  {loadingWearable ? (
                      <div className="flex items-center justify-center text-muted-foreground py-4">
-                         <Skeleton className="h-5 w-5 mr-2" /> Cargando datos de bienestar...
+                         <Skeleton className="h-5 w-5 mr-2 rounded-full" /> Cargando datos de bienestar...
                      </div>
                  ) : wearableStatus === 'connected' && wearableBattery && wearableData ? (
                     <div className="space-y-3">
@@ -279,7 +303,10 @@ export default function DashboardPage() {
                              <div className="flex flex-col items-end">
                                 <span>{wearableData.stressLevel}%</span>
                                 {wearableData.stressLevel > 60 && ( // Example threshold for high stress
-                                  <span className="text-xs text-destructive">Alerta: Estrés aumentó un 20%</span>
+                                   <Alert variant="destructive" className="p-1 px-2 mt-1 text-xs">
+                                      <AlertTriangle className="h-3 w-3" />
+                                      <AlertDescription>Estrés aumentó 20%</AlertDescription>
+                                   </Alert>
                                 )}
                              </div>
                           </div>
@@ -340,4 +367,5 @@ export default function DashboardPage() {
     </div>
   );
 
-    
+
+}
