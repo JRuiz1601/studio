@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { ReactNode } from 'react';
@@ -37,7 +36,7 @@ const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: Home },
   { href: '/insurances', label: 'Mis Seguros', icon: ShieldCheck },
   { href: '/recommendations', label: 'Recomendaciones', icon: Lightbulb },
-   { href: '/chat', label: 'Chat', icon: Bot }, // Added Chat link
+  // { href: '/chat', label: 'Chat', icon: Bot }, // Removed Chat link from main nav
 ];
 
 const profileMenuItems = [
@@ -75,8 +74,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           title: "Logged Out",
           description: "You have been successfully logged out.",
       });
-      // The (auth) folder is a route group, so /login maps to this path.
-      router.push('/login'); // Redirect to login page
+      // Redirect to login page
+      router.push('/login');
       closeMobileMenu(); // Close mobile menu if open
   };
 
@@ -129,6 +128,19 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                         </Link>
                       </li>
                     ))}
+                    {/* Added Chat link back to mobile menu if needed */}
+                     <li>
+                        <Link href="/chat" passHref>
+                          <Button
+                            variant={pathname === '/chat' ? 'secondary' : 'ghost'}
+                            className="w-full justify-start"
+                            onClick={closeMobileMenu}
+                          >
+                            <Bot className="mr-2 h-4 w-4" />
+                            Chat
+                          </Button>
+                        </Link>
+                      </li>
                      <DropdownMenuSeparator />
                       {/* Profile items in mobile menu */}
                        <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Account</DropdownMenuLabel>
@@ -252,6 +264,19 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <span>{item.label}</span>
           </Link>
         ))}
+         {/* Added Chat icon back to bottom nav bar */}
+          <Link
+            href="/chat"
+            className={cn(
+              'flex flex-col items-center justify-center gap-1 px-2 py-1 text-xs font-medium transition-colors',
+              pathname === '/chat'
+                ? 'text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Bot className="h-5 w-5" />
+            <span>Chat</span>
+          </Link>
       </div>
     </nav>
   );
@@ -262,9 +287,18 @@ export default function AppLayout({ children }: { children: ReactNode }) {
        <main className="flex-1 overflow-y-auto bg-muted/40 pb-16 md:pb-0"> {/* Add padding-bottom for mobile nav */}
          {children}
        </main>
-       {/* Floating Action Button removed, chat is now a main nav item */}
+        {/* Re-added Floating Action Button for Chat */}
+        <Link href="/chat" passHref>
+            <Button
+            variant="default" // Or a more prominent variant
+            size="icon"
+            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:hidden" // Position above bottom nav
+            aria-label="Chat with Zy"
+            >
+            <Bot className="h-7 w-7" />
+            </Button>
+        </Link>
        <BottomNavBar />
     </div>
   );
 }
-
