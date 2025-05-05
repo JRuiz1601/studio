@@ -12,7 +12,7 @@ import {
   Settings,
   LogOut,
   Bell,
-  Bot,
+  Bot, // Import Bot icon
   Menu,
   X,
 } from 'lucide-react';
@@ -32,11 +32,11 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 
+// Removed Chat from navItems as it's accessed via FAB
 const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: Home },
   { href: '/insurances', label: 'Mis Seguros', icon: ShieldCheck },
   { href: '/recommendations', label: 'Recomendaciones', icon: Lightbulb },
-  // Chat is now accessed via FAB
 ];
 
 const profileMenuItems = [
@@ -268,7 +268,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <Button
             variant="default" // Or a more prominent variant
             size="icon"
-            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:hidden" // Position above bottom nav
+            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6" // Position above bottom nav on mobile, fixed on desktop
             aria-label="Chat with Zy"
             >
             <Bot className="h-7 w-7" />
@@ -278,3 +278,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+    
