@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect, type FormEvent, useCallback } from 'react';
-import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info, LifeBuoy, Phone } from 'lucide-react'; // Added Phone
+import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info, LifeBuoy, Phone, Headset } from 'lucide-react'; // Added Headset, removed LifeBuoy from direct use in trigger
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -523,13 +523,13 @@ export default function ChatPage() {
                          aria-label="Contactar Soporte Humano"
                          className="text-muted-foreground hover:text-primary" // Subtle styling
                      >
-                        <LifeBuoy className="h-5 w-5" />
+                        <Headset className="h-5 w-5" /> {/* Changed icon to Headset */}
                         <span className="sr-only">Contactar Soporte Humano</span>
                      </Button>
                  </DropdownMenuTrigger>
                  <DropdownMenuContent align="end">
                     <DropdownMenuItem onSelect={handleContactSupportChat} disabled={isLoading}>
-                        <LifeBuoy className="mr-2 h-4 w-4" />
+                        <LifeBuoy className="mr-2 h-4 w-4" /> {/* Keep LifeBuoy for chat */}
                         <span>Chat with Agent</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={handleContactSupportCall} disabled={isLoading}>
