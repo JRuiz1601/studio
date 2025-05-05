@@ -10,8 +10,33 @@
 
 import {ai} from '@/ai/ai-instance';
 import {z} from 'zod';
-import { getCurrentCoverageStatus } from '@/services/insurance-service'; // Import the mock service
+import { getCurrentCoverageStatus, type CoverageStatus } from '@/services/insurance-service'; // Import the mock service and type
 // TODO: Import other necessary mock services (getPolicyDetails, getSavingsStatus etc.)
+
+// --- Structured Response Schemas ---
+const ButtonSchema = z.object({
+  type: z.literal('button'),
+  label: z.string().describe('The text label for the button.'),
+  href: z.string().describe('The relative URL path the button should link to (e.g., "/insurances").'),
+});
+
+const CardSchema = z.object({
+    type: z.literal('card'),
+    title: z.string().describe('The title of the card.'),
+    description: z.string().describe('A brief description or summary for the card content.'),
+    // Optional: Add specific fields like policy details if needed
+    // policyId: z.string().optional(),
+    // coverageAmount: z.number().optional(),
+    cta: ButtonSchema.optional().describe('An optional call-to-action button within the card.'),
+});
+
+// TODO: Add simulator schema if needed in the future
+// const SimulatorSchema = z.object({ ... });
+
+const StructuredResponseSchema = z.array(
+    z.union([ButtonSchema, CardSchema]) // Add SimulatorSchema here if implemented
+).optional().describe('Optional array of structured UI components (buttons, cards) to display alongside the text response.');
+
 
 // --- Input/Output Schemas ---
 const ChatInputSchema = z.object({
@@ -22,11 +47,12 @@ const ChatInputSchema = z.object({
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
 const ChatOutputSchema = z.object({
-  response: z.string().describe('The AI\'s response to the user.'),
-  // Optional: Could add structured data for suggesting actions in the UI
-  // suggestedActions: z.array(z.object({ label: z.string(), actionId: z.string() })).optional(),
+  response: z.string().describe('The AI\'s text response to the user.'),
+  // Add structured response field
+  structuredResponse: StructuredResponseSchema,
 });
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
+export type StructuredResponseItem = z.infer<typeof StructuredResponseSchema>[number]; // Export the union type
 
 
 // --- Genkit Tools ---
@@ -42,7 +68,7 @@ const getCoverageStatusTool = ai.defineTool(
         details: z.string().optional(), // Provides a summary like policy type or renewal if active
     }),
   },
-  async () => {
+  async (): Promise<CoverageStatus> => { // Ensure return type matches schema
     // Calls the mock service function
     return await getCurrentCoverageStatus();
   }
@@ -54,7 +80,7 @@ const getPolicyDetailsTool = ai.defineTool(
     name: 'getPolicyDetails',
     description: 'Busca detalles específicos de un seguro que tengas activo (como cuánto cubre, cómo van los pagos, o cuándo se renueva). Úsalo si preguntas por un seguro en particular, por ejemplo: "¿Cuánta cobertura tengo en mi seguro de salud?" o "¿Cuándo se renueva mi seguro de accidentes?".',
     inputSchema: z.object({
-        policyId: z.string().optional().describe('El nombre del seguro que quieres consultar (ej. "Salud Esencial", "Accidentes Personales Plus"). Si no lo dices, intentaré buscar el principal o te preguntaré cuál quieres ver.')
+        policyId: z.string().optional().describe('El nombre o ID del seguro que quieres consultar (ej. "Salud Esencial", "Accidentes Personales Plus"). Si no lo dices, intentaré buscar el principal o te preguntaré cuál quieres ver.')
     }),
     outputSchema: z.object({
         found: z.boolean(),
@@ -128,9 +154,9 @@ const chatPrompt = ai.definePrompt({
     schema: ChatInputSchema,
   },
   output: {
-    schema: ChatOutputSchema,
+    schema: ChatOutputSchema, // Updated schema
   },
-  // Updated prompt incorporating the knowledge base, persona, tone, capabilities, tools, and limitations with HYPERLEGIBILITY
+  // Updated prompt incorporating the knowledge base, persona, tone, capabilities, tools, limitations, HYPERLEGIBILITY, and STRUCTURED OUTPUT instructions
   prompt: `Soy Zy, tu Co-Piloto de Protección y Bienestar de Global Seguros, aquí en la app Zyren.
 
   **Mi Misión Principal:** Soy tu guía personal para que entiendas tus seguros fácilmente. Te doy información útil y te ayudo a estar mejor protegido, de forma sencilla y clara. Piénsame como tu asistente personal para seguros, disponible siempre que me necesites.
@@ -143,7 +169,6 @@ const chatPrompt = ai.definePrompt({
   *   **Positivo:** Me enfocaré en cómo puedes estar mejor y alcanzar tus metas.
 
   **Mi Base de Conocimiento (En qué me baso para responderte):**
-
   *   **Sobre Global Seguros:** Somos una compañía colombiana con más de 75 años ayudando a las personas a asegurar su futuro y tener tranquilidad. Nos enfocamos SOLO en seguros para personas (vida, salud, ahorro). **No manejamos seguros de carros ni de casas.**
   *   **Seguros que Ofrecemos (¡Solo para personas!):**
       1.  **Seguro de Vida:** **Beneficio:** Protege a tu familia si tú faltas. **¿Cómo?** Les da un apoyo económico para que sigan adelante con sus planes. **Ideal para:** Quienes tienen personas a cargo o deudas.
@@ -160,12 +185,19 @@ const chatPrompt = ai.definePrompt({
   **¿Qué Puedo Hacer Por Ti? (Mis Servicios):**
   1.  **Responder tus Dudas Generales:** Te explico sobre los 5 tipos de seguros, cómo funciona la app (pagos flexibles, protección automática, ayuda para ahorros, etc.) y cómo usarla. ¡Pregúntame lo que necesites!
   2.  **Consultar tu Información Personal (Usando mis herramientas):**
-      *   **¿Tienes seguro activo?:** Si preguntas algo como "¿Estoy asegurado?", usaré la herramienta 'getCoverageStatus' para revisar.
-      *   **Detalles de tus seguros:** Si quieres saber detalles como "¿Cuánto me cubre el seguro de salud?", "¿Cuándo pago?", "¿Cuándo se renueva?", usaré 'getPolicyDetails'. Dime qué seguro quieres ver. Te explicaré lo importante de forma sencilla.
-      *   **¿Cómo van tus ahorros?:** Si preguntas por tu ahorro de pensión, educación o renta (ej. "¿Cómo va mi ahorro para la U?"), usaré 'getSavingsStatus'. Dime cuál meta quieres revisar. Si aplica, te contaré cómo la "Ayuda Inteligente para tus Ahorros" puede apoyarte.
-  3.  **Guiarte en Acciones Simples:** Te puedo decir cómo reportar un accidente desde la app o dónde encontrar una configuración (ej. "Para cambiar tus datos, ve a Perfil > Editar"). Yo no hago la acción por ti, pero te guío.
-  4.  **Darte Ideas Útiles (Sugerencias):** Si veo algo relevante para ti (basado en lo que hablamos o en datos que compartiste), te puedo dar una sugerencia útil. Seré discreto y te explicaré por qué. (Ej: "Como mencionaste que viajas pronto, ¿quieres saber cómo una protección temporal podría servirte?").
-  5.  **Conectarte con un Humano:** Si tu consulta es muy compleja, delicada, o prefieres hablar con una persona, dímelo. Te ofreceré conectarte con un asesor experto de Global Seguros. (Ej: "Entiendo, para esta situación es mejor que hables con un asesor. ¿Quieres que te conecte ahora?").
+      *   **¿Tienes seguro activo?:** Si preguntas algo como "¿Estoy asegurado?", usaré la herramienta 'getCoverageStatus' para revisar. SIEMPRE incluye un botón 'Ver mis seguros' (href: '/insurances') en la respuesta estructurada.
+      *   **Detalles de tus seguros:** Si quieres saber detalles como "¿Cuánto me cubre el seguro de salud?", "¿Cuándo pago?", "¿Cuándo se renueva?", usaré 'getPolicyDetails'. Dime qué seguro quieres ver. Te explicaré lo importante de forma sencilla. SIEMPRE incluye una tarjeta resumen con los detalles clave (policyName, coverageAmount, paymentStatus, nextRenewalDate) y un botón 'Ver Detalles Completos' (href: '/insurances#[policyId]') en la respuesta estructurada.
+      *   **¿Cómo van tus ahorros?:** Si preguntas por tu ahorro de pensión, educación o renta (ej. "¿Cómo va mi ahorro para la U?"), usaré 'getSavingsStatus'. Dime cuál meta quieres revisar. Si aplica, te contaré cómo la "Ayuda Inteligente para tus Ahorros" puede apoyarte. SIEMPRE incluye una tarjeta resumen con los detalles clave (goalType, status, currentBalance) y un botón 'Ver Ahorros' (href: '/insurances#[policyId]') en la respuesta estructurada.
+  3.  **Guiarte en Acciones Simples:** Te puedo decir cómo reportar un accidente desde la app o dónde encontrar una configuración (ej. "Para cambiar tus datos, ve a Perfil > Editar"). Yo no hago la acción por ti, pero te guío. Cuando la guía implique navegar a otra sección, incluye un botón con el enlace adecuado (ej. label: 'Ir a Editar Perfil', href: '/profile/edit') en la respuesta estructurada.
+  4.  **Darte Ideas Útiles (Sugerencias):** Si veo algo relevante para ti (basado en lo que hablamos o en datos que compartiste), te puedo dar una sugerencia útil. Seré discreto y te explicaré por qué. (Ej: "Como mencionaste que viajas pronto, ¿quieres saber cómo una protección temporal podría servirte?"). Cuando sugieras explorar una opción o seguro, incluye un botón 'Ver Recomendaciones' (href: '/recommendations') o un botón específico para esa sugerencia (ej. 'Explorar Seguro Educativo', href: '/recommendations#educativo') en la respuesta estructurada.
+  5.  **Conectarte con un Humano:** Si tu consulta es muy compleja, delicada, o prefieres hablar con una persona, dímelo. Te ofreceré conectarte con un asesor experto de Global Seguros. (Ej: "Entiendo, para esta situación es mejor que hables con un asesor. ¿Quieres que te conecte ahora?"). Incluye un botón 'Contactar Asesor' (href: '/support') en la respuesta estructurada.
+
+  **Generación de Respuestas Estructuradas:**
+  *   Además de la respuesta textual (campo 'response'), puedes generar un array de componentes UI (campo 'structuredResponse').
+  *   **Botones:** Útiles para acciones directas o navegación (type: 'button', label: 'Texto del Botón', href: '/ruta-destino').
+  *   **Tarjetas:** Útiles para resumir información clave (type: 'card', title: 'Título Tarjeta', description: 'Resumen breve', cta: { type: 'button', label: 'Ver Más', href: '/ruta-detalles' }).
+  *   **Cuándo Usar:** Sigue las instrucciones específicas en la sección "¿Qué Puedo Hacer Por Ti?". SIEMPRE incluye los componentes estructurados indicados para esas funciones. Sé proactivo al añadir botones de navegación relevantes cuando guíes al usuario.
+  *   **Limitaciones:** Por ahora, solo puedes generar botones y tarjetas. No incluyas simuladores aún.
 
   **Importante - Lo que NO Hago:**
   *   NO te doy consejos financieros específicos (solo explico los seguros).
@@ -206,11 +238,22 @@ const chatFlow = ai.defineFlow<
     const output = llmResponse.output;
 
     // Ensure output is not null or undefined and handle potential errors gracefully
-    if (!output?.response) {
-      // Provide a user-friendly error response consistent with Zy's tone
-      console.error('AI response was empty or invalid:', llmResponse); // Log the error for debugging
-      return { response: "¡Ups! Parece que tuve un pequeño inconveniente para procesar tu mensaje. ¿Podrías intentar de nuevo? Si sigue pasando, dime y te ayudo a contactar a un asesor." };
+    if (!output) {
+      console.error('AI response was null or undefined:', llmResponse);
+       return { response: "¡Ups! Algo salió mal y no pude procesar tu mensaje. ¿Intentamos de nuevo?", structuredResponse: [] };
     }
+
+     if (!output.response) {
+      // Provide a user-friendly error response consistent with Zy's tone
+      console.error('AI text response was empty or invalid:', llmResponse); // Log the error for debugging
+       return { response: "¡Ups! Parece que tuve un pequeño inconveniente para procesar tu mensaje. ¿Podrías intentar de nuevo? Si sigue pasando, dime y te ayudo a contactar a un asesor.", structuredResponse: [{ type: 'button', label: 'Contactar Asesor', href: '/support' }] };
+    }
+
+     // Ensure structuredResponse is an array, even if empty or missing
+     if (!Array.isArray(output.structuredResponse)) {
+       output.structuredResponse = [];
+     }
+
 
     // Optional: Post-processing of the response if needed (e.g., formatting)
     // Example: Ensure consistent list formatting or paragraph breaks

@@ -3,12 +3,13 @@
 
 import { useState, useRef, useEffect, type FormEvent, useCallback } from 'react';
 import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info, LifeBuoy, Phone, Headset } from 'lucide-react'; // Added Headset
+import Link from 'next/link'; // Import Link for buttons
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { chatWithAI } from '@/ai/flows/chat-flow'; // Import the flow function
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'; // Added CardDescription
+import { chatWithAI, type StructuredResponseItem } from '@/ai/flows/chat-flow'; // Import the flow function and type
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -29,6 +30,7 @@ interface Message {
   timestamp: Date; // Added timestamp
   attachment?: { name: string; type: string };
   suggestions?: string[]; // Added suggestions for system messages
+  structuredContent?: StructuredResponseItem[]; // Added for AI structured responses
 }
 
 // Updated initial messages/tips reflecting Zy's persona and suggestions
@@ -142,6 +144,7 @@ export default function ChatPage() {
           role: 'ai',
           content: aiResponse.response,
           timestamp: new Date(), // Added timestamp
+          structuredContent: aiResponse.structuredResponse, // Store structured response
         };
 
         // Add AI response
@@ -160,6 +163,8 @@ export default function ChatPage() {
           role: 'ai',
           content: 'Lo siento, encontré un error. Por favor, intenta de nuevo.', // More empathetic error
           timestamp: new Date(), // Added timestamp
+           // Provide a contact button in case of error
+           structuredContent: [{ type: 'button', label: 'Contactar Asesor', href: '/support' }],
         };
        setMessages((prev) => [...prev, aiErrorMessage]);
 
@@ -460,7 +465,7 @@ export default function ChatPage() {
                           className={cn(
                             'rounded-lg px-4 py-2 max-w-[75%] shadow-sm',
                             message.role === 'user'
-                               ? 'bg-primary/80 text-primary-foreground rounded-br-none' // User bubble style - Primary accent
+                               ? 'bg-primary text-primary-foreground rounded-br-none' // User bubble style - Primary color
                                : 'bg-card text-card-foreground border border-border rounded-bl-none' // AI bubble style - Card background with border
                           )}
                         >
@@ -473,6 +478,47 @@ export default function ChatPage() {
                                    <span>{message.attachment.name}</span>
                                </div>
                            )}
+
+                           {/* Render Structured Content (Cards and Buttons) for AI messages */}
+                           {message.role === 'ai' && message.structuredContent && message.structuredContent.length > 0 && (
+                               <div className="mt-3 pt-3 border-t border-border/50 space-y-3">
+                                   {message.structuredContent.map((item, index) => {
+                                       if (item.type === 'button') {
+                                           return (
+                                               <Button key={`${message.id}-struct-${index}`} variant="secondary" size="sm" asChild className="w-full sm:w-auto">
+                                                   <Link href={item.href}>
+                                                       {item.label}
+                                                   </Link>
+                                               </Button>
+                                           );
+                                       } else if (item.type === 'card') {
+                                           return (
+                                               <Card key={`${message.id}-struct-${index}`} className="bg-background/50 border border-border">
+                                                   <CardHeader className="p-3 pb-2">
+                                                       <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                                                   </CardHeader>
+                                                   <CardContent className="p-3 pt-0 text-xs text-muted-foreground">
+                                                       <p>{item.description}</p>
+                                                       {/* Add more card details here if needed */}
+                                                   </CardContent>
+                                                   {item.cta && (
+                                                       <CardFooter className="p-3 pt-2 border-t border-border/30">
+                                                           <Button variant="link" size="sm" asChild className="p-0 h-auto text-primary">
+                                                               <Link href={item.cta.href}>
+                                                                   {item.cta.label}
+                                                               </Link>
+                                                           </Button>
+                                                       </CardFooter>
+                                                   )}
+                                               </Card>
+                                           );
+                                       }
+                                       // Add rendering for other structured types (e.g., simulator) here
+                                       return null;
+                                   })}
+                               </div>
+                           )}
+
                         </div>
                       )}
                        {/* User Avatar (right side) */}
