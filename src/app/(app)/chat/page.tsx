@@ -43,17 +43,6 @@ const initialMessages: Message[] = [
       "¿Mi protección es adecuada?",
     ],
   },
-  // Removed old tip messages
-  //  {
-  //   id: 'system-tip1',
-  //   role: 'system',
-  //   content: "Pregúntame sobre tus seguros: '¿Qué coberturas tengo activas?' o 'Detalles de mi póliza de salud'.",
-  //  },
-  //  {
-  //   id: 'system-tip2',
-  //   role: 'system',
-  //   content: "Puedo explicarte cómo funciona Zyren: '¿Qué son las primas adaptativas?' o '¿Cómo funciona el seguro automático?'.",
-  //  },
 ];
 
 
@@ -422,15 +411,18 @@ export default function ChatPage() {
                   {/* AI Avatar (left side) */}
                   {message.role === 'ai' && (
                     <Avatar className={cn("h-8 w-8 border flex-shrink-0")}>
+                       {/* Replace with robot avatar or keep bot icon */}
                        <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
+                       {/* Example using Image: <AvatarImage src="/path/to/robot-avatar.png" alt="Zy Avatar" /> */}
                     </Avatar>
                   )}
                    {/* System Message Styling & Suggestions */}
                    {message.role === 'system' && (
                       <div className="w-full max-w-xl mx-auto my-2">
                          <div className="text-center p-3 bg-accent/50 border border-accent rounded-md text-sm text-accent-foreground flex items-center justify-center gap-2 mb-3">
+                              {/* Use appropriate icon based on message content */}
                               {message.content.includes('support') || message.content.includes('call') ? <LifeBuoy className="h-5 w-5 shrink-0" /> : <Info className="h-5 w-5 shrink-0" />}
-                              <span>{message.content}</span>
+                              <span className="whitespace-pre-wrap">{message.content}</span>
                           </div>
                          {/* Render suggestion chips/buttons */}
                           {message.suggestions && message.suggestions.length > 0 && (
@@ -458,12 +450,12 @@ export default function ChatPage() {
                       className={cn(
                         'rounded-lg px-4 py-2 max-w-[75%] shadow-sm',
                         message.role === 'user'
-                           ? 'bg-primary/90 text-primary-foreground rounded-br-none' // User bubble style - Adjusted background
-                           : 'bg-card text-card-foreground border border-border rounded-bl-none' // AI bubble style - Using card background
+                           ? 'bg-muted text-muted-foreground rounded-br-none' // User bubble style - Switched to muted gray
+                           : 'bg-accent text-accent-foreground rounded-bl-none' // AI bubble style - Switched to accent color
                       )}
                     >
-                       {/* Content */}
-                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                       {/* Content - Render markdown-like formatting */}
+                       <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />') }} />
                        {/* Attachment info */}
                        {message.attachment && (
                            <div className="mt-2 pt-1 border-t border-primary/30 text-xs opacity-80 flex items-center gap-1">
@@ -567,8 +559,6 @@ export default function ChatPage() {
 
         {/* Add global styles for animations if not already present */}
         <style jsx global>{`
-          /* Remove float and pulse-speak animations */
-
            @keyframes bounce-dot {
               0%, 80%, 100% { transform: scale(0); }
               40% { transform: scale(1.0); }
@@ -582,7 +572,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-    
-
-    
