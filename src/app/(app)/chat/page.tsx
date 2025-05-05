@@ -348,12 +348,12 @@ export default function ChatPage() {
             <div className="absolute top-1/2 right-4 md:right-8 transform -translate-y-1/2 animate-float z-20 pointer-events-none">
              <div className={cn("relative h-16 w-16 md:h-20 md:w-20 transition-opacity duration-500", isAiTyping ? 'opacity-100' : 'opacity-70')}>
                <Image
-                  src="/zyren-robot-placeholder.svg" // Replace with your robot avatar path
+                  src="/zyren-friendly-robot-placeholder.svg" // Updated placeholder source
                   alt="Zy Robot Avatar"
                   layout="fill"
                   objectFit="contain"
                   className={cn(isAiTyping && "animate-pulse-speak")} // Add speaking animation class
-                   data-ai-hint="friendly robot avatar" // AI hint for avatar generation
+                   data-ai-hint="friendly robot mascot" // Updated AI hint
                 />
               </div>
             </div>
