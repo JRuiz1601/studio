@@ -344,22 +344,20 @@ export default function ChatPage() {
               <CardTitle className="text-lg font-semibold">
                 Chat with Zy
               </CardTitle>
-               {/* Floating Robot Avatar - Using Image component as placeholder */}
+               {/* Floating Robot Avatar - Using Image component */}
                <div className={cn(
                     "relative h-12 w-12 transition-opacity duration-500 animate-float",
                     isAiTyping ? 'opacity-100 animate-pulse-speak' : 'opacity-70'
                  )}>
                   <Image
-                     // Use a placeholder image URL
-                     src="https://picsum.photos/100/100" // Placeholder image
-                     alt="Zy Avatar"
+                     // Assume the robot image is saved in the public folder
+                     src="/zyren-ai-avatar.gif" // Updated image path
+                     alt="Zy AI Avatar"
                      layout="fill"
                      objectFit="contain"
-                     className={cn(
-                       "drop-shadow-md", // Add some shadow for floating effect
-                       isAiTyping ? ' ' : ' ' // Add conditional classes if needed
-                     )}
-                     data-ai-hint="friendly AI robot" // Updated AI hint
+                     className="drop-shadow-md" // Add some shadow for floating effect
+                     data-ai-hint="friendly waving robot" // Updated AI hint
+                     unoptimized // Recommended for GIFs in next/image if optimization causes issues
                    />
                </div>
           </div>
