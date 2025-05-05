@@ -15,9 +15,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      {/* Apply the font variables directly to the body className */}
-      <body className={`${GeistSans.variable} font-sans antialiased`}>
+    // The 'dark' class will be applied dynamically by the settings page logic
+    <html lang="en" className={GeistSans.variable} suppressHydrationWarning>
+      <body className={`font-sans antialiased`}>
         <QueryClientProvider> {/* Wrap children with QueryClientProvider */}
           {children}
           <Toaster />
