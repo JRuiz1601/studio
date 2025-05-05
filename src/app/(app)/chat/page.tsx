@@ -359,7 +359,7 @@ export default function ChatPage() {
                        "drop-shadow-md", // Add some shadow for floating effect
                        isAiTyping ? ' ' : ' ' // Add conditional classes if needed
                      )}
-                     data-ai-hint="friendly robot mascot" // AI hint for image generation
+                     data-ai-hint="friendly AI robot" // AI hint for image generation
                    />
                </div>
           </div>
