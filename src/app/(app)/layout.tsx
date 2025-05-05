@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Import useEffect
 import Link from 'next/link';
 import { useRouter } from 'next/navigation'; // Import useRouter
 import {
@@ -51,6 +51,18 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const router = useRouter(); // Initialize useRouter
   const { toast } = useToast(); // Initialize useToast
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0); // State for unread notifications
+
+  // Simulate fetching unread count
+  useEffect(() => {
+      // TODO: Replace with actual API call or global state management
+      const fetchUnreadCount = async () => {
+          await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+          setUnreadCount(3); // Example count
+      };
+      fetchUnreadCount();
+  }, []);
+
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -178,15 +190,17 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Right side: Notifications and Profile */}
       <div className="flex items-center gap-4">
+         {/* Notification Button with Badge */}
         <Link href="/notifications" passHref>
-           <Button variant="ghost" size="icon">
+           <Button variant="ghost" size="icon" className="relative"> {/* Added relative positioning */}
              <Bell className="h-5 w-5" />
              <span className="sr-only">Notifications</span>
-             {/* Optional: Add a badge for notification count */}
-             {/* <span className="absolute top-1 right-1 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span> */}
+              {/* Unread Count Badge */}
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                   {unreadCount > 9 ? '9+' : unreadCount} {/* Cap count display */}
+                </span>
+              )}
            </Button>
         </Link>
         <DropdownMenu>
