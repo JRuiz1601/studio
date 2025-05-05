@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, type FormEvent, useCallback } from 'react';
@@ -329,6 +330,7 @@ export default function ChatPage() {
 
       <Card className="flex flex-col flex-1 overflow-hidden shadow-lg rounded-lg border bg-card/80 backdrop-blur-sm z-10"> {/* Added backdrop blur */}
         <CardHeader className="border-b bg-card/80 flex flex-row items-center justify-between">
+          {/* Left side: Logo, Title, and Floating Avatar */}
           <div className="flex items-center gap-3">
               {/* Static Zyren Logo/Icon in Header */}
                <div className="h-10 w-10 relative">
@@ -343,20 +345,19 @@ export default function ChatPage() {
               <CardTitle className="text-lg font-semibold">
                 Chat with Zy
               </CardTitle>
+               {/* Floating Robot Avatar - Moved next to the title */}
+               <div className={cn("relative h-10 w-10 md:h-12 md:w-12 transition-opacity duration-500 animate-float", isAiTyping ? 'opacity-100' : 'opacity-70')}>
+                 <Image
+                    src="/zyren-friendly-robot-placeholder.svg" // Updated placeholder source
+                    alt="Zy Robot Avatar"
+                    layout="fill"
+                    objectFit="contain"
+                    className={cn(isAiTyping && "animate-pulse-speak")} // Add speaking animation class
+                     data-ai-hint="friendly robot mascot" // Updated AI hint
+                  />
+                </div>
           </div>
-           {/* Floating Robot Avatar - Positioned relative to the card */}
-            <div className="absolute top-1/2 right-4 md:right-8 transform -translate-y-1/2 animate-float z-20 pointer-events-none">
-             <div className={cn("relative h-16 w-16 md:h-20 md:w-20 transition-opacity duration-500", isAiTyping ? 'opacity-100' : 'opacity-70')}>
-               <Image
-                  src="/zyren-friendly-robot-placeholder.svg" // Updated placeholder source
-                  alt="Zy Robot Avatar"
-                  layout="fill"
-                  objectFit="contain"
-                  className={cn(isAiTyping && "animate-pulse-speak")} // Add speaking animation class
-                   data-ai-hint="friendly robot mascot" // Updated AI hint
-                />
-              </div>
-            </div>
+            {/* Removed the large absolutely positioned avatar from here */}
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden bg-muted/30">
           <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
