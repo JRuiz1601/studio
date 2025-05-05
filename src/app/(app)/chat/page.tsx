@@ -331,16 +331,7 @@ export default function ChatPage() {
         <CardHeader className="border-b bg-card/80 flex flex-row items-center justify-between">
           {/* Left side: Logo, Title */}
           <div className="flex items-center gap-3">
-              {/* Replace static placeholder with the new floating robot avatar */}
-               <div className="relative h-12 w-12"> {/* Adjust size as needed */}
-                 <Image
-                   src="/zyren-bot-avatar.png" // Path to the new friendly robot image
-                   alt="Zyren Bot Avatar"
-                   layout="fill"
-                   objectFit="contain"
-                   data-ai-hint="friendly robot mascot" // AI hint for image generation
-                 />
-               </div>
+              {/* Placeholder for removed Avatar */}
               <CardTitle className="text-lg font-semibold">
                 Chat with Zy
               </CardTitle>
