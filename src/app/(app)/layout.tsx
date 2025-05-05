@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { ReactNode } from 'react';
@@ -179,15 +178,17 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Right side: Notifications and Profile */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon">
-          <Bell className="h-5 w-5" />
-          <span className="sr-only">Notifications</span>
-           {/* Optional: Add a badge for notification count */}
-           {/* <span className="absolute top-1 right-1 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span> */}
-        </Button>
+        <Link href="/notifications" passHref>
+           <Button variant="ghost" size="icon">
+             <Bell className="h-5 w-5" />
+             <span className="sr-only">Notifications</span>
+             {/* Optional: Add a badge for notification count */}
+             {/* <span className="absolute top-1 right-1 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span> */}
+           </Button>
+        </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
