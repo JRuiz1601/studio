@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter, // Added CardFooter import
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -334,3 +335,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
