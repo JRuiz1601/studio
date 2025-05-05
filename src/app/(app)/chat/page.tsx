@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, type FormEvent, useCallback } from 'react';
-import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle } from 'lucide-react'; // Added Square, AlertCircle
+import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info } from 'lucide-react'; // Added Info
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,13 +11,34 @@ import { chatWithAI } from '@/ai/flows/chat-flow'; // Import the flow function
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import Image from 'next/image'; // Import Image
 
 interface Message {
   id: string;
-  role: 'user' | 'ai';
+  role: 'user' | 'ai' | 'system'; // Added 'system' role for initial tips
   content: string;
   attachment?: { name: string; type: string }; // Optional attachment info
 }
+
+// Initial messages/tips to display
+const initialMessages: Message[] = [
+  {
+    id: 'system-welcome',
+    role: 'system',
+    content: "Welcome to Zyren Chat! How can I assist you today? Feel free to ask about your coverage, explore options, or get tips.",
+  },
+   {
+    id: 'system-faq1',
+    role: 'system',
+    content: "Tip: Ask me 'Do I have active coverage?' to quickly check your status.",
+  },
+   {
+    id: 'system-faq2',
+    role: 'system',
+    content: "FAQ: You can manage your policies under the 'Mis Seguros' section.",
+  },
+];
+
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -25,6 +46,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
+  const [isAiTyping, setIsAiTyping] = useState(false); // State for AI typing indicator
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,15 +67,20 @@ export default function ChatPage() {
     }
   }, []);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change or AI starts typing
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [messages, isAiTyping, scrollToBottom]);
 
-  // Focus input on load
+  // Focus input on load and set initial messages
   useEffect(() => {
     inputRef.current?.focus();
-  }, []);
+    // Set initial messages only if messages array is empty
+    if (messages.length === 0) {
+       setMessages(initialMessages);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   // Cleanup function to stop recording and release media resources
   useEffect(() => {
@@ -69,6 +96,12 @@ export default function ChatPage() {
 
     if ((!messageContent && !attachment) || isLoading) return;
 
+     // Clear initial system messages when user sends the first message
+     if (messages.length > 0 && messages.every(m => m.role === 'system')) {
+       setMessages([]);
+     }
+
+
     const userMessage: Message = {
       id: Date.now().toString() + '-user',
       role: 'user',
@@ -79,25 +112,17 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue(''); // Clear input after sending
     setIsLoading(true);
-    // Immediately show loading indicator for AI response
+    setIsAiTyping(true); // AI starts "typing"
     scrollToBottom(); // Scroll after adding user message
 
-    const aiLoadingMessageId = Date.now().toString() + '-ai-loading';
-    const aiLoadingMessage: Message = {
-      id: aiLoadingMessageId,
-      role: 'ai',
-      content: '...', // Placeholder for loading
-    };
-    setMessages((prev) => [...prev, aiLoadingMessage]);
-    scrollToBottom(); // Scroll after adding loading message
-
-
+    // --- AI Response Handling ---
     try {
       // TODO: If attachment exists, convert it to data URI or prepare for upload/Genkit input
       let genkitInputMessage = messageContent;
       if (attachment) {
          // For now, just append filename to message for visibility
          genkitInputMessage += `\n[Attached: ${attachment.name}]`;
+         // IMPORTANT: Genkit flow needs to be updated to handle potential file data URIs
       }
 
       const aiResponse = await chatWithAI({ message: genkitInputMessage });
@@ -108,8 +133,8 @@ export default function ChatPage() {
           content: aiResponse.response,
         };
 
-        // Replace loading placeholder with actual response
-        setMessages((prev) => prev.map(msg => msg.id === aiLoadingMessageId ? aiMessage : msg));
+        // Add AI response
+        setMessages((prev) => [...prev, aiMessage]);
 
     } catch (error) {
       console.error('Error chatting with AI:', error);
@@ -120,16 +145,16 @@ export default function ChatPage() {
       });
 
        const aiErrorMessage: Message = {
-          id: aiLoadingMessageId, // Use the same ID to replace
+          id: Date.now().toString() + '-ai-error',
           role: 'ai',
           content: 'Sorry, I encountered an error. Please try again.',
         };
-       setMessages((prev) => prev.map(msg => msg.id === aiLoadingMessageId ? aiErrorMessage : msg));
+       setMessages((prev) => [...prev, aiErrorMessage]);
 
     } finally {
       setIsLoading(false);
+      setIsAiTyping(false); // AI stops "typing"
        inputRef.current?.focus(); // Refocus input after response/error
-       // No need to scroll here, handled by useEffect on messages change
     }
   };
 
@@ -150,9 +175,10 @@ export default function ChatPage() {
     });
 
     // Immediately add a message indicating the file attachment and trigger send
-    // TODO: In a real scenario, read the file content (e.g., as data URI for images)
+    // TODO: In a real scenario, read the file content (e.g., as data URI for images/text)
     // or prepare it for upload before calling handleSendMessage.
-    handleSendMessage(undefined, '', { name: file.name, type: file.type });
+    // For now, just send filename. Update Genkit flow if sending content.
+    handleSendMessage(undefined, `[Attached File: ${file.name}]`, { name: file.name, type: file.type });
 
 
     // Reset file input to allow selecting the same file again
@@ -200,23 +226,31 @@ export default function ChatPage() {
               }
           };
 
-          mediaRecorderRef.current.onstop = () => {
+          mediaRecorderRef.current.onstop = async () => {
               const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' }); // Or appropriate MIME type
               console.log('Recording stopped, Blob created:', audioBlob);
-              // TODO: Process the audioBlob - e.g., send to a transcription service or AI
-              toast({
-                  title: 'Recording Finished',
-                  description: `Audio captured (${(audioBlob.size / 1024).toFixed(1)} KB). Processing not implemented.`,
-              });
 
-              // For now, send a text message indicating audio was recorded
-              handleSendMessage(undefined, '[Audio Recording Captured - Processing Pending]');
+               toast({
+                 title: 'Processing Audio...',
+                 description: `Audio captured (${(audioBlob.size / 1024).toFixed(1)} KB).`,
+               });
 
+              // TODO: Process the audioBlob
+              // 1. Convert Blob to Data URI or upload to a server
+              // 2. Send Data URI/URL to a transcription service (like Google Speech-to-Text via Genkit or other API)
+              // 3. Once transcription is received, call handleSendMessage with the transcribed text
+
+               // --- Placeholder for Transcription & Sending ---
+               // Example: Simulate transcription delay and send placeholder
+               await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing
+               const transcribedText = "[Simulated Audio Transcription]"; // Replace with actual transcription
+               handleSendMessage(undefined, transcribedText);
+               // --- End Placeholder ---
 
               // Stop the tracks only after processing is done or decided not to use
               audioStreamRef.current?.getTracks().forEach(track => track.stop());
               audioStreamRef.current = null; // Clear the stream ref
-              setIsRecording(false);
+              setIsRecording(false); // Set recording state to false AFTER processing/sending
           };
 
            mediaRecorderRef.current.onerror = (event) => {
@@ -242,8 +276,7 @@ export default function ChatPage() {
 
   const stopRecording = () => {
       if (mediaRecorderRef.current && isRecording) {
-          mediaRecorderRef.current.stop();
-          // onstop handler will set isRecording to false and clean up stream
+          mediaRecorderRef.current.stop(); // onstop handler will manage state and cleanup
       } else {
           // If somehow stop is called without active recording, ensure cleanup
           audioStreamRef.current?.getTracks().forEach(track => track.stop());
@@ -264,14 +297,21 @@ export default function ChatPage() {
 
 
   return (
-    <div className="container mx-auto p-4 md:p-6 flex flex-col h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))]">
+    <div className="container mx-auto p-4 md:p-6 flex flex-col h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))] relative overflow-hidden">
+       {/* Particle Background - Requires a library like react-tsparticles or custom CSS */}
+       {/* Example Placeholder: <ParticleBackground /> */}
+       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-background via-muted/50 to-background dark:from-zinc-900 dark:via-zinc-800/50 dark:to-zinc-900">
+          {/* Add particle effect here if desired */}
+       </div>
+
+
       {/* Hidden file input */}
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleFileSelected}
         className="hidden"
-        // Define accepted file types
+        // Define accepted file types (adjust as needed)
         accept="application/pdf, image/*, .doc, .docx, .txt, text/plain"
       />
 
@@ -287,19 +327,36 @@ export default function ChatPage() {
        )}
 
 
-      <Card className="flex flex-col flex-1 overflow-hidden shadow-lg rounded-lg border">
-        <CardHeader className="border-b bg-card flex flex-row items-center justify-between">
+      <Card className="flex flex-col flex-1 overflow-hidden shadow-lg rounded-lg border bg-card/80 backdrop-blur-sm z-10"> {/* Added backdrop blur */}
+        <CardHeader className="border-b bg-card/80 flex flex-row items-center justify-between">
           <div className="flex items-center gap-3">
-              <Avatar className={cn("h-10 w-10 border-2 border-primary shadow-md", isLoading && "animate-pulse")}>
-                 {/* Optional: Add AvatarImage here */}
-                 {/* <AvatarImage src="URL_TO_ZY_IMAGE" alt="Zy Avatar" /> */}
-                 <AvatarFallback><Bot className="h-5 w-5 text-primary" /></AvatarFallback>
-              </Avatar>
+              {/* Static Zyren Logo/Icon in Header */}
+               <div className="h-10 w-10 relative">
+                 <Image
+                   src="/zyren-logo-placeholder.svg" // Replace with your actual logo path
+                   alt="Zyren Logo"
+                   layout="fill"
+                   objectFit="contain"
+                   data-ai-hint="robot logo" // AI hint for logo generation
+                 />
+               </div>
               <CardTitle className="text-lg font-semibold">
                 Chat with Zy
               </CardTitle>
           </div>
-          {/* Optional: Add status or other elements here if needed */}
+           {/* Floating Robot Avatar - Positioned relative to the card */}
+            <div className="absolute top-1/2 right-4 md:right-8 transform -translate-y-1/2 animate-float z-20 pointer-events-none">
+             <div className={cn("relative h-16 w-16 md:h-20 md:w-20 transition-opacity duration-500", isAiTyping ? 'opacity-100' : 'opacity-70')}>
+               <Image
+                  src="/zyren-robot-placeholder.svg" // Replace with your robot avatar path
+                  alt="Zy Robot Avatar"
+                  layout="fill"
+                  objectFit="contain"
+                  className={cn(isAiTyping && "animate-pulse-speak")} // Add speaking animation class
+                   data-ai-hint="friendly robot avatar" // AI hint for avatar generation
+                />
+              </div>
+            </div>
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden bg-muted/30">
           <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
@@ -309,56 +366,76 @@ export default function ChatPage() {
                   key={message.id}
                   className={cn(
                     'flex items-end gap-3 animate-in fade-in duration-300',
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                     message.role === 'user' ? 'justify-end' : message.role === 'system' ? 'justify-center' : 'justify-start'
                   )}
                 >
+                  {/* AI Avatar (left side) */}
                   {message.role === 'ai' && (
-                    <Avatar className={cn("h-8 w-8 border flex-shrink-0", isLoading && message.content === '...' && "animate-pulse")}>
+                    <Avatar className={cn("h-8 w-8 border flex-shrink-0")}>
                        {/* <AvatarImage src="URL_TO_ZY_IMAGE_SMALL" alt="Zy Avatar" /> */}
                        <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
-                  <div
-                    className={cn(
-                      'rounded-lg px-4 py-2 max-w-[75%] shadow-sm',
-                      message.role === 'user'
-                        ? 'bg-primary/90 text-primary-foreground rounded-br-none'
-                        : 'bg-card text-card-foreground border border-border rounded-bl-none'
-                    )}
-                  >
-                     {message.content === '...' && isLoading ? (
-                        <div className="flex items-center justify-center h-5">
-                           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                        </div>
-                     ) : (
-                         <>
-                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                            {/* Display attachment info if exists */}
-                            {message.attachment && (
-                                <div className="mt-2 pt-1 border-t border-primary/30 text-xs opacity-80 flex items-center gap-1">
-                                    <Paperclip className="h-3 w-3" />
-                                    <span>{message.attachment.name}</span>
-                                </div>
-                            )}
-                         </>
-                     )}
-                  </div>
+                   {/* System Message Styling */}
+                   {message.role === 'system' && (
+                      <div className="text-center w-full max-w-md mx-auto my-2 p-3 bg-accent/50 border border-accent rounded-md text-xs text-accent-foreground flex items-center justify-center gap-2">
+                          <Info className="h-4 w-4 shrink-0" />
+                          <span>{message.content}</span>
+                      </div>
+                   )}
+
+                   {/* User and AI Message Bubbles */}
+                  {message.role !== 'system' && (
+                    <div
+                      className={cn(
+                        'rounded-lg px-4 py-2 max-w-[75%] shadow-sm',
+                        message.role === 'user'
+                          ? 'bg-primary/90 text-primary-foreground rounded-br-none' // User bubble style
+                          : 'bg-card text-card-foreground border border-border rounded-bl-none' // AI bubble style
+                      )}
+                    >
+                       {/* Content */}
+                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                       {/* Attachment info */}
+                       {message.attachment && (
+                           <div className="mt-2 pt-1 border-t border-primary/30 text-xs opacity-80 flex items-center gap-1">
+                               <Paperclip className="h-3 w-3" />
+                               <span>{message.attachment.name}</span>
+                           </div>
+                       )}
+                    </div>
+                  )}
+                   {/* User Avatar (right side) */}
                   {message.role === 'user' && (
                     <Avatar className="h-8 w-8 border flex-shrink-0">
-                       {/* Optional: Add User Avatar Image */}
                        {/* <AvatarImage src="URL_TO_USER_IMAGE" alt="User Avatar" /> */}
                        <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
                 </div>
               ))}
+               {/* AI Typing Indicator */}
+               {isAiTyping && (
+                 <div className="flex items-end gap-3 justify-start animate-in fade-in duration-300">
+                   <Avatar className="h-8 w-8 border flex-shrink-0">
+                     <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
+                   </Avatar>
+                   <div className="rounded-lg px-4 py-2 bg-card text-card-foreground border border-border rounded-bl-none shadow-sm">
+                     <div className="flex items-center justify-center h-5 space-x-1">
+                        <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce-dot delay-0"></span>
+                        <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce-dot delay-150"></span>
+                        <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce-dot delay-300"></span>
+                     </div>
+                   </div>
+                 </div>
+               )}
             </div>
           </ScrollArea>
         </CardContent>
-        <CardFooter className="border-t p-4 bg-card">
+        <CardFooter className="border-t p-4 bg-card/80">
           <form onSubmit={handleSendMessage} className="flex w-full items-center space-x-2">
              {/* Document Attachment Button */}
-            <Button type="button" variant="ghost" size="icon" onClick={handleAttachDocument} disabled={isLoading || isRecording}>
+            <Button type="button" variant="ghost" size="icon" onClick={handleAttachDocument} disabled={isLoading || isRecording} aria-label="Attach Document">
               <Paperclip className="h-5 w-5" />
               <span className="sr-only">Attach Document</span>
             </Button>
@@ -370,6 +447,7 @@ export default function ChatPage() {
                 onClick={handleVoiceInput}
                 disabled={isLoading || hasMicPermission === false} // Disable if loading or no mic permission
                 className={cn(isRecording && "text-destructive hover:text-destructive")}
+                aria-label={isRecording ? 'Stop Recording' : 'Use Voice Input'}
               >
                {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                <span className="sr-only">{isRecording ? 'Stop Recording' : 'Use Voice Input'}</span>
@@ -385,14 +463,42 @@ export default function ChatPage() {
               className="flex-1"
               autoComplete="off"
             />
-            <Button type="submit" size="icon" disabled={isLoading || isRecording || (!inputValue.trim() && messages.length === 0)}>
+            <Button type="submit" size="icon" disabled={isLoading || isRecording || !inputValue.trim()} aria-label="Send Message">
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               <span className="sr-only">Send</span>
             </Button>
           </form>
         </CardFooter>
       </Card>
+
+        {/* Add global styles for animations if not already present */}
+        <style jsx global>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(-5%); }
+            50% { transform: translateY(5%); }
+          }
+          .animate-float {
+            animation: float 6s ease-in-out infinite;
+          }
+
+          @keyframes pulse-speak { /* Example simple speaking animation */
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+          }
+          .animate-pulse-speak {
+             animation: pulse-speak 1s ease-in-out infinite;
+          }
+
+           @keyframes bounce-dot {
+              0%, 80%, 100% { transform: scale(0); }
+              40% { transform: scale(1.0); }
+            }
+           .animate-bounce-dot {
+             animation: bounce-dot 1.4s infinite ease-in-out both;
+           }
+           .delay-150 { animation-delay: -0.16s; }
+           .delay-300 { animation-delay: -0.32s; }
+        `}</style>
     </div>
   );
 }
-

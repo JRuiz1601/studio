@@ -37,6 +37,7 @@ const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: Home },
   { href: '/insurances', label: 'Mis Seguros', icon: ShieldCheck },
   { href: '/recommendations', label: 'Recomendaciones', icon: Lightbulb },
+   { href: '/chat', label: 'Chat', icon: Bot }, // Added Chat link
 ];
 
 const profileMenuItems = [
@@ -261,18 +262,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
        <main className="flex-1 overflow-y-auto bg-muted/40 pb-16 md:pb-0"> {/* Add padding-bottom for mobile nav */}
          {children}
        </main>
-       {/* Floating Action Button for AI Chat */}
-       <Button
-         size="icon"
-         className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6"
-         asChild // Use asChild to make the button behave like a Link
-       >
-         <Link href="/chat">
-            <Bot className="h-6 w-6" />
-            <span className="sr-only">Chat with Zy</span>
-          </Link>
-       </Button>
+       {/* Floating Action Button removed, chat is now a main nav item */}
        <BottomNavBar />
     </div>
   );
 }
+
