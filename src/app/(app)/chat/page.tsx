@@ -521,7 +521,7 @@ export default function ChatPage() {
                          size="icon"
                          disabled={isLoading}
                          aria-label="Contactar Soporte Humano"
-                         className="text-muted-foreground hover:text-primary" // Subtle styling
+                         className="text-foreground hover:text-primary" // Removed muted foreground
                      >
                         <Headset className="h-5 w-5" /> {/* Changed icon to Headset */}
                         <span className="sr-only">Contactar Soporte Humano</span>
