@@ -345,19 +345,17 @@ export default function ChatPage() {
               <CardTitle className="text-lg font-semibold">
                 Chat with Zy
               </CardTitle>
-               {/* Floating Robot Avatar - Moved next to the title */}
-               <div className={cn("relative h-10 w-10 md:h-12 md:w-12 transition-opacity duration-500 animate-float", isAiTyping ? 'opacity-100' : 'opacity-70')}>
-                 <Image
-                    src="/zyren-friendly-robot-placeholder.svg" // Updated placeholder source
-                    alt="Zy Robot Avatar"
-                    layout="fill"
-                    objectFit="contain"
-                    className={cn(isAiTyping && "animate-pulse-speak")} // Add speaking animation class
-                     data-ai-hint="friendly robot mascot" // Updated AI hint
-                  />
-                </div>
+               {/* Floating Robot Avatar - Using Avatar component */}
+                <Avatar className={cn(
+                    "relative h-10 w-10 md:h-12 md:w-12 transition-opacity duration-500 animate-float border",
+                    isAiTyping ? 'opacity-100 animate-pulse-speak' : 'opacity-70'
+                 )}>
+                    {/* <AvatarImage src="/zyren-friendly-robot-placeholder.svg" alt="Zy Avatar" /> */}
+                    <AvatarFallback className={cn(isAiTyping ? 'bg-primary/20' : 'bg-muted')}>
+                        <Bot className="h-6 w-6 text-primary" />
+                    </AvatarFallback>
+                 </Avatar>
           </div>
-            {/* Removed the large absolutely positioned avatar from here */}
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden bg-muted/30">
           <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
@@ -503,3 +501,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
