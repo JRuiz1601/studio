@@ -461,7 +461,7 @@ export default function ChatPage() {
                             'rounded-lg px-4 py-2 max-w-[75%] shadow-sm',
                             message.role === 'user'
                                ? 'bg-primary/80 text-primary-foreground rounded-br-none' // User bubble style - Primary accent
-                               : 'bg-muted text-muted-foreground rounded-bl-none' // AI bubble style - Muted gray
+                               : 'bg-card text-card-foreground border border-border rounded-bl-none' // AI bubble style - Card background with border
                           )}
                         >
                            {/* Content - Render markdown-like formatting */}
