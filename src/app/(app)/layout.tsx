@@ -183,7 +183,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       {/* Right side: Notifications and Profile */}
       <div className="flex items-center gap-4">
          {/* Notification Button with Badge */}
-        <Link href="/notifications" passHref>
+        <Link href="/notifications" passHref legacyBehavior>
            <Button variant="ghost" size="icon" className="relative"> {/* Added relative positioning */}
              <Bell className="h-5 w-5" />
              <span className="sr-only">Notifications</span>
@@ -247,9 +247,8 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       <div className="flex h-16 items-center justify-around px-2">
         {navItems.map((item) => {
           // Determine if the current path starts with the item's href
-          const isActive = item.href === '/dashboard'
-            ? pathname === item.href // Exact match for dashboard
-            : pathname.startsWith(item.href) && item.href !== '/dashboard'; // StartsWith for others, excluding dashboard
+          const isActive = (item.href === '/dashboard' && pathname === item.href) || // Exact match for dashboard
+                           (item.href !== '/dashboard' && pathname.startsWith(item.href)); // StartsWith for others
 
           return (
             <Link
