@@ -6,86 +6,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardFooter, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Info, X } from 'lucide-react';
+import { useNotifications } from '@/context/notifications-context'; // Import context
 
-interface Notification {
-  id: string;
-  title: string;
-  description: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  timestamp: Date;
-  read: boolean;
-  link?: string; // Optional link for "Ver Detalles"
-}
+// Interface is now defined in context
+// interface Notification { ... }
 
-// Mock data for simulated notifications with links
-const initialNotifications: Notification[] = [
-  {
-    id: 'n1',
-    title: 'Policy Activated',
-    description: 'Your "Accidentes Personales Plus" policy was automatically activated due to detected risk factors.',
-    type: 'success',
-    timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-    read: false,
-    link: '/insurances#accident1', // Link to the specific policy if possible
-  },
-  {
-    id: 'n2',
-    title: 'Wearable Battery Low',
-    description: 'Your connected wearable device battery is below 20%. Please charge it soon.',
-    type: 'warning',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    read: false,
-    link: '/profile/settings', // Link to settings or wearable section
-  },
-  {
-    id: 'n3',
-    title: 'New Recommendation',
-    description: 'We have a new recommendation for you regarding pension savings. Check it out!',
-    type: 'info',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    read: true,
-    link: '/recommendations#rec_pension_boost', // Link to specific recommendation
-  },
-   {
-    id: 'n4',
-    title: 'Payment Due Soon',
-    description: 'Your premium payment for "Salud Esencial" is due in 3 days.',
-    type: 'info',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-    read: true,
-    link: '/insurances#health1', // Link to billing or policy page
-   },
-    {
-      id: 'n5',
-      title: 'Profile Update Suggested',
-      description: 'Consider updating your dependents information for more accurate educational insurance recommendations.',
-      type: 'info',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
-      read: true,
-      link: '/profile/edit', // Link to profile edit page
-    },
-];
+// Initial data now comes from context
+// const initialNotifications: Notification[] = [ ... ];
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+  // Use context state and actions
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, read: true } : n))
-    );
-    // TODO: Add API call to mark notification as read on the backend
-  };
+  // State management is handled by context now
+  // const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+  // const markAsRead = (id: string) => { ... };
+  // const markAllAsRead = () => { ... };
+  // const deleteNotification = (id: string) => { ... };
+  // const unreadCount = notifications.filter(n => !n.read).length;
 
-   const markAllAsRead = () => {
-     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-     // TODO: Add API call to mark all as read
-   };
-
-
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-    // TODO: Add API call to delete notification
-  };
 
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
@@ -101,7 +40,6 @@ export default function NotificationsPage() {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">

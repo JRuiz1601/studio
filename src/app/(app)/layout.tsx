@@ -15,6 +15,8 @@ import {
   Bot, // Import Bot icon
   Menu,
   X,
+  LifeBuoy, // Added LifeBuoy
+  Phone, // Added Phone
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -31,6 +33,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // Fo
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { NotificationsProvider, useNotifications } from '@/context/notifications-context'; // Import context
 
 // Removed Chat from navItems as it's accessed via FAB
 const navItems = [
@@ -45,24 +48,13 @@ const profileMenuItems = [
    { href: '/terms', label: 'Terms & Conditions', icon: null }, // Handled separately or link here
 ];
 
-
-export default function AppLayout({ children }: { children: ReactNode }) {
+// Inner component to consume the context
+function AppLayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter(); // Initialize useRouter
   const { toast } = useToast(); // Initialize useToast
+  const { unreadCount } = useNotifications(); // Get unread count from context
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0); // State for unread notifications
-
-  // Simulate fetching unread count
-  useEffect(() => {
-      // TODO: Replace with actual API call or global state management
-      const fetchUnreadCount = async () => {
-          await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-          setUnreadCount(3); // Example count
-      };
-      fetchUnreadCount();
-  }, []);
-
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -298,5 +290,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Link>
        <BottomNavBar />
     </div>
+  );
+}
+
+// Main layout component that includes the provider
+export default function AppLayout({ children }: { children: ReactNode }) {
+  return (
+    <NotificationsProvider>
+      <AppLayoutContent>{children}</AppLayoutContent>
+    </NotificationsProvider>
   );
 }
