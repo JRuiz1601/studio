@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useRef, useEffect, type FormEvent, useCallback } from 'react';
-import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info, LifeBuoy } from 'lucide-react'; // Added LifeBuoy
+import { Send, User, Bot, Loader2, Paperclip, Mic, Square, AlertCircle, Info, LifeBuoy, Phone } from 'lucide-react'; // Added Phone
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -12,6 +13,12 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Image from 'next/image';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"; // Import Dropdown components
 
 interface Message {
   id: string;
@@ -295,14 +302,14 @@ export default function ChatPage() {
     }
   };
 
-  // --- Contact Human Support ---
-  const handleContactSupport = () => {
+  // --- Contact Human Support (Chat Option) ---
+  const handleContactSupportChat = () => {
     if (isLoading) return;
-    // Simulate request to contact support
+    // Simulate request to contact support via chat
     setIsLoading(true); // Show loading state briefly
     toast({
-        title: 'Connecting to Support',
-        description: 'Please wait while we connect you with a human agent...',
+        title: 'Connecting to Agent',
+        description: 'Please wait while we connect you with a support agent...',
     });
     // In a real app, this would trigger an API call or redirect to a support chat/form
     setTimeout(() => {
@@ -311,13 +318,34 @@ export default function ChatPage() {
       const supportMessage: Message = {
           id: Date.now().toString() + '-system-support',
           role: 'system',
-          content: 'You requested to speak with a human agent. We are connecting you now.',
+          content: 'You requested to chat with a human agent. We are connecting you now.',
       };
        setMessages((prev) => [...prev, supportMessage]);
        scrollToBottom();
        // TODO: Implement actual connection logic or navigation
        // router.push('/support-chat');
     }, 1500);
+  };
+
+  // --- Contact Human Support (Call Option) ---
+  const handleContactSupportCall = () => {
+    if (isLoading) return;
+    // Placeholder: Replace with actual support phone number
+    const supportPhoneNumber = '1-800-SUPPORT'; // Example number
+    window.location.href = `tel:${supportPhoneNumber}`;
+    // Optionally show a toast message
+    toast({
+        title: 'Initiating Call',
+        description: `Calling support at ${supportPhoneNumber}...`,
+    });
+     // Add a system message indicating the call initiation
+     const callMessage: Message = {
+          id: Date.now().toString() + '-system-call',
+          role: 'system',
+          content: `Initiating call to support...`,
+      };
+     setMessages((prev) => [...prev, callMessage]);
+     scrollToBottom();
   };
 
 
@@ -381,7 +409,7 @@ export default function ChatPage() {
                    {/* System Message Styling */}
                    {message.role === 'system' && (
                       <div className="text-center w-full max-w-md mx-auto my-2 p-3 bg-accent/50 border border-accent rounded-md text-xs text-accent-foreground flex items-center justify-center gap-2">
-                          {message.content.includes('support') ? <LifeBuoy className="h-4 w-4 shrink-0" /> : <Info className="h-4 w-4 shrink-0" />}
+                          {message.content.includes('support') || message.content.includes('call') ? <LifeBuoy className="h-4 w-4 shrink-0" /> : <Info className="h-4 w-4 shrink-0" />}
                           <span>{message.content}</span>
                       </div>
                    )}
@@ -453,19 +481,33 @@ export default function ChatPage() {
                {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                <span className="sr-only">{isRecording ? 'Detener Grabación' : 'Usar Entrada de Voz'}</span>
              </Button>
-             {/* Contact Support Button */}
-             <Button
-                 type="button"
-                 variant="ghost"
-                 size="icon"
-                 onClick={handleContactSupport}
-                 disabled={isLoading}
-                 aria-label="Contactar Soporte Humano"
-                 className="text-muted-foreground hover:text-primary" // Subtle styling
-             >
-                <LifeBuoy className="h-5 w-5" />
-                <span className="sr-only">Contactar Soporte Humano</span>
-             </Button>
+
+              {/* Contact Support Dropdown */}
+             <DropdownMenu>
+                 <DropdownMenuTrigger asChild>
+                     <Button
+                         type="button"
+                         variant="ghost"
+                         size="icon"
+                         disabled={isLoading}
+                         aria-label="Contactar Soporte Humano"
+                         className="text-muted-foreground hover:text-primary" // Subtle styling
+                     >
+                        <LifeBuoy className="h-5 w-5" />
+                        <span className="sr-only">Contactar Soporte Humano</span>
+                     </Button>
+                 </DropdownMenuTrigger>
+                 <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={handleContactSupportChat} disabled={isLoading}>
+                        <LifeBuoy className="mr-2 h-4 w-4" />
+                        <span>Chat with Agent</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={handleContactSupportCall} disabled={isLoading}>
+                        <Phone className="mr-2 h-4 w-4" />
+                        <span>Call Support</span>
+                    </DropdownMenuItem>
+                 </DropdownMenuContent>
+             </DropdownMenu>
 
             <Input
               ref={inputRef}
@@ -502,3 +544,5 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
