@@ -57,19 +57,19 @@ export interface Policy {
   description?: string; // Add description field
 }
 
-// Mock data with types and more details
+// Mock data with types and more details - Made Education policy active
 const mockPolicies: Policy[] = [
   { id: 'health1', name: 'Salud Esencial', type: 'health', status: 'active', isAutoActive: true, isAdaptivePremium: true, premium: 50, coverageAmount: 10000, nextPaymentDate: '2025-06-01', activationHistory: [{ reason: 'Initial activation', date: '2023-10-01' }], description: 'Comprehensive health coverage for peace of mind.' },
   { id: 'accident1', name: 'Accidentes Personales Plus', type: 'accident', status: 'auto-pending', isAutoActive: true, isAdaptivePremium: false, premium: 25, coverageAmount: 5000, nextPaymentDate: '2025-06-15', activationHistory: [], description: 'Protection against unexpected accidents and injuries.' },
   { id: 'pension1', name: 'Pensión Voluntaria Futuro', type: 'pension', status: 'manual', isAutoActive: false, isAdaptivePremium: true, premium: 100, coverageAmount: 0, goalAmount: 50000, activationHistory: [{ reason: 'Manual contribution', date: '2023-11-15' }], description: 'Build your retirement savings flexibly.' },
-  // Added inactive example
-  { id: 'edu1', name: 'Seguro Educativo Crecer', type: 'education', status: 'inactive', isAutoActive: false, isAdaptivePremium: false, premium: 0, coverageAmount: 0, goalAmount: 20000, activationHistory: [], description: 'Secure the future education of your loved ones.' },
+  // Added inactive example - Now ACTIVE
+  { id: 'edu1', name: 'Seguro Educativo Crecer', type: 'education', status: 'active', isAutoActive: true, isAdaptivePremium: true, premium: 70, coverageAmount: 0, goalAmount: 20000, nextPaymentDate: '2025-07-01', activationHistory: [{ reason: 'Initial activation', date: '2024-01-10' }], description: 'Secure the future education of your loved ones.' },
 ];
 
 // Define potential policies the user doesn't have
+// Removed education as it's now active in mockPolicies
 const potentialPolicies: Pick<Policy, 'id' | 'name' | 'type' | 'description'>[] = [
     { id: 'potential-renta', name: 'Rentas Voluntarias Tranquilidad', type: 'renta', description: 'Flexible long-term savings for retirement or other goals.' },
-    // { id: 'potential-education', name: 'Seguro Educativo Crecer', type: 'education', description: 'Guarantee future education costs for your loved ones.' },
     // Add others if needed, ensure 'type' is correct for policyIcons
 ];
 
@@ -429,3 +429,4 @@ const Label = ({ children, ...props }: React.LabelHTMLAttributes<HTMLLabelElemen
     {children}
   </label>
 );
+
