@@ -11,7 +11,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
+  CardFooter, // Import CardFooter
 } from '@/components/ui/card';
 import {
     Accordion,
@@ -24,7 +24,7 @@ import { Separator } from '@/components/ui/separator';
 import {
    Cloud, MapPin, HeartPulse, Zap, BatteryCharging, WifiOff, CreditCard, FileWarning, ShieldCheck,
    TrendingUp, AlertTriangle, Lightbulb, GraduationCap, Users, PhoneCall,
-   Sparkles, CheckCircle, Check, Brain // Added Brain for AI/Intelligent ideas
+   Sparkles, CheckCircle, Check, Brain, Activity, Settings // Added Brain, Activity, Settings
 } from 'lucide-react';
 import type { Location } from '@/services/gps';
 import type { Weather } from '@/services/weather';
@@ -47,6 +47,7 @@ import {
     CarouselNext,
     CarouselPrevious,
   } from "@/components/ui/carousel" // Import Carousel components
+import { Label } from '@/components/ui/label'; // Import Label
 
 type RiskStatus = 'low' | 'medium' | 'high' | 'unknown';
 
@@ -82,12 +83,12 @@ const getCarouselSlides = (t: any): CarouselSlide[] => [
         ctaHref: '/insurances#health',
     },
     {
-        id: 'slide-home',
-        imageUrl: 'https://picsum.photos/800/400?random=2', // Placeholder
-        imageHint: 'cozy home',
-        message: t.carouselHomeMessage || 'Your home, your refuge. Insure it against all risks.', // Fallback text
-        ctaLabel: t.carouselHomeCta || 'Explore Home Insurance', // Fallback text
-        ctaHref: '/insurances#home', // Adjust href if needed
+        id: 'slide-travel',
+        imageUrl: 'https://picsum.photos/800/400?random=4', // Placeholder
+        imageHint: 'travel adventure',
+        message: t.carouselTravelMessage || 'Travel without worries. Complete assistance wherever you go.', // Fallback text
+        ctaLabel: t.carouselTravelCta || 'View Travel Insurance', // Fallback text
+        ctaHref: '/insurances#travel', // Adjust href if needed
     },
     {
         id: 'slide-life',
@@ -98,13 +99,13 @@ const getCarouselSlides = (t: any): CarouselSlide[] => [
         ctaHref: '/insurances#life', // Adjust href if needed
     },
     {
-        id: 'slide-travel',
-        imageUrl: 'https://picsum.photos/800/400?random=4', // Placeholder
-        imageHint: 'travel adventure',
-        message: t.carouselTravelMessage || 'Travel without worries. Complete assistance wherever you go.', // Fallback text
-        ctaLabel: t.carouselTravelCta || 'View Travel Insurance', // Fallback text
-        ctaHref: '/insurances#travel', // Adjust href if needed
-    }
+        id: 'slide-home',
+        imageUrl: 'https://picsum.photos/800/400?random=2', // Placeholder
+        imageHint: 'cozy home',
+        message: t.carouselHomeMessage || 'Your home, your refuge. Insure it against all risks.', // Fallback text
+        ctaLabel: t.carouselHomeCta || 'Explore Home Insurance', // Fallback text
+        ctaHref: '/insurances#home', // Adjust href if needed
+    },
 ];
 
 
@@ -121,36 +122,24 @@ const chartData = [
 // Chart configuration - Adjusted labels based on translations structure
 const getChartConfig = (t: any): ChartConfig => ({
   inflation: {
-    label: t.inflationLabel,
+    label: t.inflationLabel || "Inflation (%)", // Added fallback
     color: "hsl(var(--destructive))", // Use destructive color for inflation
   },
   market: {
-    label: t.marketLabel,
+    label: t.marketLabel || "Market (Index)", // Added fallback
     color: "hsl(var(--primary))", // Use primary color for market trend
   },
 });
 
 
-// Helper component for Progress Bar indicator class
-const ProgressIndicator = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { value: number | null, status: RiskStatus }
->(({ className, value, status, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "h-full w-full flex-1 bg-primary transition-all",
-      status === 'low' ? 'bg-green-500' :
-      status === 'medium' ? 'bg-yellow-500' :
-      status === 'high' ? 'bg-destructive' :
-      'bg-muted', // Fallback for unknown or null value
-      className
-    )}
-    style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    {...props}
-  />
-));
-ProgressIndicator.displayName = "ProgressIndicator";
+// Mock function to get contextual risk data (replace with actual logic)
+const getContextualRisk = (t: any) => ({
+  zoneRisk: t.riskZoneMedium, // 'No risks detected', 'Moderate risk zone', 'High-risk zone'
+  recentEvents: t.riskEventsSample, // 'No recent incidents nearby.', '3 thefts reported this week within 500m.',
+  externalConditions: t.riskConditionsWeather, // 'Weather conditions normal.', 'Heavy rain forecast, increased accident risk.'
+  recommendedCoverage: t.riskCoverageMedium, // 'Low', 'Medium', 'Complete'
+  overallStatus: t.riskStatusOverallMonitoring, // 'All under control', 'Environment under monitoring'
+});
 
 
 export default function DashboardPage() {
@@ -166,8 +155,8 @@ export default function DashboardPage() {
   const [greeting, setGreeting] = useState<string | null>(null); // State for greeting
   const [adaptivePremiumsActive, setAdaptivePremiumsActive] = useState(true); // Mock state for adaptive premiums feature
   const [language, setLanguage] = useState<string>('en'); // Default to English
-  const [riskStatus, setRiskStatus] = useState<RiskStatus>('medium'); // Mock risk status
-  const [coverageLevel, setCoverageLevel] = useState<number | null>(65); // Mock coverage level
+  const [coverageLevel, setCoverageLevel] = useState<number>(65); // Mock coverage level (0-100)
+  const [contextualRisk, setContextualRisk] = useState<ReturnType<typeof getContextualRisk> | null>(null); // State for contextual risk
 
    // Effect to get language from localStorage on mount
    useEffect(() => {
@@ -179,15 +168,19 @@ export default function DashboardPage() {
     }
   }, []); // Run only once on mount
 
-  // Set greeting based on fetched/default language
+  // Set greeting based on fetched/default language and avoid hydration issues
   useEffect(() => {
     const hour = new Date().getHours();
-    // Use English translations by default or if 'es' is not selected
     const currentTranslations = translations[language as keyof typeof translations] || translations.en;
-    if (hour < 12) setGreeting(currentTranslations.greetingMorning);
-    else if (hour < 18) setGreeting(currentTranslations.greetingAfternoon);
-    else setGreeting(currentTranslations.greetingEvening);
-  }, [language]); // Update greeting when language changes
+    let calculatedGreeting = '';
+    if (hour < 12) calculatedGreeting = currentTranslations.greetingMorning;
+    else if (hour < 18) calculatedGreeting = currentTranslations.greetingAfternoon;
+    else calculatedGreeting = currentTranslations.greetingEvening;
+    setGreeting(calculatedGreeting); // Set greeting in effect
+
+    // Set contextual risk based on current translations
+    setContextualRisk(getContextualRisk(currentTranslations));
+  }, [language]); // Update greeting and risk when language changes
 
 
   // Fetch data on component mount
@@ -198,8 +191,7 @@ export default function DashboardPage() {
         setLoadingWearable(true);
         // TODO: Fetch user name from auth context/API
         // setUserName(fetchedUserName);
-        // TODO: Fetch actual risk status and coverage level
-        // setRiskStatus(calculatedRisk);
+        // TODO: Fetch actual coverage level from policy analysis
         // setCoverageLevel(calculatedCoverage);
 
         try {
@@ -245,38 +237,38 @@ export default function DashboardPage() {
 
   // Function to get qualitative stress level
   const getStressLevelLabel = (level: number): string => {
-      if (level < 30) return t.stressLevelLow;
-      if (level < 60) return t.stressLevelMedium;
-      return t.stressLevelHigh;
+      if (level < 30) return t.stressLevelLow || "Low";
+      if (level < 60) return t.stressLevelMedium || "Medium";
+      return t.stressLevelHigh || "High";
   };
 
    // Updated recommendations using translations
    const getRecommendations = (t: any): Recommendation[] => [
        {
          id: 'rec_profile_update',
-         title: t.recProfileUpdateTitle,
-         reason: t.recProfileUpdateReason,
-         benefit: t.recProfileUpdateBenefit,
-         ctaLabel: t.recProfileUpdateCta,
+         title: t.recProfileUpdateTitle || "Optimize Your Recommendations!",
+         reason: t.recProfileUpdateReason || "A complete profile helps us give you more accurate suggestions.",
+         benefit: t.recProfileUpdateBenefit || "Ensure your protection and advice perfectly match you.",
+         ctaLabel: t.recProfileUpdateCta || "Review my Profile",
          icon: Users, // Icon related to user profile
          priority: 'medium',
        },
        {
          id: 'rec_education_explore',
-         title: t.recEducationExploreTitle,
-         reason: t.recEducationExploreReason,
-         benefit: t.recEducationExploreBenefit,
-         ctaLabel: t.recEducationExploreCta,
+         title: t.recEducationExploreTitle || "Secure Your Children's University",
+         reason: t.recEducationExploreReason || "We detected that your dependents (simulated) are school-aged.",
+         benefit: t.recEducationExploreBenefit || "Guarantee their future studies regardless of unforeseen events and start saving in a planned way.",
+         ctaLabel: t.recEducationExploreCta || "Explore Education Insurance",
          icon: GraduationCap, // Specific icon for education
          priority: 'medium',
        },
         // Example of a weather-related recommendation (conditionally added if data supports it)
         ...(weather && weather.temperatureFarenheit > 85 ? [{
             id: 'rec_heat_alert',
-            title: t.recHeatAlertTitle,
-            reason: t.recHeatAlertReason(weather.temperatureFarenheit),
-            benefit: t.recHeatAlertBenefit,
-            ctaLabel: t.recHeatAlertCta,
+            title: t.recHeatAlertTitle || "Protect Yourself from the Heat",
+            reason: t.recHeatAlertReason ? t.recHeatAlertReason(weather.temperatureFarenheit) : `Current temperature is ${weather.temperatureFarenheit}°F.`,
+            benefit: t.recHeatAlertBenefit || "Remember to stay hydrated and avoid strenuous activities.",
+            ctaLabel: t.recHeatAlertCta || "See Health Tips",
             icon: Cloud, // Or a specific Sun icon
             priority: 'low',
         } as Recommendation] : []),
@@ -292,34 +284,13 @@ export default function DashboardPage() {
         Autoplay({ delay: 4000, stopOnInteraction: true }) // 4 second delay, stops on interaction
     );
 
-    // --- Helper Functions for Risk Status Widget ---
-    const getRiskStatusIcon = (status: RiskStatus) => {
-        switch (status) {
-            case 'low': return <CheckCircle className="h-8 w-8 text-green-500" />;
-            case 'medium': return <AlertTriangle className="h-8 w-8 text-yellow-500" />;
-            case 'high': return <AlertTriangle className="h-8 w-8 text-destructive" />;
-            default: return <ShieldCheck className="h-8 w-8 text-muted-foreground" />; // Default/Unknown
-        }
-    };
-
-    const getRiskStatusText = (status: RiskStatus) => {
-        switch (status) {
-            case 'low': return t.riskStatusLowText;
-            case 'medium': return t.riskStatusMediumText;
-            case 'high': return t.riskStatusHighText;
-            default: return t.riskStatusUnknownText;
-        }
-    };
-
-    const getRiskStatusDescription = (status: RiskStatus) => {
-        switch (status) {
-            case 'low': return t.riskStatusLowDesc;
-            case 'medium': return t.riskStatusMediumDesc;
-            case 'high': return t.riskStatusHighDesc;
-            default: return t.riskStatusUnknownDesc;
-        }
-    };
-    // --- End Helper Functions ---
+     // --- Helper Functions for Protection Status Bar ---
+     const getProtectionBarColor = (level: number): string => {
+         if (level < 40) return 'bg-destructive'; // Red for low protection
+         if (level < 75) return 'bg-yellow-500'; // Yellow for medium
+         return 'bg-green-500'; // Green for high
+     };
+     // --- End Helper Functions ---
 
 
   return (
@@ -327,14 +298,14 @@ export default function DashboardPage() {
 
       {/* 1. Personalized Greeting */}
        <div className="mb-4">
-         <h1 className="text-2xl font-semibold">{t.helloUser(userName)}</h1>
-         {/* Display greeting or skeleton */}
+         <h1 className="text-2xl font-semibold">{t.helloUser ? t.helloUser(userName) : `Hello ${userName},`}</h1>
+         {/* Display greeting or skeleton, ensure no hydration mismatch */}
          <div className="text-muted-foreground">
              {greeting ? greeting : <Skeleton className="h-5 w-24 inline-block" />}
          </div>
        </div>
 
-       {/* 2. NEW Slider Widget: "Inspiring Protection" */}
+       {/* 2. Central Slider Widget: "Inspiring Protection" */}
         <Carousel
             plugins={[autoplayPlugin.current]} // Add autoplay plugin
             className="w-full shadow-lg rounded-lg overflow-hidden border border-border"
@@ -348,8 +319,8 @@ export default function DashboardPage() {
                     <Image
                     src={slide.imageUrl}
                     alt={slide.message}
-                    layout="fill"
-                    objectFit="cover"
+                    fill // Use fill instead of layout="fill"
+                    style={{objectFit:"cover"}} // Use style instead of objectFit prop
                     className="brightness-75" // Slightly darken image for text contrast
                     data-ai-hint={slide.imageHint} // AI hint for image selection
                     priority={slide.id === 'slide-health'} // Prioritize loading the first slide image
@@ -369,85 +340,71 @@ export default function DashboardPage() {
             <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 border-none" />
       </Carousel>
 
-        {/* 3. Widget Principal Rediseñado: Nivel de Protección */}
-        <Card className="border-l-4 border-border" data-testid="protection-widget">
-            <CardHeader>
-                <CardTitle className="text-lg font-medium flex items-center justify-between">
-                   <span>{t.protectionLevelTitle}</span>
-                    {/* Semáforo Visual */}
-                    {getRiskStatusIcon(riskStatus)}
-                </CardTitle>
-                 <CardDescription>{getRiskStatusText(riskStatus)}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">{getRiskStatusDescription(riskStatus)}</p>
-                 {/* Barra de Progreso */}
-                 {coverageLevel !== null && (
-                    <div>
-                         <Label htmlFor="coverage-progress" className="text-xs text-muted-foreground">{t.coverageLevelLabel}</Label>
-                         <Progress id="coverage-progress" value={coverageLevel} className="h-2 mt-1">
-                            {/* Use the custom indicator component */}
-                             <ProgressIndicator value={coverageLevel} status={riskStatus} />
-                         </Progress>
-                         <p className="text-right text-sm font-medium mt-1">{coverageLevel}%</p>
-                    </div>
-                 )}
-            </CardContent>
-             <CardFooter className="flex flex-col sm:flex-row gap-2 justify-end border-t pt-4">
-                 {/* Conditional CTAs based on risk status */}
-                 {(riskStatus === 'medium' || riskStatus === 'high') && (
-                     <Button variant="default" size="sm" asChild>
-                        <Link href="/recommendations">{t.viewRecommendationsButton}</Link>
-                     </Button>
-                 )}
-                 <Button variant="outline" size="sm">
-                     {t.simulateProfileButton}
-                 </Button>
-                  {/* "Improve my Protection" - Shown when not low risk? Or always? */}
-                  {riskStatus !== 'low' && (
-                     <Button variant="secondary" size="sm">
-                         {t.improveProtectionButton}
-                     </Button>
-                   )}
-             </CardFooter>
-        </Card>
-
-
-       {/* 4. Contextual Widgets: Current Environment & Financial Market */}
-       <div className="grid gap-4 md:grid-cols-2">
-           {/* Current Environment Card */}
-           <Card>
-             <CardHeader className="pb-2">
-               <CardTitle className="text-base font-medium flex items-center gap-2">
-                 <Cloud className="h-5 w-5 text-muted-foreground" /> {t.currentEnvironmentTitle}
-               </CardTitle>
+        {/* 3. Widget Fusionado: My Protection Status */}
+        <Card className="border-l-4 border-primary/50" data-testid="protection-status-widget">
+             <CardHeader className="pb-3">
+                 <CardTitle className="text-lg font-medium flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                         <ShieldCheck className="h-5 w-5 text-primary" />
+                         <span>{t.protectionStatusTitle || "My Protection Status"}</span>
+                     </div>
+                     {/* Optional: Overall status badge */}
+                     {contextualRisk && (
+                         <Badge variant={contextualRisk.overallStatus === t.riskStatusOverallMonitoring ? "destructive" : "secondary"}>
+                             {contextualRisk.overallStatus}
+                         </Badge>
+                     )}
+                 </CardTitle>
              </CardHeader>
-             <CardContent className="space-y-1">
-                {loadingWeather || loadingLocation ? (
-                  <div className="space-y-2">
-                      <Skeleton className="h-5 w-1/2" />
-                      <Skeleton className="h-5 w-3/4" />
-                   </div>
-                ) : weather ? (
-                 <>
-                  <p className="text-lg font-bold flex items-center gap-1">
-                      {/* TODO: Add Weather Icon component based on weather.conditions */}
-                      {weather.temperatureFarenheit}°F <span className="text-sm font-normal text-muted-foreground">{t.weatherLocationText(location ? t.yourLocation : t.unknownLocation)}</span>
-                  </p>
-                  <p className="text-sm text-muted-foreground">{weather.conditions}</p> {/* TODO: Translate conditions */}
-                  {/* TODO: Add Traffic insight */}
-                 </>
-               ) : (
-                 <p className="text-sm text-muted-foreground">{t.weatherUnavailableText}</p>
-               )}
-             </CardContent>
-           </Card>
+             <CardContent className="space-y-4">
+                 {/* Contextual Risk Info */}
+                 {contextualRisk ? (
+                     <div className="space-y-2 text-sm text-muted-foreground border-b pb-3 mb-3">
+                         <div className="flex justify-between"><span className="font-medium">{t.riskZoneLabel || "Current Zone:"}</span> <span>{contextualRisk.zoneRisk}</span></div>
+                         <div className="flex justify-between"><span className="font-medium">{t.riskEventsLabel || "Recent Events:"}</span> <span>{contextualRisk.recentEvents}</span></div>
+                         <div className="flex justify-between"><span className="font-medium">{t.riskConditionsLabel || "External Factors:"}</span> <span>{contextualRisk.externalConditions}</span></div>
+                         <div className="flex justify-between"><span className="font-medium">{t.riskCoverageLabel || "Recommended Coverage:"}</span> <span>{contextualRisk.recommendedCoverage}</span></div>
+                     </div>
+                 ) : (
+                     <Skeleton className="h-16 w-full mb-3" /> // Placeholder if risk data is loading
+                 )}
 
-           {/* Financial Market Card */}
-           <Card>
+                 {/* Protection Level Bar */}
+                  <div className="space-y-1">
+                     <Label htmlFor="protection-level-bar" className="text-xs text-muted-foreground">{t.protectionLevelLabel || "Estimated Protection Level"}</Label>
+                     <Progress
+                        id="protection-level-bar"
+                        value={coverageLevel}
+                        className="h-2"
+                        indicatorClassName={getProtectionBarColor(coverageLevel)} // Use dynamic color class
+                     />
+                      <p className="text-right text-sm font-medium mt-1">{coverageLevel}%</p> {/* Optional percentage display */}
+                  </div>
+
+             </CardContent>
+              {/* Action Buttons */}
+              <CardFooter className="flex flex-col sm:flex-row gap-2 justify-end border-t pt-4">
+                 <Button variant="default" size="sm" asChild>
+                     <Link href="/recommendations">
+                         <Settings className="mr-2 h-4 w-4" /> {/* Changed icon */}
+                         {t.improveProtectionButton || "Improve My Protection"}
+                     </Link>
+                 </Button>
+                  <Button variant="outline" size="sm" asChild>
+                      <Link href="/recommendations">
+                         <Brain className="mr-2 h-4 w-4" /> {/* Changed icon */}
+                          {t.viewRecommendationsButton || "View Recommendations"}
+                      </Link>
+                  </Button>
+              </CardFooter>
+         </Card>
+
+
+       {/* 4. Widget: Financial Market (Remains as before) */}
+        <Card>
              <CardHeader className="pb-2">
                <CardTitle className="text-base font-medium flex items-center gap-2">
-                 <TrendingUp className="h-5 w-5 text-muted-foreground" /> {t.financialMarketTitle}
+                 <TrendingUp className="h-5 w-5 text-muted-foreground" /> {t.financialMarketTitle || "Financial Market"}
                </CardTitle>
              </CardHeader>
              <CardContent className="space-y-3">
@@ -502,26 +459,25 @@ export default function DashboardPage() {
 
                  <Alert variant="destructive" className="p-3">
                    <AlertTriangle className="h-4 w-4" />
-                   <AlertTitle className="text-sm font-semibold">{t.inflationAlertTitle}</AlertTitle>
+                   <AlertTitle className="text-sm font-semibold">{t.inflationAlertTitle || "Inflation Alert"}</AlertTitle>
                    <AlertDescription className="text-xs">
-                      {t.inflationAlertDesc}
+                      {t.inflationAlertDesc || "Inflation continues to rise. Protect your savings."}
                    </AlertDescription>
                  </Alert>
                  <div className="flex items-start gap-2 text-sm">
                     <Lightbulb className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
                     <p className="text-muted-foreground">
-                      <span className="font-medium text-foreground">{t.keyTipLabel}:</span> {t.keyTipContent}
+                      <span className="font-medium text-foreground">{t.keyTipLabel || "Key Tip:"}</span> {t.keyTipContent || "Consider diversifying your investments and review savings options with inflation protection."}
                     </p>
                  </div>
              </CardContent>
            </Card>
-        </div>
 
        {/* 5. Section: Smart Ideas - REDESIGNED */}
        <div className="space-y-4">
          <h2 className="text-xl font-semibold flex items-center gap-2">
              <Brain className="h-6 w-6 text-primary" /> {/* New Title Icon */}
-             {t.smartIdeasTitle}
+             {t.smartIdeasTitle || "Smart Ideas for Your Protection"}
          </h2>
          {recommendations.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -543,8 +499,8 @@ export default function DashboardPage() {
                     <CardContent className="flex-1 pt-1 pb-3 space-y-2">
                         {/* XAI Explanation */}
                         <div className="text-xs text-muted-foreground">
-                            <p><span className="font-semibold text-foreground">{t.whyNowLabel}:</span> {rec.reason}</p>
-                            <p><span className="font-semibold text-green-600">{t.benefitLabel}:</span> {rec.benefit}</p>
+                            <p><span className="font-semibold text-foreground">{t.whyNowLabel || "Why now?"}:</span> {rec.reason}</p>
+                            <p><span className="font-semibold text-green-600">{t.benefitLabel || "Benefit:"}:</span> {rec.benefit}</p>
                         </div>
                     </CardContent>
                      <CardFooter className="pt-2 pb-4 border-t flex flex-col sm:flex-row gap-2 justify-between items-center">
@@ -554,7 +510,7 @@ export default function DashboardPage() {
                         </Button>
                          {/* Optional Secondary Action */}
                          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground p-0 h-auto hover:text-foreground w-full sm:w-auto justify-center sm:justify-end">
-                             {t.maybeLaterButton}
+                             {t.maybeLaterButton || "Maybe later"}
                          </Button>
                      </CardFooter>
                   </Card>
@@ -562,7 +518,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <Card className="p-4 text-center border-dashed">
-                 <CardDescription>{t.noRecommendationsText}</CardDescription>
+                 <CardDescription>{t.noRecommendationsText || "No smart ideas for you right now."}</CardDescription>
               </Card>
             )}
        </div>
@@ -573,13 +529,13 @@ export default function DashboardPage() {
            <Card>
              <AccordionTrigger className="px-6 py-4 hover:no-underline">
                 <CardTitle className="text-lg font-medium flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-yellow-500" /> {t.wellbeingTitle}
+                  <Sparkles className="h-5 w-5 text-yellow-500" /> {t.wellbeingTitle || "Your Well-being Rewards You!"}
                 </CardTitle>
              </AccordionTrigger>
              <AccordionContent className="px-6 pb-4">
                  {loadingWearable ? (
                      <div className="flex items-center justify-center text-muted-foreground py-4">
-                         <Skeleton className="h-5 w-5 mr-2 rounded-full" /> {t.loadingWellbeingData}
+                         <Skeleton className="h-5 w-5 mr-2 rounded-full" /> {t.loadingWellbeingData || "Loading well-being data..."}
                      </div>
                  ) : wearableStatus === 'connected' && wearableBattery && wearableData ? (
                     <div className="space-y-4">
@@ -590,8 +546,8 @@ export default function DashboardPage() {
                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                              </svg>
-                             <span className="font-medium">{t.smartwatchLabel}:</span>
-                             <Badge variant="default" className="bg-green-500 hover:bg-green-600">{t.connectedStatus}</Badge>
+                             <span className="font-medium">{t.smartwatchLabel || "Smartwatch:"}</span>
+                             <Badge variant="default" className="bg-green-500 hover:bg-green-600">{t.connectedStatus || "Connected"}</Badge>
                           </div>
                            <div className="flex items-center gap-1">
                              {wearableBattery.isCharging && <BatteryCharging className="h-4 w-4 text-yellow-500" />}
@@ -610,9 +566,9 @@ export default function DashboardPage() {
                                 <CardContent className="p-0 flex items-center gap-3">
                                   <HeartPulse className="h-6 w-6 text-red-500" />
                                   <div>
-                                     <p className="text-sm text-muted-foreground">{t.heartRateLabel}</p>
-                                     <p className="text-lg font-bold">{wearableData.heartRate} <span className="text-xs font-normal">{t.heartRateUnit}</span></p>
-                                     <p className="text-xs text-muted-foreground">{t.averageTodayLabel}</p>
+                                     <p className="text-sm text-muted-foreground">{t.heartRateLabel || "Heart Rate"}</p>
+                                     <p className="text-lg font-bold">{wearableData.heartRate} <span className="text-xs font-normal">{t.heartRateUnit || "bpm"}</span></p>
+                                     <p className="text-xs text-muted-foreground">{t.averageTodayLabel || "(Average today)"}</p>
                                   </div>
                                 </CardContent>
                              </Card>
@@ -625,13 +581,13 @@ export default function DashboardPage() {
                                        "text-orange-500" // Changed to orange for high stress
                                     )} />
                                   <div>
-                                     <p className="text-sm text-muted-foreground">{t.stressLevelLabel}</p>
+                                     <p className="text-sm text-muted-foreground">{t.stressLevelLabel || "Stress Level"}</p>
                                       <p className="text-lg font-bold">{getStressLevelLabel(wearableData.stressLevel)} <span className="text-xs font-normal">({wearableData.stressLevel}%)</span></p>
                                       {/* Updated Alert for high stress */}
                                      {wearableData.stressLevel > 60 && (
                                        <Alert variant="destructive" className="p-1 px-2 mt-1 text-xs flex items-center gap-1 border-orange-500 text-orange-700 dark:text-orange-400">
                                           <AlertTriangle className="h-3 w-3" />
-                                          <span>{t.stressIncreasedAlert}</span> {/* Simplified and translated */}
+                                          <span>{t.stressIncreasedAlert || "Stress Increased"}</span> {/* Simplified and translated */}
                                        </Alert>
                                       )}
                                   </div>
@@ -645,16 +601,16 @@ export default function DashboardPage() {
                                 <div className="flex items-start gap-2 text-sm">
                                     <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                                     <p className="text-accent-foreground">
-                                        <span className="font-semibold">{t.adaptivePremiumActiveTitle}</span> {t.adaptivePremiumActiveDesc('Life')} {/* Replace 'Life' with dynamic policy name */}
+                                        <span className="font-semibold">{t.adaptivePremiumActiveTitle || "Excellent!"}</span> {t.adaptivePremiumActiveDesc ? t.adaptivePremiumActiveDesc('Life') : `Your consistent activity levels are helping optimize the premium for your Life Insurance. Keep it up! 💪`} {/* Replace 'Life' with dynamic policy name */}
                                     </p>
                                 </div>
                             ) : (
                                 <div className="flex items-start gap-2 text-sm">
                                     <Lightbulb className="h-5 w-5 text-yellow-500 mt-0.5 shrink-0" />
                                     <p className="text-muted-foreground">
-                                        {t.adaptivePremiumInactiveDesc('Life')} {/* Replace 'Life' */}
+                                        {t.adaptivePremiumInactiveDesc ? t.adaptivePremiumInactiveDesc('Life') : `Did you know your well-being data could help you pay less for your Life insurance?`} {/* Replace 'Life' */}
                                         <Button variant="link" size="sm" className="p-0 h-auto ml-1" asChild>
-                                            <Link href="/profile/settings">{t.activateAdaptivePremiumsButton}</Link>
+                                            <Link href="/profile/settings">{t.activateAdaptivePremiumsButton || "Activate Adaptive Premiums"}</Link>
                                         </Button>
                                     </p>
                                 </div>
@@ -664,8 +620,8 @@ export default function DashboardPage() {
                  ) : (
                     <div className="flex flex-col items-center text-center text-muted-foreground py-4">
                         <WifiOff className="h-10 w-10 mb-2" />
-                        <p className="text-sm mb-2">{t.wearableDisconnectedText}</p>
-                        <Button variant="outline" size="sm">{t.connectNowButton}</Button> {/* Changed label */}
+                        <p className="text-sm mb-2">{t.wearableDisconnectedText || "Wearable disconnected or not set up."}</p>
+                        <Button variant="outline" size="sm">{t.connectNowButton || "Connect now"}</Button> {/* Changed label */}
                     </div>
                  )}
              </AccordionContent>
@@ -675,26 +631,26 @@ export default function DashboardPage() {
 
        {/* 7. Quick Access */}
        <div className="space-y-4">
-         <h2 className="text-xl font-semibold">{t.quickAccessTitle}</h2>
+         <h2 className="text-xl font-semibold">{t.quickAccessTitle || "Quick Access"}</h2>
          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
            {/* Using default button style for more visibility */}
            <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
              <CreditCard className="mr-3 h-5 w-5 shrink-0" />
              <div className="flex flex-col">
-                 <span className="font-medium">{t.payNextInstallmentButton}</span>
+                 <span className="font-medium">{t.payNextInstallmentButton || "Pay Next Installment"}</span>
              </div>
            </Button>
            <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
              <FileWarning className="mr-3 h-5 w-5 shrink-0" />
              <div className="flex flex-col">
-                <span className="font-medium">{t.reportIncidentButton}</span>
+                <span className="font-medium">{t.reportIncidentButton || "Report Incident"}</span>
              </div>
            </Button>
            <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90" asChild>
               <Link href="/insurances">
                  <ShieldCheck className="mr-3 h-5 w-5 shrink-0" />
                  <div className="flex flex-col">
-                     <span className="font-medium">{t.viewMyInsurancesButton}</span>
+                     <span className="font-medium">{t.viewMyInsurancesButton || "View My Insurances"}</span>
                  </div>
                </Link>
            </Button>
@@ -710,10 +666,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-// Helper Label component if not already globally available or imported
-const Label = ({ children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
-  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" {...props}>
-    {children}
-  </label>
-);
