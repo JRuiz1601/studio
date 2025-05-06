@@ -15,6 +15,7 @@ import type { Policy, PolicyStatus, PolicyType } from '@/app/(app)/insurances/pa
 import { policyIcons } from '@/app/(app)/insurances/page'; // Import policyIcons mapping
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { cn } from '@/lib/utils'; // Import cn
+import { Button } from '@/components/ui/button'; // Import Button component
 
 interface PolicyCardProps {
   policy: Policy;
@@ -67,10 +68,10 @@ export function PolicyCard({ policy, onClick }: PolicyCardProps) {
                 {policy.status.replace('-', ' ')}
             </Badge>
         </div>
-         <CardDescription className="text-xs pt-1">
-            Current Premium: ${policy.premium}/mo
+         <CardDescription className="text-xs pt-1 flex flex-wrap gap-x-2 items-center"> {/* Adjusted for wrapping */}
+            <span>Premium: ${policy.premium}/mo</span>
             {policy.nextPaymentDate && (
-                <span className="ml-2 flex items-center gap-1"><CalendarDays className="h-3 w-3" /> Next: {policy.nextPaymentDate}</span>
+                <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" /> Next: {policy.nextPaymentDate}</span>
             )}
          </CardDescription>
       </CardHeader>
