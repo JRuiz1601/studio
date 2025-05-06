@@ -268,4 +268,3 @@ export const translations = {
     // Add other translations as needed for other pages
   }
 };
-```
