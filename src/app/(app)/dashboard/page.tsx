@@ -1,16 +1,17 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link'; // Import Link for navigation
+import Image from 'next/image';
+import Autoplay from "embla-carousel-autoplay" // Import Autoplay plugin
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter, // Added CardFooter import
+  CardFooter,
 } from '@/components/ui/card';
 import {
     Accordion,
@@ -22,10 +23,9 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
    Cloud, MapPin, HeartPulse, Zap, BatteryCharging, WifiOff, CreditCard, FileWarning, ShieldCheck,
-   TrendingUp, AlertTriangle, Lightbulb, ShieldAlert, ShieldX, Shield, GraduationCap, Users, PhoneCall,
+   TrendingUp, AlertTriangle, Lightbulb, GraduationCap, Users, PhoneCall,
    Sparkles, CheckCircle, Check, Brain // Added Brain for AI/Intelligent ideas
-} from 'lucide-react'; // Added new icons
-import Image from 'next/image';
+} from 'lucide-react';
 import type { Location } from '@/services/gps';
 import type { Weather } from '@/services/weather';
 import type { WearableBattery, WearableConnectionStatus, WearableData } from '@/services/wearable';
@@ -40,6 +40,13 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'; // Impo
 import { cn } from '@/lib/utils'; // Import cn for conditional classes
 import { Progress } from '@/components/ui/progress'; // Import Progress
 import { translations } from '@/lib/translations'; // Import shared translations
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+  } from "@/components/ui/carousel" // Import Carousel components
 
 type RiskStatus = 'low' | 'medium' | 'high';
 
@@ -53,6 +60,51 @@ interface Recommendation {
   icon: React.ComponentType<{ className?: string }>;
   priority?: 'high' | 'medium' | 'low'; // Optional priority for styling/sorting
 }
+
+// Carousel slide data
+interface CarouselSlide {
+    id: string;
+    imageUrl: string;
+    imageHint: string; // For AI image generation hint
+    message: string;
+    ctaLabel: string;
+    ctaHref: string;
+}
+
+const carouselSlides: CarouselSlide[] = [
+    {
+        id: 'slide-health',
+        imageUrl: 'https://picsum.photos/800/400',
+        imageHint: 'healthy lifestyle', // Added hint
+        message: 'Protege tu bienestar. Cobertura completa para imprevistos de salud.',
+        ctaLabel: 'Ver Seguros de Salud',
+        ctaHref: '/insurances#health',
+    },
+    {
+        id: 'slide-home',
+        imageUrl: 'https://picsum.photos/800/400',
+        imageHint: 'cozy home', // Added hint
+        message: 'Tu hogar, tu refugio. Asegúralo contra todo riesgo.',
+        ctaLabel: 'Explorar Seguros de Hogar',
+        ctaHref: '/insurances#home', // Adjust href if needed
+    },
+    {
+        id: 'slide-life',
+        imageUrl: 'https://picsum.photos/800/400',
+        imageHint: 'happy family', // Added hint
+        message: 'El futuro de tu familia asegurado. Tranquilidad para los que más quieres.',
+        ctaLabel: 'Conocer Seguro de Vida',
+        ctaHref: '/insurances#life', // Adjust href if needed
+    },
+    {
+        id: 'slide-travel',
+        imageUrl: 'https://picsum.photos/800/400',
+        imageHint: 'travel adventure', // Added hint
+        message: 'Viaja sin preocupaciones. Asistencia completa donde quiera que vayas.',
+        ctaLabel: 'Ver Seguros de Viaje',
+        ctaHref: '/insurances#travel', // Adjust href if needed
+    }
+];
 
 
 // Mock data for the financial chart
@@ -79,8 +131,9 @@ const getChartConfig = (t: any): ChartConfig => ({
 
 
 export default function DashboardPage() {
-  const [riskStatus, setRiskStatus] = useState<RiskStatus>('low');
-  const [riskProgress, setRiskProgress] = useState(85); // Example protection progress percentage
+  // Removed riskStatus and riskProgress states as the widget is replaced
+  // const [riskStatus, setRiskStatus] = useState<RiskStatus>('low');
+  // const [riskProgress, setRiskProgress] = useState(85); // Example protection progress percentage
   const [location, setLocation] = useState<Location | null>(null);
   const [weather, setWeather] = useState<Weather | null>(null);
   const [wearableStatus, setWearableStatus] = useState<WearableConnectionStatus | null>(null);
@@ -149,11 +202,10 @@ export default function DashboardPage() {
              setLoadingWearable(false);
         }
 
-         // TODO: Calculate risk status and progress based on fetched data (policies, profile, context)
-         // This calculation should replace the hardcoded values
-         const calculatedRisk: RiskStatus = 'medium'; // Example calculation for demonstration
-         setRiskStatus(calculatedRisk);
-         setRiskProgress(65); // Example progress
+         // Removed risk status calculation as widget is replaced
+         // const calculatedRisk: RiskStatus = 'medium'; // Example calculation for demonstration
+         // setRiskStatus(calculatedRisk);
+         // setRiskProgress(65); // Example progress
 
      }
      fetchData();
@@ -164,50 +216,12 @@ export default function DashboardPage() {
   const t = translations[language as keyof typeof translations] || translations.es;
   const chartConfig = getChartConfig(t);
 
-
-  const getRiskStatusColor = (status: RiskStatus): string => {
-    switch (status) {
-      case 'low': return 'text-green-600';
-      case 'medium': return 'text-yellow-600';
-      case 'high': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };
-  // Function to get color for progress bar based on status
-   const getProgressColorClass = (status: RiskStatus): string => {
-     switch (status) {
-       case 'low': return 'bg-green-500';
-       case 'medium': return 'bg-yellow-500';
-       case 'high': return 'bg-red-500';
-       default: return 'bg-primary';
-     }
-   };
-   const getRiskStatusText = (status: RiskStatus): string => {
-     switch (status) {
-       case 'low': return t.riskStatusLowText;
-       case 'medium': return t.riskStatusMediumText;
-       case 'high': return t.riskStatusHighText;
-       default: return t.riskStatusUnknownText;
-     }
-   };
-   const getRiskStatusDescription = (status: RiskStatus): string => {
-      switch (status) {
-        case 'low': return t.riskStatusLowDesc;
-        case 'medium': return t.riskStatusMediumDesc;
-        case 'high': return t.riskStatusHighDesc;
-        default: return t.riskStatusUnknownDesc;
-      }
-    };
-
-  const getRiskStatusIcon = (status: RiskStatus): React.ReactElement => {
-      // Using Shield icons for semantic meaning
-      switch (status) {
-          case 'low': return <ShieldCheck className="h-10 w-10 text-green-500" />; // More positive
-          case 'medium': return <ShieldAlert className="h-10 w-10 text-yellow-500" />; // Alert state
-          case 'high': return <ShieldX className="h-10 w-10 text-red-500" />; // Problem state
-          default: return <Shield className="h-10 w-10 text-gray-500" />; // Default/Unknown
-      }
-  };
+  // Removed functions related to the old risk widget
+  // const getRiskStatusColor = (status: RiskStatus): string => { ... };
+  // const getProgressColorClass = (status: RiskStatus): string => { ... };
+  // const getRiskStatusText = (status: RiskStatus): string => { ... };
+  // const getRiskStatusDescription = (status: RiskStatus): string => { ... };
+  // const getRiskStatusIcon = (status: RiskStatus): React.ReactElement => { ... };
 
   // Function to get qualitative stress level
   const getStressLevelLabel = (level: number): string => {
@@ -253,6 +267,11 @@ export default function DashboardPage() {
 
    const recommendations = getRecommendations(t);
 
+    // Autoplay plugin ref for the carousel
+    const autoplayPlugin = useRef(
+        Autoplay({ delay: 4000, stopOnInteraction: true }) // 4 second delay, stops on interaction
+    );
+
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
@@ -266,54 +285,41 @@ export default function DashboardPage() {
          </div>
        </div>
 
-      {/* 2. Widget Principal: Nivel de Protección - UPDATED */}
-      <Card className="border-primary shadow-md">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-medium">
-             {t.protectionLevelTitle}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-                {/* Semaphore/Shield Icon */}
-               <div className="flex-shrink-0">
-                   {getRiskStatusIcon(riskStatus)}
-               </div>
-               {/* Status Text and Description */}
-               <div className="flex-1 space-y-1 text-center sm:text-left">
-                   <p className={`text-xl font-bold capitalize ${getRiskStatusColor(riskStatus)}`}>
-                      {getRiskStatusText(riskStatus)}
-                   </p>
-                   <p className="text-sm text-muted-foreground">
-                      {getRiskStatusDescription(riskStatus)}
-                   </p>
-               </div>
-            </div>
-             {/* Protection Progress Bar */}
-            <div className="space-y-1">
-                <div className="flex justify-between text-sm font-medium">
-                    <span>{t.coverageLevelLabel}</span>
-                    <span>{riskProgress}%</span>
+       {/* 2. NEW Slider Widget: "Inspiring Protection" */}
+        <Carousel
+            plugins={[autoplayPlugin.current]} // Add autoplay plugin
+            className="w-full shadow-lg rounded-lg overflow-hidden border border-border"
+            onMouseEnter={autoplayPlugin.current.stop}
+            onMouseLeave={autoplayPlugin.current.reset}
+        >
+        <CarouselContent>
+          {carouselSlides.map((slide) => (
+            <CarouselItem key={slide.id}>
+              <div className="relative aspect-video"> {/* Use aspect ratio for consistent image sizing */}
+                <Image
+                  src={slide.imageUrl}
+                  alt={slide.message}
+                  layout="fill"
+                  objectFit="cover"
+                  className="brightness-75" // Slightly darken image for text contrast
+                  data-ai-hint={slide.imageHint} // Keep the AI hint
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 md:p-8 bg-gradient-to-t from-black/50 to-transparent">
+                   <p className="text-lg md:text-2xl font-semibold text-white mb-4 shadow-text">{slide.message}</p>
+                   <Button variant="default" size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
+                     <Link href={slide.ctaHref}>{slide.ctaLabel}</Link>
+                   </Button>
                 </div>
-                <Progress value={riskProgress} className="h-2" indicatorClassName={getProgressColorClass(riskStatus)} />
-            </div>
-        </CardContent>
-         <CardFooter className="flex flex-col sm:flex-row gap-2 justify-end border-t pt-4">
-             {/* Conditional CTAs based on risk status */}
-             {(riskStatus === 'medium' || riskStatus === 'high') && (
-                 <Button variant="default" size="sm" asChild>
-                     <Link href='/recommendations'>{t.viewRecommendationsButton}</Link>
-                 </Button>
-             )}
-             <Button variant="outline" size="sm" asChild>
-                 {/* Link to a potential simulation or profile page */}
-                 <Link href='/profile/settings'>{t.simulateProfileButton}</Link>
-             </Button>
-             <Button variant="secondary" size="sm" asChild>
-                 <Link href='/insurances'>{t.improveProtectionButton}</Link>
-             </Button>
-         </CardFooter>
-      </Card>
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        {/* Optional: Add Previous/Next buttons if needed, but autoplay reduces their necessity */}
+        {/*
+        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 border-none" />
+        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 border-none" />
+        */}
+      </Carousel>
 
       {/* 3. Widgets Contextuales: Entorno Actual y Mercado Financiero */}
        <div className="grid gap-4 md:grid-cols-2">
@@ -602,34 +608,20 @@ export default function DashboardPage() {
            </Button>
          </div>
        </div>
+
+        {/* Add shadow style for text over image */}
+       <style jsx>{`
+           .shadow-text {
+             text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+           }
+       `}</style>
     </div>
   );
 }
 
+// Removed ProgressIndicator helper as Progress component is now handled directly
+// const ProgressIndicator = ...;
 
-// Helper component for Progress Bar indicator class - needed because Tailwind cannot dynamically generate classes based on props/state directly
-const ProgressIndicator = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { value: number | null, status: RiskStatus }
->(({ className, value, status, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "h-full w-full flex-1 transition-all",
-      getProgressColorClass(status), // Apply color class dynamically
-      className
-    )}
-    style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    {...props}
-  />
-));
-ProgressIndicator.displayName = "ProgressIndicator";
+// Removed Progress component augmentation
+// declare module "@/components/ui/progress" { ... }
 
-// Augment Progress component to accept indicatorClassName prop
-// Note: This might not be strictly necessary if handled directly in Progress component,
-// but included here based on previous structure.
-declare module "@/components/ui/progress" {
-  interface ProgressProps {
-    indicatorClassName?: string;
-  }
-}
