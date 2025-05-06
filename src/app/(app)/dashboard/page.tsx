@@ -66,42 +66,43 @@ interface CarouselSlide {
     id: string;
     imageUrl: string;
     imageHint: string; // For AI image generation hint
-    message: string;
-    ctaLabel: string;
+    message: string; // Now uses translations
+    ctaLabel: string; // Now uses translations
     ctaHref: string;
 }
 
-const carouselSlides: CarouselSlide[] = [
+// Updated function to get carousel slides with translations
+const getCarouselSlides = (t: any): CarouselSlide[] => [
     {
         id: 'slide-health',
-        imageUrl: 'https://picsum.photos/800/400',
-        imageHint: 'healthy lifestyle', // Added hint
-        message: 'Protege tu bienestar. Cobertura completa para imprevistos de salud.',
-        ctaLabel: 'Ver Seguros de Salud',
+        imageUrl: 'https://picsum.photos/800/400', // Placeholder, AI hint is primary
+        imageHint: 'healthy lifestyle',
+        message: t.carouselHealthMessage || 'Protect your well-being. Full coverage for health contingencies.', // Fallback text
+        ctaLabel: t.carouselHealthCta || 'View Health Insurance', // Fallback text
         ctaHref: '/insurances#health',
     },
     {
         id: 'slide-home',
-        imageUrl: 'https://picsum.photos/800/400',
-        imageHint: 'cozy home', // Added hint
-        message: 'Tu hogar, tu refugio. Asegúralo contra todo riesgo.',
-        ctaLabel: 'Explorar Seguros de Hogar',
+        imageUrl: 'https://picsum.photos/800/400', // Placeholder
+        imageHint: 'cozy home',
+        message: t.carouselHomeMessage || 'Your home, your refuge. Insure it against all risks.', // Fallback text
+        ctaLabel: t.carouselHomeCta || 'Explore Home Insurance', // Fallback text
         ctaHref: '/insurances#home', // Adjust href if needed
     },
     {
         id: 'slide-life',
-        imageUrl: 'https://picsum.photos/800/400',
-        imageHint: 'happy family', // Added hint
-        message: 'El futuro de tu familia asegurado. Tranquilidad para los que más quieres.',
-        ctaLabel: 'Conocer Seguro de Vida',
+        imageUrl: 'https://picsum.photos/800/400', // Placeholder
+        imageHint: 'happy family',
+        message: t.carouselLifeMessage || 'Your family\'s future secured. Peace of mind for those you love most.', // Fallback text
+        ctaLabel: t.carouselLifeCta || 'Learn about Life Insurance', // Fallback text
         ctaHref: '/insurances#life', // Adjust href if needed
     },
     {
         id: 'slide-travel',
-        imageUrl: 'https://picsum.photos/800/400',
-        imageHint: 'travel adventure', // Added hint
-        message: 'Viaja sin preocupaciones. Asistencia completa donde quiera que vayas.',
-        ctaLabel: 'Ver Seguros de Viaje',
+        imageUrl: 'https://picsum.photos/800/400', // Placeholder
+        imageHint: 'travel adventure',
+        message: t.carouselTravelMessage || 'Travel without worries. Complete assistance wherever you go.', // Fallback text
+        ctaLabel: t.carouselTravelCta || 'View Travel Insurance', // Fallback text
         ctaHref: '/insurances#travel', // Adjust href if needed
     }
 ];
@@ -131,9 +132,6 @@ const getChartConfig = (t: any): ChartConfig => ({
 
 
 export default function DashboardPage() {
-  // Removed riskStatus and riskProgress states as the widget is replaced
-  // const [riskStatus, setRiskStatus] = useState<RiskStatus>('low');
-  // const [riskProgress, setRiskProgress] = useState(85); // Example protection progress percentage
   const [location, setLocation] = useState<Location | null>(null);
   const [weather, setWeather] = useState<Weather | null>(null);
   const [wearableStatus, setWearableStatus] = useState<WearableConnectionStatus | null>(null);
@@ -142,24 +140,30 @@ export default function DashboardPage() {
   const [loadingLocation, setLoadingLocation] = useState(true);
   const [loadingWeather, setLoadingWeather] = useState(true);
   const [loadingWearable, setLoadingWearable] = useState(true);
-  const [userName, setUserName] = useState('Usuario Zyren'); // Placeholder user name
+  const [userName, setUserName] = useState('Zyren User'); // Placeholder user name (English)
   const [greeting, setGreeting] = useState<string | null>(null); // State for greeting
   const [adaptivePremiumsActive, setAdaptivePremiumsActive] = useState(true); // Mock state for adaptive premiums feature
-  const [language, setLanguage] = useState<string>('es'); // Default to Spanish
+  const [language, setLanguage] = useState<string>('en'); // Default to English
 
    // Effect to get language from localStorage on mount
    useEffect(() => {
     const storedLang = localStorage.getItem('language');
     if (storedLang && (storedLang === 'en' || storedLang === 'es')) {
       setLanguage(storedLang);
+    } else {
+      setLanguage('en'); // Default to English if nothing stored or invalid
     }
-    // Set greeting based on fetched/default language
+  }, []); // Run only once on mount
+
+  // Set greeting based on fetched/default language
+  useEffect(() => {
     const hour = new Date().getHours();
-    const currentTranslations = translations[storedLang as keyof typeof translations || 'es'];
+    // Use English translations by default or if 'es' is not selected
+    const currentTranslations = translations[language as keyof typeof translations] || translations.en;
     if (hour < 12) setGreeting(currentTranslations.greetingMorning);
     else if (hour < 18) setGreeting(currentTranslations.greetingAfternoon);
     else setGreeting(currentTranslations.greetingEvening);
-  }, []); // Run only once on mount
+  }, [language]); // Update greeting when language changes
 
 
   // Fetch data on component mount
@@ -202,26 +206,15 @@ export default function DashboardPage() {
              setLoadingWearable(false);
         }
 
-         // Removed risk status calculation as widget is replaced
-         // const calculatedRisk: RiskStatus = 'medium'; // Example calculation for demonstration
-         // setRiskStatus(calculatedRisk);
-         // setRiskProgress(65); // Example progress
-
      }
      fetchData();
 
   }, []);
 
   // Get current translations based on language state
-  const t = translations[language as keyof typeof translations] || translations.es;
+  const t = translations[language as keyof typeof translations] || translations.en;
   const chartConfig = getChartConfig(t);
-
-  // Removed functions related to the old risk widget
-  // const getRiskStatusColor = (status: RiskStatus): string => { ... };
-  // const getProgressColorClass = (status: RiskStatus): string => { ... };
-  // const getRiskStatusText = (status: RiskStatus): string => { ... };
-  // const getRiskStatusDescription = (status: RiskStatus): string => { ... };
-  // const getRiskStatusIcon = (status: RiskStatus): React.ReactElement => { ... };
+  const carouselSlides = getCarouselSlides(t); // Get slides with current translations
 
   // Function to get qualitative stress level
   const getStressLevelLabel = (level: number): string => {
@@ -253,10 +246,10 @@ export default function DashboardPage() {
         // Example of a weather-related recommendation (conditionally added if data supports it)
         ...(weather && weather.temperatureFarenheit > 85 ? [{
             id: 'rec_heat_alert',
-            title: t.recHeatAlertTitle, // Needs translation key
-            reason: t.recHeatAlertReason(weather.temperatureFarenheit), // Needs translation key (with interpolation)
-            benefit: t.recHeatAlertBenefit, // Needs translation key
-            ctaLabel: t.recHeatAlertCta, // Needs translation key
+            title: t.recHeatAlertTitle,
+            reason: t.recHeatAlertReason(weather.temperatureFarenheit),
+            benefit: t.recHeatAlertBenefit,
+            ctaLabel: t.recHeatAlertCta,
             icon: Cloud, // Or a specific Sun icon
             priority: 'low',
         } as Recommendation] : []),
@@ -276,7 +269,7 @@ export default function DashboardPage() {
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
 
-      {/* 1. Saludo Personalizado */}
+      {/* 1. Personalized Greeting */}
        <div className="mb-4">
          <h1 className="text-2xl font-semibold">{t.helloUser(userName)}</h1>
          {/* Display greeting or skeleton */}
@@ -302,7 +295,8 @@ export default function DashboardPage() {
                   layout="fill"
                   objectFit="cover"
                   className="brightness-75" // Slightly darken image for text contrast
-                  data-ai-hint={slide.imageHint} // Keep the AI hint
+                  data-ai-hint={slide.imageHint} // AI hint for image selection
+                  priority={slide.id === 'slide-health'} // Prioritize loading the first slide image
                 />
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 md:p-8 bg-gradient-to-t from-black/50 to-transparent">
                    <p className="text-lg md:text-2xl font-semibold text-white mb-4 shadow-text">{slide.message}</p>
@@ -321,9 +315,9 @@ export default function DashboardPage() {
         */}
       </Carousel>
 
-      {/* 3. Widgets Contextuales: Entorno Actual y Mercado Financiero */}
+      {/* 3. Contextual Widgets: Current Environment & Financial Market */}
        <div className="grid gap-4 md:grid-cols-2">
-           {/* Entorno Actual Card */}
+           {/* Current Environment Card */}
            <Card>
              <CardHeader className="pb-2">
                <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -351,7 +345,7 @@ export default function DashboardPage() {
              </CardContent>
            </Card>
 
-           {/* Mercado Financiero Card */}
+           {/* Financial Market Card */}
            <Card>
              <CardHeader className="pb-2">
                <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -425,7 +419,7 @@ export default function DashboardPage() {
            </Card>
         </div>
 
-       {/* 4. Sección: Recomendaciones Clave - REDESIGNED */}
+       {/* 4. Section: Smart Ideas - REDESIGNED */}
        <div className="space-y-4">
          <h2 className="text-xl font-semibold flex items-center gap-2">
              <Brain className="h-6 w-6 text-primary" /> {/* New Title Icon */}
@@ -434,7 +428,7 @@ export default function DashboardPage() {
          {recommendations.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                  {recommendations.map((rec) => (
-                   // Using Opción A (Tarjeta Enriquecida) structure
+                   // Using Option A (Enriched Card) structure
                   <Card key={rec.id} className={`flex flex-col border-l-4 ${
                       rec.priority === 'high' ? 'border-destructive' :
                       rec.priority === 'medium' ? 'border-yellow-500' :
@@ -475,7 +469,7 @@ export default function DashboardPage() {
             )}
        </div>
 
-      {/* 5. Sección: Tu Bienestar y Seguros - REDESIGNED */}
+      {/* 5. Section: Your Well-being & Insurance - REDESIGNED */}
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-1" className="border-b-0">
            <Card>
@@ -511,7 +505,7 @@ export default function DashboardPage() {
                            </div>
                         </div>
 
-                        {/* Insights Clave */}
+                        {/* Key Insights */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                              {/* Heart Rate */}
                              <Card className="p-3">
@@ -553,14 +547,14 @@ export default function DashboardPage() {
                                 <div className="flex items-start gap-2 text-sm">
                                     <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                                     <p className="text-accent-foreground">
-                                        <span className="font-semibold">{t.adaptivePremiumActiveTitle}</span> {t.adaptivePremiumActiveDesc('Vida')} {/* Replace 'Vida' with dynamic policy name */}
+                                        <span className="font-semibold">{t.adaptivePremiumActiveTitle}</span> {t.adaptivePremiumActiveDesc('Life')} {/* Replace 'Life' with dynamic policy name */}
                                     </p>
                                 </div>
                             ) : (
                                 <div className="flex items-start gap-2 text-sm">
                                     <Lightbulb className="h-5 w-5 text-yellow-500 mt-0.5 shrink-0" />
                                     <p className="text-muted-foreground">
-                                        {t.adaptivePremiumInactiveDesc('Vida')} {/* Replace 'Vida' */}
+                                        {t.adaptivePremiumInactiveDesc('Life')} {/* Replace 'Life' */}
                                         <Button variant="link" size="sm" className="p-0 h-auto ml-1" asChild>
                                             <Link href="/profile/settings">{t.activateAdaptivePremiumsButton}</Link>
                                         </Button>
@@ -581,7 +575,7 @@ export default function DashboardPage() {
         </AccordionItem>
       </Accordion>
 
-       {/* 6. Acceso Rápido */}
+       {/* 6. Quick Access */}
        <div className="space-y-4">
          <h2 className="text-xl font-semibold">{t.quickAccessTitle}</h2>
          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -618,10 +612,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-// Removed ProgressIndicator helper as Progress component is now handled directly
-// const ProgressIndicator = ...;
-
-// Removed Progress component augmentation
-// declare module "@/components/ui/progress" { ... }
-

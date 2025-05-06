@@ -51,7 +51,7 @@ export const translations = {
     facialRemovedTitle: "Reconocimiento Facial Eliminado",
     facialRemovedDesc: "Puedes configurarlo de nuevo más tarde si es necesario.",
 
-    // Dashboard Page (new)
+    // Dashboard Page (existing)
     helloUser: (name: string) => `Hola ${name},`,
     greetingMorning: 'Buenos días.',
     greetingAfternoon: 'Buenas tardes.',
@@ -122,6 +122,16 @@ export const translations = {
     recHeatAlertBenefit: 'Recuerda mantenerte hidratado y evitar actividades extenuantes.',
     recHeatAlertCta: 'Ver Consejos de Salud',
 
+    // Carousel (new)
+    carouselHealthMessage: 'Protege tu bienestar. Cobertura completa para imprevistos de salud.',
+    carouselHealthCta: 'Ver Seguros de Salud',
+    carouselHomeMessage: 'Tu hogar, tu refugio. Asegúralo contra todo riesgo.',
+    carouselHomeCta: 'Explorar Seguros de Hogar',
+    carouselLifeMessage: 'El futuro de tu familia asegurado. Tranquilidad para los que más quieres.',
+    carouselLifeCta: 'Conocer Seguro de Vida',
+    carouselTravelMessage: 'Viaja sin preocupaciones. Asistencia completa donde quiera que vayas.',
+    carouselTravelCta: 'Ver Seguros de Viaje',
+
     // Add other translations as needed for other pages
   },
   en: {
@@ -174,7 +184,7 @@ export const translations = {
     facialRemovedTitle: "Facial Recognition Removed",
     facialRemovedDesc: "You can set it up again later if needed.",
 
-    // Dashboard Page (new)
+    // Dashboard Page (existing)
     helloUser: (name: string) => `Hello ${name},`,
     greetingMorning: 'Good morning.',
     greetingAfternoon: 'Good afternoon.',
@@ -244,6 +254,16 @@ export const translations = {
     recHeatAlertReason: (temp: number) => `The current temperature is ${temp}°F.`,
     recHeatAlertBenefit: 'Remember to stay hydrated and avoid strenuous activities.',
     recHeatAlertCta: 'See Health Tips',
+
+    // Carousel (new)
+    carouselHealthMessage: 'Protect your well-being. Full coverage for health contingencies.',
+    carouselHealthCta: 'View Health Insurance',
+    carouselHomeMessage: 'Your home, your refuge. Insure it against all risks.',
+    carouselHomeCta: 'Explore Home Insurance',
+    carouselLifeMessage: 'Your family\'s future secured. Peace of mind for those you love most.',
+    carouselLifeCta: 'Learn about Life Insurance',
+    carouselTravelMessage: 'Travel without worries. Complete assistance wherever you go.',
+    carouselTravelCta: 'View Travel Insurance',
 
     // Add other translations as needed for other pages
   }
