@@ -122,15 +122,22 @@ export const translations = {
     recHeatAlertBenefit: 'Recuerda mantenerte hidratado y evitar actividades extenuantes.',
     recHeatAlertCta: 'Ver Consejos de Salud',
 
-    // Carousel (new)
+    // Carousel (updated)
     carouselHealthMessage: 'Protege tu bienestar. Cobertura completa para imprevistos de salud.',
     carouselHealthCta: 'Ver Seguros de Salud',
-    carouselHomeMessage: 'Tu hogar, tu refugio. Asegúralo contra todo riesgo.',
-    carouselHomeCta: 'Explorar Seguros de Hogar',
-    carouselLifeMessage: 'El futuro de tu familia asegurado. Tranquilidad para los que más quieres.',
-    carouselLifeCta: 'Conocer Seguro de Vida',
-    carouselTravelMessage: 'Viaja sin preocupaciones. Asistencia completa donde quiera que vayas.',
-    carouselTravelCta: 'Ver Seguros de Viaje',
+    carouselAccidentMessage: 'Los accidentes suceden. Prepárate con cobertura de accidentes personales.',
+    carouselAccidentCta: 'Explorar Seguro de Accidentes',
+    carouselPensionMessage: 'Planifica tu futuro con ahorros de Pensión Voluntaria.',
+    carouselPensionCta: 'Conocer Pensión Voluntaria',
+    carouselEducationMessage: 'Asegura su futuro. Garantiza la continuidad educativa con nuestro plan.',
+    carouselEducationCta: 'Explorar Seguro Educativo',
+    // Removed unused carousel translations
+    // carouselHomeMessage: 'Tu hogar, tu refugio. Asegúralo contra todo riesgo.',
+    // carouselHomeCta: 'Explorar Seguros de Hogar',
+    // carouselLifeMessage: 'El futuro de tu familia asegurado. Tranquilidad para los que más quieres.',
+    // carouselLifeCta: 'Conocer Seguro de Vida',
+    // carouselTravelMessage: 'Viaja sin preocupaciones. Asistencia completa donde quiera que vayas.',
+    // carouselTravelCta: 'Ver Seguros de Viaje',
 
     // Add other translations as needed for other pages
   },
@@ -255,15 +262,22 @@ export const translations = {
     recHeatAlertBenefit: 'Remember to stay hydrated and avoid strenuous activities.',
     recHeatAlertCta: 'See Health Tips',
 
-    // Carousel (new)
+    // Carousel (updated)
     carouselHealthMessage: 'Protect your well-being. Full coverage for health contingencies.',
     carouselHealthCta: 'View Health Insurance',
-    carouselHomeMessage: 'Your home, your refuge. Insure it against all risks.',
-    carouselHomeCta: 'Explore Home Insurance',
-    carouselLifeMessage: 'Your family\'s future secured. Peace of mind for those you love most.',
-    carouselLifeCta: 'Learn about Life Insurance',
-    carouselTravelMessage: 'Travel without worries. Complete assistance wherever you go.',
-    carouselTravelCta: 'View Travel Insurance',
+    carouselAccidentMessage: 'Accidents happen. Be prepared with personal accident coverage.',
+    carouselAccidentCta: 'Explore Accident Insurance',
+    carouselPensionMessage: 'Plan your future with Voluntary Pension savings.',
+    carouselPensionCta: 'Learn about Voluntary Pension',
+    carouselEducationMessage: 'Secure their future. Ensure education continuity with our plan.',
+    carouselEducationCta: 'Explore Education Insurance',
+    // Removed unused carousel translations
+    // carouselHomeMessage: 'Your home, your refuge. Insure it against all risks.',
+    // carouselHomeCta: 'Explore Home Insurance',
+    // carouselLifeMessage: 'Your family\'s future secured. Peace of mind for those you love most.',
+    // carouselLifeCta: 'Learn about Life Insurance',
+    // carouselTravelMessage: 'Travel without worries. Complete assistance wherever you go.',
+    // carouselTravelCta: 'View Travel Insurance',
 
     // Add other translations as needed for other pages
   }

@@ -24,7 +24,7 @@ import { Separator } from '@/components/ui/separator';
 import {
    Cloud, MapPin, HeartPulse, Zap, BatteryCharging, WifiOff, CreditCard, FileWarning, ShieldCheck,
    TrendingUp, AlertTriangle, Lightbulb, GraduationCap, Users, PhoneCall,
-   Sparkles, CheckCircle, Check, Brain, Activity, Settings // Added Brain, Activity, Settings
+   Sparkles, CheckCircle, Check, Brain, Activity, Settings
 } from 'lucide-react';
 import type { Location } from '@/services/gps';
 import type { Weather } from '@/services/weather';
@@ -72,39 +72,39 @@ interface CarouselSlide {
     ctaHref: string;
 }
 
-// Updated function to get carousel slides with translations
+// Updated function to get carousel slides with translations focusing on specific insurances
 const getCarouselSlides = (t: any): CarouselSlide[] => [
     {
         id: 'slide-health',
-        imageUrl: 'https://picsum.photos/800/400?random=1', // Placeholder, AI hint is primary
-        imageHint: 'healthy lifestyle',
-        message: t.carouselHealthMessage || 'Protect your well-being. Full coverage for health contingencies.', // Fallback text
-        ctaLabel: t.carouselHealthCta || 'View Health Insurance', // Fallback text
-        ctaHref: '/insurances#health',
+        imageUrl: 'https://picsum.photos/800/400?random=1', // Placeholder
+        imageHint: 'healthy lifestyle', // Keep hint generic or make it 'health care'
+        message: t.carouselHealthMessage || 'Protect your well-being. Full coverage for health contingencies.',
+        ctaLabel: t.carouselHealthCta || 'View Health Insurance',
+        ctaHref: '/insurances#health', // Link to health insurance section/details
     },
     {
-        id: 'slide-travel',
+        id: 'slide-accident',
         imageUrl: 'https://picsum.photos/800/400?random=4', // Placeholder
-        imageHint: 'travel adventure',
-        message: t.carouselTravelMessage || 'Travel without worries. Complete assistance wherever you go.', // Fallback text
-        ctaLabel: t.carouselTravelCta || 'View Travel Insurance', // Fallback text
-        ctaHref: '/insurances#travel', // Adjust href if needed
+        imageHint: 'active person', // Hint related to accidents or activity
+        message: t.carouselAccidentMessage || 'Accidents happen. Be prepared with personal accident coverage.',
+        ctaLabel: t.carouselAccidentCta || 'Explore Accident Insurance',
+        ctaHref: '/insurances#accident', // Link to accident insurance
     },
     {
-        id: 'slide-life',
+        id: 'slide-pension',
         imageUrl: 'https://picsum.photos/800/400?random=3', // Placeholder
-        imageHint: 'happy family',
-        message: t.carouselLifeMessage || 'Your family\'s future secured. Peace of mind for those you love most.', // Fallback text
-        ctaLabel: t.carouselLifeCta || 'Learn about Life Insurance', // Fallback text
-        ctaHref: '/insurances#life', // Adjust href if needed
+        imageHint: 'retirement planning', // Hint related to pension/retirement
+        message: t.carouselPensionMessage || 'Plan your future with Voluntary Pension savings.',
+        ctaLabel: t.carouselPensionCta || 'Learn about Voluntary Pension',
+        ctaHref: '/insurances#pension', // Link to pension insurance
     },
     {
-        id: 'slide-home',
+        id: 'slide-education',
         imageUrl: 'https://picsum.photos/800/400?random=2', // Placeholder
-        imageHint: 'cozy home',
-        message: t.carouselHomeMessage || 'Your home, your refuge. Insure it against all risks.', // Fallback text
-        ctaLabel: t.carouselHomeCta || 'Explore Home Insurance', // Fallback text
-        ctaHref: '/insurances#home', // Adjust href if needed
+        imageHint: 'student graduation', // Hint related to education
+        message: t.carouselEducationMessage || 'Secure their future. Ensure education continuity with our plan.',
+        ctaLabel: t.carouselEducationCta || 'Explore Education Insurance',
+        ctaHref: '/insurances#education', // Link to education insurance
     },
 ];
 
