@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -53,21 +54,22 @@ export interface Policy {
   goalAmount?: number; // Optional for savings/education policies
   nextPaymentDate?: string; // Optional
   activationHistory: { reason: string; date: string }[];
+  description?: string; // Add description field
 }
 
 // Mock data with types and more details
 const mockPolicies: Policy[] = [
-  { id: 'health1', name: 'Salud Esencial', type: 'health', status: 'active', isAutoActive: true, isAdaptivePremium: true, premium: 50, coverageAmount: 10000, nextPaymentDate: '2025-06-01', activationHistory: [{ reason: 'Initial activation', date: '2023-10-01' }] },
-  { id: 'accident1', name: 'Accidentes Personales Plus', type: 'accident', status: 'auto-pending', isAutoActive: true, isAdaptivePremium: false, premium: 25, coverageAmount: 5000, nextPaymentDate: '2025-06-15', activationHistory: [] },
-  { id: 'pension1', name: 'Pensión Voluntaria Futuro', type: 'pension', status: 'manual', isAutoActive: false, isAdaptivePremium: true, premium: 100, coverageAmount: 0, goalAmount: 50000, activationHistory: [{ reason: 'Manual contribution', date: '2023-11-15' }] },
+  { id: 'health1', name: 'Salud Esencial', type: 'health', status: 'active', isAutoActive: true, isAdaptivePremium: true, premium: 50, coverageAmount: 10000, nextPaymentDate: '2025-06-01', activationHistory: [{ reason: 'Initial activation', date: '2023-10-01' }], description: 'Comprehensive health coverage for peace of mind.' },
+  { id: 'accident1', name: 'Accidentes Personales Plus', type: 'accident', status: 'auto-pending', isAutoActive: true, isAdaptivePremium: false, premium: 25, coverageAmount: 5000, nextPaymentDate: '2025-06-15', activationHistory: [], description: 'Protection against unexpected accidents and injuries.' },
+  { id: 'pension1', name: 'Pensión Voluntaria Futuro', type: 'pension', status: 'manual', isAutoActive: false, isAdaptivePremium: true, premium: 100, coverageAmount: 0, goalAmount: 50000, activationHistory: [{ reason: 'Manual contribution', date: '2023-11-15' }], description: 'Build your retirement savings flexibly.' },
   // Added inactive example
-  { id: 'edu1', name: 'Seguro Educativo Crecer', type: 'education', status: 'inactive', isAutoActive: false, isAdaptivePremium: false, premium: 0, coverageAmount: 0, goalAmount: 20000, activationHistory: [] },
+  { id: 'edu1', name: 'Seguro Educativo Crecer', type: 'education', status: 'inactive', isAutoActive: false, isAdaptivePremium: false, premium: 0, coverageAmount: 0, goalAmount: 20000, activationHistory: [], description: 'Secure the future education of your loved ones.' },
 ];
 
 // Define potential policies the user doesn't have
 const potentialPolicies: Pick<Policy, 'id' | 'name' | 'type' | 'description'>[] = [
     { id: 'potential-renta', name: 'Rentas Voluntarias Tranquilidad', type: 'renta', description: 'Flexible long-term savings for retirement or other goals.' },
-    { id: 'potential-education', name: 'Seguro Educativo Crecer', type: 'education', description: 'Guarantee future education costs for your loved ones.' },
+    // { id: 'potential-education', name: 'Seguro Educativo Crecer', type: 'education', description: 'Guarantee future education costs for your loved ones.' },
     // Add others if needed, ensure 'type' is correct for policyIcons
 ];
 
@@ -160,6 +162,10 @@ export default function InsurancesPage() {
   const availablePolicies = potentialPolicies.filter(pp =>
     !activePolicies.some(ap => ap.type === pp.type)
   );
+
+  // Get the icon component for the selected policy
+  const SelectedPolicyIcon = selectedPolicy ? (policyIcons[selectedPolicy.type] || Info) : null;
+
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-8"> {/* Increased spacing */}
@@ -273,11 +279,12 @@ export default function InsurancesPage() {
           }}
       >
         <DialogContent className="sm:max-w-[425px] md:max-w-[600px]">
-          {selectedPolicy && (
+          {selectedPolicy && SelectedPolicyIcon && ( // Ensure SelectedPolicyIcon is not null
             <>
               <DialogHeader>
                 <div className="flex items-center gap-3">
-                    {(policyIcons[selectedPolicy.type] || Info)({ className: "h-6 w-6 text-primary" })}
+                    {/* Correctly render the icon component using JSX */}
+                    <SelectedPolicyIcon className="h-6 w-6 text-primary" />
                     <DialogTitle className="text-xl">{selectedPolicy.name}</DialogTitle>
                 </div>
                 <DialogDescription>Manage settings and explore details for this policy.</DialogDescription>
