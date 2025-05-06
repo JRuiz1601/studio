@@ -48,7 +48,7 @@ import {
     CarouselPrevious,
   } from "@/components/ui/carousel" // Import Carousel components
 
-type RiskStatus = 'low' | 'medium' | 'high';
+type RiskStatus = 'low' | 'medium' | 'high' | 'unknown';
 
 // Updated recommendation structure with better XAI focus
 interface Recommendation {
@@ -75,7 +75,7 @@ interface CarouselSlide {
 const getCarouselSlides = (t: any): CarouselSlide[] => [
     {
         id: 'slide-health',
-        imageUrl: 'https://picsum.photos/800/400', // Placeholder, AI hint is primary
+        imageUrl: 'https://picsum.photos/800/400?random=1', // Placeholder, AI hint is primary
         imageHint: 'healthy lifestyle',
         message: t.carouselHealthMessage || 'Protect your well-being. Full coverage for health contingencies.', // Fallback text
         ctaLabel: t.carouselHealthCta || 'View Health Insurance', // Fallback text
@@ -83,7 +83,7 @@ const getCarouselSlides = (t: any): CarouselSlide[] => [
     },
     {
         id: 'slide-home',
-        imageUrl: 'https://picsum.photos/800/400', // Placeholder
+        imageUrl: 'https://picsum.photos/800/400?random=2', // Placeholder
         imageHint: 'cozy home',
         message: t.carouselHomeMessage || 'Your home, your refuge. Insure it against all risks.', // Fallback text
         ctaLabel: t.carouselHomeCta || 'Explore Home Insurance', // Fallback text
@@ -91,7 +91,7 @@ const getCarouselSlides = (t: any): CarouselSlide[] => [
     },
     {
         id: 'slide-life',
-        imageUrl: 'https://picsum.photos/800/400', // Placeholder
+        imageUrl: 'https://picsum.photos/800/400?random=3', // Placeholder
         imageHint: 'happy family',
         message: t.carouselLifeMessage || 'Your family\'s future secured. Peace of mind for those you love most.', // Fallback text
         ctaLabel: t.carouselLifeCta || 'Learn about Life Insurance', // Fallback text
@@ -99,7 +99,7 @@ const getCarouselSlides = (t: any): CarouselSlide[] => [
     },
     {
         id: 'slide-travel',
-        imageUrl: 'https://picsum.photos/800/400', // Placeholder
+        imageUrl: 'https://picsum.photos/800/400?random=4', // Placeholder
         imageHint: 'travel adventure',
         message: t.carouselTravelMessage || 'Travel without worries. Complete assistance wherever you go.', // Fallback text
         ctaLabel: t.carouselTravelCta || 'View Travel Insurance', // Fallback text
@@ -131,6 +131,28 @@ const getChartConfig = (t: any): ChartConfig => ({
 });
 
 
+// Helper component for Progress Bar indicator class
+const ProgressIndicator = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { value: number | null, status: RiskStatus }
+>(({ className, value, status, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "h-full w-full flex-1 bg-primary transition-all",
+      status === 'low' ? 'bg-green-500' :
+      status === 'medium' ? 'bg-yellow-500' :
+      status === 'high' ? 'bg-destructive' :
+      'bg-muted', // Fallback for unknown or null value
+      className
+    )}
+    style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+    {...props}
+  />
+));
+ProgressIndicator.displayName = "ProgressIndicator";
+
+
 export default function DashboardPage() {
   const [location, setLocation] = useState<Location | null>(null);
   const [weather, setWeather] = useState<Weather | null>(null);
@@ -140,10 +162,12 @@ export default function DashboardPage() {
   const [loadingLocation, setLoadingLocation] = useState(true);
   const [loadingWeather, setLoadingWeather] = useState(true);
   const [loadingWearable, setLoadingWearable] = useState(true);
-  const [userName, setUserName] = useState('Zyren User'); // Placeholder user name (English)
+  const [userName, setUserName] = useState('Zyren User'); // Placeholder user name
   const [greeting, setGreeting] = useState<string | null>(null); // State for greeting
   const [adaptivePremiumsActive, setAdaptivePremiumsActive] = useState(true); // Mock state for adaptive premiums feature
   const [language, setLanguage] = useState<string>('en'); // Default to English
+  const [riskStatus, setRiskStatus] = useState<RiskStatus>('medium'); // Mock risk status
+  const [coverageLevel, setCoverageLevel] = useState<number | null>(65); // Mock coverage level
 
    // Effect to get language from localStorage on mount
    useEffect(() => {
@@ -174,6 +198,9 @@ export default function DashboardPage() {
         setLoadingWearable(true);
         // TODO: Fetch user name from auth context/API
         // setUserName(fetchedUserName);
+        // TODO: Fetch actual risk status and coverage level
+        // setRiskStatus(calculatedRisk);
+        // setCoverageLevel(calculatedCoverage);
 
         try {
             const loc = await getCurrentLocation();
@@ -265,6 +292,35 @@ export default function DashboardPage() {
         Autoplay({ delay: 4000, stopOnInteraction: true }) // 4 second delay, stops on interaction
     );
 
+    // --- Helper Functions for Risk Status Widget ---
+    const getRiskStatusIcon = (status: RiskStatus) => {
+        switch (status) {
+            case 'low': return <CheckCircle className="h-8 w-8 text-green-500" />;
+            case 'medium': return <AlertTriangle className="h-8 w-8 text-yellow-500" />;
+            case 'high': return <AlertTriangle className="h-8 w-8 text-destructive" />;
+            default: return <ShieldCheck className="h-8 w-8 text-muted-foreground" />; // Default/Unknown
+        }
+    };
+
+    const getRiskStatusText = (status: RiskStatus) => {
+        switch (status) {
+            case 'low': return t.riskStatusLowText;
+            case 'medium': return t.riskStatusMediumText;
+            case 'high': return t.riskStatusHighText;
+            default: return t.riskStatusUnknownText;
+        }
+    };
+
+    const getRiskStatusDescription = (status: RiskStatus) => {
+        switch (status) {
+            case 'low': return t.riskStatusLowDesc;
+            case 'medium': return t.riskStatusMediumDesc;
+            case 'high': return t.riskStatusHighDesc;
+            default: return t.riskStatusUnknownDesc;
+        }
+    };
+    // --- End Helper Functions ---
+
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
@@ -285,37 +341,79 @@ export default function DashboardPage() {
             onMouseEnter={autoplayPlugin.current.stop}
             onMouseLeave={autoplayPlugin.current.reset}
         >
-        <CarouselContent>
-          {carouselSlides.map((slide) => (
-            <CarouselItem key={slide.id}>
-              <div className="relative aspect-video"> {/* Use aspect ratio for consistent image sizing */}
-                <Image
-                  src={slide.imageUrl}
-                  alt={slide.message}
-                  layout="fill"
-                  objectFit="cover"
-                  className="brightness-75" // Slightly darken image for text contrast
-                  data-ai-hint={slide.imageHint} // AI hint for image selection
-                  priority={slide.id === 'slide-health'} // Prioritize loading the first slide image
-                />
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 md:p-8 bg-gradient-to-t from-black/50 to-transparent">
-                   <p className="text-lg md:text-2xl font-semibold text-white mb-4 shadow-text">{slide.message}</p>
-                   <Button variant="default" size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
-                     <Link href={slide.ctaHref}>{slide.ctaLabel}</Link>
-                   </Button>
+            <CarouselContent>
+            {carouselSlides.map((slide) => (
+                <CarouselItem key={slide.id}>
+                <div className="relative aspect-video"> {/* Use aspect ratio for consistent image sizing */}
+                    <Image
+                    src={slide.imageUrl}
+                    alt={slide.message}
+                    layout="fill"
+                    objectFit="cover"
+                    className="brightness-75" // Slightly darken image for text contrast
+                    data-ai-hint={slide.imageHint} // AI hint for image selection
+                    priority={slide.id === 'slide-health'} // Prioritize loading the first slide image
+                    />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 md:p-8 bg-gradient-to-t from-black/50 to-transparent">
+                    <p className="text-lg md:text-2xl font-semibold text-white mb-4 shadow-text">{slide.message}</p>
+                    <Button variant="default" size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
+                        <Link href={slide.ctaHref}>{slide.ctaLabel}</Link>
+                    </Button>
+                    </div>
                 </div>
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        {/* Optional: Add Previous/Next buttons if needed, but autoplay reduces their necessity */}
-        {/*
-        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 border-none" />
-        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 border-none" />
-        */}
+                </CarouselItem>
+            ))}
+            </CarouselContent>
+            {/* Optional: Add Previous/Next buttons for manual control */}
+            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 border-none" />
+            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 border-none" />
       </Carousel>
 
-      {/* 3. Contextual Widgets: Current Environment & Financial Market */}
+        {/* 3. Widget Principal Rediseñado: Nivel de Protección */}
+        <Card className="border-l-4 border-border" data-testid="protection-widget">
+            <CardHeader>
+                <CardTitle className="text-lg font-medium flex items-center justify-between">
+                   <span>{t.protectionLevelTitle}</span>
+                    {/* Semáforo Visual */}
+                    {getRiskStatusIcon(riskStatus)}
+                </CardTitle>
+                 <CardDescription>{getRiskStatusText(riskStatus)}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">{getRiskStatusDescription(riskStatus)}</p>
+                 {/* Barra de Progreso */}
+                 {coverageLevel !== null && (
+                    <div>
+                         <Label htmlFor="coverage-progress" className="text-xs text-muted-foreground">{t.coverageLevelLabel}</Label>
+                         <Progress id="coverage-progress" value={coverageLevel} className="h-2 mt-1">
+                            {/* Use the custom indicator component */}
+                             <ProgressIndicator value={coverageLevel} status={riskStatus} />
+                         </Progress>
+                         <p className="text-right text-sm font-medium mt-1">{coverageLevel}%</p>
+                    </div>
+                 )}
+            </CardContent>
+             <CardFooter className="flex flex-col sm:flex-row gap-2 justify-end border-t pt-4">
+                 {/* Conditional CTAs based on risk status */}
+                 {(riskStatus === 'medium' || riskStatus === 'high') && (
+                     <Button variant="default" size="sm" asChild>
+                        <Link href="/recommendations">{t.viewRecommendationsButton}</Link>
+                     </Button>
+                 )}
+                 <Button variant="outline" size="sm">
+                     {t.simulateProfileButton}
+                 </Button>
+                  {/* "Improve my Protection" - Shown when not low risk? Or always? */}
+                  {riskStatus !== 'low' && (
+                     <Button variant="secondary" size="sm">
+                         {t.improveProtectionButton}
+                     </Button>
+                   )}
+             </CardFooter>
+        </Card>
+
+
+       {/* 4. Contextual Widgets: Current Environment & Financial Market */}
        <div className="grid gap-4 md:grid-cols-2">
            {/* Current Environment Card */}
            <Card>
@@ -419,7 +517,7 @@ export default function DashboardPage() {
            </Card>
         </div>
 
-       {/* 4. Section: Smart Ideas - REDESIGNED */}
+       {/* 5. Section: Smart Ideas - REDESIGNED */}
        <div className="space-y-4">
          <h2 className="text-xl font-semibold flex items-center gap-2">
              <Brain className="h-6 w-6 text-primary" /> {/* New Title Icon */}
@@ -469,7 +567,7 @@ export default function DashboardPage() {
             )}
        </div>
 
-      {/* 5. Section: Your Well-being & Insurance - REDESIGNED */}
+      {/* 6. Section: Your Well-being & Insurance - REDESIGNED */}
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-1" className="border-b-0">
            <Card>
@@ -575,7 +673,7 @@ export default function DashboardPage() {
         </AccordionItem>
       </Accordion>
 
-       {/* 6. Quick Access */}
+       {/* 7. Quick Access */}
        <div className="space-y-4">
          <h2 className="text-xl font-semibold">{t.quickAccessTitle}</h2>
          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -612,3 +710,10 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+// Helper Label component if not already globally available or imported
+const Label = ({ children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
+  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" {...props}>
+    {children}
+  </label>
+);
