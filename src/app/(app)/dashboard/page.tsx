@@ -141,6 +141,35 @@ const getContextualRisk = (t: any) => ({
   overallStatus: t.riskStatusOverallMonitoring, // 'All under control', 'Environment under monitoring'
 });
 
+// Helper component for Progress Bar indicator class - needed because Tailwind cannot dynamically generate classes based on props/state directly
+const ProgressIndicator = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { value: number | null, status: RiskStatus }
+>(({ className, value, status, ...props }, ref) => {
+  const getColorClass = (status: RiskStatus): string => {
+    switch (status) {
+        case 'low': return 'bg-green-500';
+        case 'medium': return 'bg-yellow-500';
+        case 'high': return 'bg-destructive';
+        default: return 'bg-muted'; // Unknown or loading state
+    }
+  };
+
+  return (
+      <div
+          ref={ref}
+          className={cn(
+              "h-full w-full flex-1 transition-all",
+              getColorClass(status),
+              className
+          )}
+          style={{ transform: `translateX(-${100 - (value ?? 0)}%)` }} // Use value from props
+          {...props}
+      />
+  );
+});
+ProgressIndicator.displayName = 'ProgressIndicator';
+
 
 export default function DashboardPage() {
   const [location, setLocation] = useState<Location | null>(null);
@@ -157,6 +186,8 @@ export default function DashboardPage() {
   const [language, setLanguage] = useState<string>('en'); // Default to English
   const [coverageLevel, setCoverageLevel] = useState<number>(65); // Mock coverage level (0-100)
   const [contextualRisk, setContextualRisk] = useState<ReturnType<typeof getContextualRisk> | null>(null); // State for contextual risk
+  const [riskStatus, setRiskStatus] = useState<RiskStatus>('medium'); // Example state: 'low', 'medium', 'high', 'unknown'
+
 
    // Effect to get language from localStorage on mount
    useEffect(() => {
@@ -193,6 +224,8 @@ export default function DashboardPage() {
         // setUserName(fetchedUserName);
         // TODO: Fetch actual coverage level from policy analysis
         // setCoverageLevel(calculatedCoverage);
+         // TODO: Calculate actual riskStatus based on data
+         // setRiskStatus(calculatedRisk);
 
         try {
             const loc = await getCurrentLocation();
@@ -292,6 +325,16 @@ export default function DashboardPage() {
      };
      // --- End Helper Functions ---
 
+     // Get status icon based on riskStatus
+     const getStatusIcon = (status: RiskStatus): React.ReactNode => {
+         switch (status) {
+             case 'low': return <CheckCircle className="h-5 w-5 text-green-500" />;
+             case 'medium': return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+             case 'high': return <AlertTriangle className="h-5 w-5 text-destructive" />;
+             default: return <Info className="h-5 w-5 text-muted-foreground" />;
+         }
+     };
+
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
@@ -340,67 +383,84 @@ export default function DashboardPage() {
             <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 border-none" />
       </Carousel>
 
-        {/* 3. Widget Fusionado: My Protection Status */}
-        <Card className="border-l-4 border-primary/50" data-testid="protection-status-widget">
-             <CardHeader className="pb-3">
-                 <CardTitle className="text-lg font-medium flex items-center justify-between">
-                     <div className="flex items-center gap-2">
-                         <ShieldCheck className="h-5 w-5 text-primary" />
-                         <span>{t.protectionStatusTitle || "My Protection Status"}</span>
-                     </div>
-                     {/* Optional: Overall status badge */}
-                     {contextualRisk && (
-                         <Badge variant={contextualRisk.overallStatus === t.riskStatusOverallMonitoring ? "destructive" : "secondary"}>
-                             {contextualRisk.overallStatus}
-                         </Badge>
-                     )}
-                 </CardTitle>
-             </CardHeader>
-             <CardContent className="space-y-4">
-                 {/* Contextual Risk Info */}
-                 {contextualRisk ? (
-                     <div className="space-y-2 text-sm text-muted-foreground border-b pb-3 mb-3">
-                         <div className="flex justify-between"><span className="font-medium">{t.riskZoneLabel || "Current Zone:"}</span> <span>{contextualRisk.zoneRisk}</span></div>
-                         <div className="flex justify-between"><span className="font-medium">{t.riskEventsLabel || "Recent Events:"}</span> <span>{contextualRisk.recentEvents}</span></div>
-                         <div className="flex justify-between"><span className="font-medium">{t.riskConditionsLabel || "External Factors:"}</span> <span>{contextualRisk.externalConditions}</span></div>
-                         <div className="flex justify-between"><span className="font-medium">{t.riskCoverageLabel || "Recommended Coverage:"}</span> <span>{contextualRisk.recommendedCoverage}</span></div>
-                     </div>
-                 ) : (
-                     <Skeleton className="h-16 w-full mb-3" /> // Placeholder if risk data is loading
-                 )}
+       {/* 3. Widget Fusionado: My Protection Status */}
+        <Card className={cn("border-l-4", riskStatus === 'low' ? 'border-l-green-500' : riskStatus === 'medium' ? 'border-l-yellow-500' : riskStatus === 'high' ? 'border-l-destructive' : 'border-l-border')} data-testid="protection-status-widget">
+            <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-medium flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        {/* Status Icon based on riskStatus */}
+                        {getStatusIcon(riskStatus)}
+                        <span>{t.protectionStatusTitle || "My Protection Status"}</span>
+                    </div>
+                    {/* Optional: Overall status badge */}
+                    {contextualRisk && (
+                        <Badge variant={contextualRisk.overallStatus === t.riskStatusOverallMonitoring ? "destructive" : "secondary"}>
+                            {contextualRisk.overallStatus}
+                        </Badge>
+                    )}
+                </CardTitle>
+                {/* Short message based on status */}
+                <CardDescription className={cn(riskStatus === 'low' ? 'text-green-600' : riskStatus === 'medium' ? 'text-yellow-600' : riskStatus === 'high' ? 'text-destructive' : 'text-muted-foreground')}>
+                    {riskStatus === 'low' ? 'Your protection seems well-aligned.' :
+                     riskStatus === 'medium' ? t.riskStatusOverallMonitoring || 'Environment under monitoring. Review suggestions.' :
+                     riskStatus === 'high' ? 'Action recommended to improve protection.' :
+                     'Loading protection status...'}
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-0"> {/* Removed padding-top */}
+                {/* Contextual Risk Info */}
+                {contextualRisk ? (
+                    <div className="space-y-2 text-sm text-muted-foreground border-b pb-3 mb-3">
+                        <div className="flex justify-between"><span className="font-medium">{t.riskZoneLabel || "Current Zone:"}</span> <span>{contextualRisk.zoneRisk}</span></div>
+                        <div className="flex justify-between"><span className="font-medium">{t.riskEventsLabel || "Recent Events:"}</span> <span>{contextualRisk.recentEvents}</span></div>
+                        <div className="flex justify-between"><span className="font-medium">{t.riskConditionsLabel || "External Factors:"}</span> <span>{contextualRisk.externalConditions}</span></div>
+                        <div className="flex justify-between"><span className="font-medium">{t.riskCoverageLabel || "Recommended Coverage:"}</span> <span>{contextualRisk.recommendedCoverage}</span></div>
+                    </div>
+                ) : (
+                    <Skeleton className="h-16 w-full mb-3" /> // Placeholder if risk data is loading
+                )}
 
-                 {/* Protection Level Bar */}
-                  <div className="space-y-1">
-                     <Label htmlFor="protection-level-bar" className="text-xs text-muted-foreground">{t.protectionLevelLabel || "Estimated Protection Level"}</Label>
-                     <Progress
+                {/* Protection Level Bar */}
+                 <div className="space-y-1">
+                    <Label htmlFor="protection-level-bar" className="text-xs text-muted-foreground">{t.protectionLevelLabel || "Estimated Protection Level"}</Label>
+                    <Progress
                         id="protection-level-bar"
                         value={coverageLevel}
                         className="h-2"
-                        indicatorClassName={getProtectionBarColor(coverageLevel)} // Use dynamic color class
-                     />
-                      <p className="text-right text-sm font-medium mt-1">{coverageLevel}%</p> {/* Optional percentage display */}
-                  </div>
+                        // Use custom indicator component
+                        indicator={<ProgressIndicator value={coverageLevel} status={riskStatus} />}
+                    />
+                     <p className="text-right text-sm font-medium mt-1">{coverageLevel}%</p> {/* Optional percentage display */}
+                 </div>
 
-             </CardContent>
-              {/* Action Buttons */}
-              <CardFooter className="flex flex-col sm:flex-row gap-2 justify-end border-t pt-4">
-                 <Button variant="default" size="sm" asChild>
+            </CardContent>
+             {/* Action Buttons */}
+             <CardFooter className="flex flex-col sm:flex-row gap-2 justify-end border-t pt-4">
+                 {/* Conditional CTAs based on risk status */}
+                 {(riskStatus === 'medium' || riskStatus === 'high') && (
+                     <Button variant="default" size="sm" asChild>
+                         <Link href="/recommendations">
+                             <Settings className="mr-2 h-4 w-4" /> {/* Changed icon */}
+                             {t.improveProtectionButton || "Improve My Protection"}
+                         </Link>
+                     </Button>
+                 )}
+                 <Button variant="outline" size="sm" asChild>
                      <Link href="/recommendations">
-                         <Settings className="mr-2 h-4 w-4" /> {/* Changed icon */}
-                         {t.improveProtectionButton || "Improve My Protection"}
+                        <Brain className="mr-2 h-4 w-4" /> {/* Changed icon */}
+                         {t.viewRecommendationsButton || "View Recommendations"}
                      </Link>
                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                      <Link href="/recommendations">
-                         <Brain className="mr-2 h-4 w-4" /> {/* Changed icon */}
-                          {t.viewRecommendationsButton || "View Recommendations"}
-                      </Link>
-                  </Button>
-              </CardFooter>
-         </Card>
+                 {/* Optional: Simulate Profile Button */}
+                 {/* <Button variant="ghost" size="sm" onClick={() => alert('Simulate profile feature clicked')}>
+                    <Users className="mr-2 h-4 w-4" />
+                    Simulate Other Profile
+                 </Button> */}
+             </CardFooter>
+        </Card>
 
 
-       {/* 4. Widget: Financial Market (Remains as before) */}
+       {/* 4. Widget: Financial Market */}
         <Card>
              <CardHeader className="pb-2">
                <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -587,7 +647,7 @@ export default function DashboardPage() {
                                      {wearableData.stressLevel > 60 && (
                                        <Alert variant="destructive" className="p-1 px-2 mt-1 text-xs flex items-center gap-1 border-orange-500 text-orange-700 dark:text-orange-400">
                                           <AlertTriangle className="h-3 w-3" />
-                                          <span>{t.stressIncreasedAlert || "Stress Increased"}</span> {/* Simplified and translated */}
+                                          <span>{t.stressIncreasedAlert || "Stress Increased"} ({wearableData.stressLevel}%)</span> {/* Show percentage */}
                                        </Alert>
                                       )}
                                   </div>
@@ -629,35 +689,7 @@ export default function DashboardPage() {
         </AccordionItem>
       </Accordion>
 
-       {/* 7. Quick Access */}
-       <div className="space-y-4">
-         <h2 className="text-xl font-semibold">{t.quickAccessTitle || "Quick Access"}</h2>
-         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-           {/* Using default button style for more visibility */}
-           <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
-             <CreditCard className="mr-3 h-5 w-5 shrink-0" />
-             <div className="flex flex-col">
-                 <span className="font-medium">{t.payNextInstallmentButton || "Pay Next Installment"}</span>
-             </div>
-           </Button>
-           <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
-             <FileWarning className="mr-3 h-5 w-5 shrink-0" />
-             <div className="flex flex-col">
-                <span className="font-medium">{t.reportIncidentButton || "Report Incident"}</span>
-             </div>
-           </Button>
-           <Button variant="default" className="justify-start text-left h-auto py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90" asChild>
-              <Link href="/insurances">
-                 <ShieldCheck className="mr-3 h-5 w-5 shrink-0" />
-                 <div className="flex flex-col">
-                     <span className="font-medium">{t.viewMyInsurancesButton || "View My Insurances"}</span>
-                 </div>
-               </Link>
-           </Button>
-         </div>
-       </div>
-
-        {/* Add shadow style for text over image */}
+       {/* Add shadow style for text over image */}
        <style jsx>{`
            .shadow-text {
              text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
@@ -666,3 +698,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
