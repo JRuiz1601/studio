@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -18,6 +19,7 @@ import {
   LifeBuoy,
   Phone,
   Coins,
+  Headset,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -30,12 +32,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'; // Added SheetHeader, SheetTitle
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { NotificationsProvider, useNotifications } from '@/context/notifications-context';
-import { mockPolicies } from '@/data/policies'; // Import mockPolicies from the new data file
+import { mockPolicies } from '@/data/policies'; 
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
@@ -102,7 +104,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
               </Button>
             </SheetTrigger>
              <SheetContent side="left" className="flex flex-col p-0">
-                 <div className="flex h-16 items-center justify-between border-b px-4">
+                 <SheetHeader className="flex flex-row h-16 items-center justify-between border-b px-4">
                     <Link href="/dashboard" className="flex items-center gap-2 font-semibold" onClick={closeMobileMenu}>
                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="h-6 w-6 text-primary">
                            <defs>
@@ -113,13 +115,13 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
                            </defs>
                            <path fill="url(#grad1_mobile_layout)" d="M50,5 C74.85,5 95,25.15 95,50 C95,74.85 74.85,95 50,95 C25.15,95 5,74.85 5,50 C5,25.15 25.15,5 50,5 Z M50,15 C30.67,15 15,30.67 15,50 C15,69.33 30.67,85 50,85 C69.33,85 85,69.33 85,50 C85,30.67 69.33,15 50,15 Z M50,30 Q60,40 50,50 Q40,60 50,70 M50,30 Q70,50 50,70 M50,30 L50,70" stroke="hsl(var(--card))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
-                       <span className="">Zyren</span>
+                       <SheetTitle className="text-lg">Zyren</SheetTitle>
                     </Link>
                      <Button variant="ghost" size="icon" onClick={closeMobileMenu} className="ml-auto">
                        <X className="h-5 w-5" />
                        <span className="sr-only">Close menu</span>
                      </Button>
-                 </div>
+                 </SheetHeader>
                 <nav className="flex-1 overflow-y-auto p-4">
                   <ul className="space-y-2">
                     {navItems.map((item) => (
@@ -193,7 +195,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
              <Bell className="h-5 w-5" />
              <span className="sr-only">Notifications</span>
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                    {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -249,8 +251,8 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/50 bg-background shadow-[0_-2px_4px_rgba(0,0,0,0.05)] md:hidden">
       <div className="flex h-16 items-center justify-around px-2">
         {navItems.map((item) => {
-          const isActive = (item.href === '/dashboard' && pathname === item.href) ||
-                           (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          const isActive = (item.label === 'Home' && pathname === item.href) || // For Home, exact match
+                           (item.label !== 'Home' && pathname.startsWith(item.href)); // For others, startsWith
 
           return (
             <Link
@@ -275,7 +277,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
    const isChatPage = pathname === '/chat';
    const fabHref = isChatPage ? '/dashboard' : '/chat';
-   const FabIcon = Bot;
+   const FabIcon = Bot; // Always Bot icon for consistency as per previous interpretation
    const fabAriaLabel = isChatPage ? 'Go to Dashboard' : 'Chat with Zy';
 
   return (
