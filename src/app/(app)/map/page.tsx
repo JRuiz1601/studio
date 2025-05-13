@@ -7,7 +7,7 @@ import type { LatLngExpression, Map as LeafletMap } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet'; // Import L for custom icon
 import { Button } from '@/components/ui/button';
-import { Loader2, MapPin, LocateFixed, AlertTriangle } from 'lucide-react';
+import { Loader2, LocateFixed, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -20,10 +20,10 @@ L.Icon.Default.mergeOptions({
 });
 
 const UserLocationMarker = ({ position }: { position: LatLngExpression }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(position, map.getZoom());
-  }, [position, map]);
+  // const map = useMap(); // useMap hook is not needed if we don't call map.setView
+  // useEffect(() => {
+  //   // map.setView(position, map.getZoom()); // Removed: MapContainer's center prop handles this
+  // }, [position, map]);
 
   // Custom blue marker icon
   const blueIcon = new L.Icon({
@@ -53,19 +53,24 @@ export default function MapPage() {
   const defaultZoom = 15;
 
   useEffect(() => {
+    let isMounted = true; // Flag to prevent state updates on unmounted component
     if (typeof navigator !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.watchPosition(
+      const watchId = navigator.geolocation.watchPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
-          setCurrentPosition([latitude, longitude]);
-          setIsLoading(false);
-          setError(null);
+          if (isMounted) {
+            const { latitude, longitude } = position.coords;
+            setCurrentPosition([latitude, longitude]);
+            setIsLoading(false);
+            setError(null);
+          }
         },
         (err) => {
-          console.error("Error getting location:", err);
-          setError(`Error getting location: ${err.message}. Defaulting to Cali.`);
-          setCurrentPosition(defaultCenter); // Fallback to default if error
-          setIsLoading(false);
+          if (isMounted) {
+            console.error("Error getting location:", err);
+            setError(`Error getting location: ${err.message}. Displaying default location.`);
+            setCurrentPosition(defaultCenter); // Fallback to default if error
+            setIsLoading(false);
+          }
         },
         {
           enableHighAccuracy: true,
@@ -73,10 +78,17 @@ export default function MapPage() {
           maximumAge: 0,
         }
       );
+      return () => {
+        isMounted = false;
+        navigator.geolocation.clearWatch(watchId);
+      };
     } else {
-      setError("Geolocation is not supported by this browser. Defaulting to Cali.");
-      setCurrentPosition(defaultCenter); // Fallback to default if no geolocation
-      setIsLoading(false);
+      if (isMounted) {
+        setError("Geolocation is not supported by this browser. Displaying default location.");
+        setCurrentPosition(defaultCenter); // Fallback to default if no geolocation
+        setIsLoading(false);
+      }
+      return () => { isMounted = false; };
     }
   }, []);
 
@@ -97,7 +109,7 @@ export default function MapPage() {
 
   return (
     <div className="relative h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))] flex flex-col">
-      {error && !currentPosition && ( // Show critical error if map can't load at all
+      {error && !currentPosition && ( // Show critical error if map can't load at all (e.g. API key issue for Google Maps)
         <Card className="m-4">
           <CardContent className="p-4">
             <Alert variant="destructive">
@@ -110,7 +122,7 @@ export default function MapPage() {
       )}
 
        {error && currentPosition && ( // Show non-critical error if defaulting due to location issue
-         <Alert variant="destructive" className="m-2 rounded-md">
+         <Alert variant="destructive" className="absolute top-2 left-2 right-2 z-20 mx-auto max-w-md shadow-lg">
            <AlertTriangle className="h-4 w-4" />
            <AlertTitle>Location Error</AlertTitle>
            <AlertDescription>{error}</AlertDescription>
@@ -118,6 +130,8 @@ export default function MapPage() {
        )}
 
       <MapContainer
+        // Add a key that changes if essential parameters force a re-init (though not strictly needed here for Leaflet usually)
+        // key={currentPosition ? `${currentPosition[0]}-${currentPosition[1]}`: 'default'} 
         center={currentPosition || defaultCenter}
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%', flexGrow: 1, zIndex: 0 }}
@@ -144,3 +158,4 @@ export default function MapPage() {
     </div>
   );
 }
+
