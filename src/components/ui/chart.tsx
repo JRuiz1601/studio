@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -139,14 +140,21 @@ const ChartTooltipContent = React.forwardRef<
       }
 
       const [item] = payload
-      const key = `${labelKey || item.dataKey || item.name || "value"}`
+      // Fallback for item.dataKey or item.name
+      const keySource = item.dataKey || item.name || "value";
+      const key = `${labelKey || keySource}`;
       const itemConfig = getPayloadConfigFromPayload(config, item, key)
-      const value =
-        !labelKey && typeof label === "string"
-          ? config[label as keyof typeof config]?.label || label
-          : itemConfig?.label
 
-      if (labelFormatter) {
+      // Ensure value is a string or ReactNode before trying to access config with it
+      let value: React.ReactNode = null;
+      if (typeof label === "string" && !labelKey) {
+        value = config[label as keyof typeof config]?.label || label;
+      } else if (itemConfig?.label) {
+        value = itemConfig.label;
+      }
+
+
+      if (labelFormatter && value !== null) { // Check if value is not null
         return (
           <div className={cn("font-medium", labelClassName)}>
             {labelFormatter(value, payload)}
@@ -154,7 +162,7 @@ const ChartTooltipContent = React.forwardRef<
         )
       }
 
-      if (!value) {
+      if (value === null) { // Check if value is not null
         return null
       }
 
@@ -188,11 +196,11 @@ const ChartTooltipContent = React.forwardRef<
           {payload.map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
-            const indicatorColor = color || item.payload.fill || item.color
+            const indicatorColor = color || item.payload?.fill || item.color // item.payload might be undefined
 
             return (
               <div
-                key={item.dataKey}
+                key={item.dataKey || index} // Use index as fallback key
                 className={cn(
                   "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                   indicator === "dot" && "items-center"
@@ -238,7 +246,7 @@ const ChartTooltipContent = React.forwardRef<
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
-                      {item.value && (
+                      {item.value !== undefined && ( // Ensure item.value is defined
                         <span className="font-mono font-medium tabular-nums text-foreground">
                           {item.value.toLocaleString()}
                         </span>
@@ -291,7 +299,7 @@ const ChartLegendContent = React.forwardRef<
 
           return (
             <div
-              key={item.value}
+              key={item.value?.toString()} // Ensure key is string
               className={cn(
                 "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
               )}

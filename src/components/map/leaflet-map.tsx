@@ -1,10 +1,11 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import L from 'leaflet'; // Import L for custom icon and Circle
+import type { RiskZone } from '@/data/map-data'; // Import RiskZone type
 
 // Fix for default icon issue in Leaflet with bundlers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -14,14 +15,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Custom icon for user's current location - Changed to a more vibrant red marker
-const createUserIcon = () => new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41], // Standard size
-  iconAnchor: [12, 41], // Point of the icon that corresponds to marker's location
-  popupAnchor: [1, -34], // Point from which the popup should open relative to the iconAnchor
-  shadowSize: [41, 41], // Size of the shadow
+const userLocationIcon = L.divIcon({
+  html: `<svg viewBox="0 0 24 24" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+           <circle cx="12" cy="12" r="10" fill="#007BFF" stroke="#FFFFFF" stroke-width="2"/>
+           <circle cx="12" cy="12" r="4" fill="#FFFFFF"/>
+         </svg>`,
+  className: 'user-location-marker', // Remove default Leaflet styles for divIcon
+  iconSize: [32, 32],
+  iconAnchor: [16, 16], // Center of the icon
 });
 
 
@@ -29,80 +30,106 @@ interface LeafletMapProps {
   center: LatLngExpression;
   zoom: number;
   userPosition: LatLngExpression | null;
+  riskZones: RiskZone[];
+  showRiskZones: boolean;
 }
 
-export default function LeafletMap({ center, zoom, userPosition }: LeafletMapProps) {
+export default function LeafletMap({
+  center: initialCenter, // Rename to avoid conflict with map instance's center
+  zoom: initialZoom,     // Rename to avoid conflict
+  userPosition,
+  riskZones,
+  showRiskZones,
+}: LeafletMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
-  const [isMapInitialized, setIsMapInitialized] = useState(false);
+  const riskZoneLayerRef = useRef<L.FeatureGroup | null>(null);
 
-  // Initialize map once component is mounted client-side
+  // Initialize map
   useEffect(() => {
-    // If map is already initialized, or container ref is not set, do nothing
-    if (mapInstanceRef.current || !mapContainerRef.current) return;
+    if (!mapContainerRef.current || mapInstanceRef.current) {
+      return; // Already initialized or container not ready
+    }
 
-    // Create map instance
-    const mapInstance = L.map(mapContainerRef.current, {
-      center: center,
-      zoom: zoom,
-      layers: [
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        })
-      ]
-    });
+    const map = L.map(mapContainerRef.current).setView(initialCenter, initialZoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    mapInstanceRef.current = map;
 
-    // Store reference
-    mapInstanceRef.current = mapInstance;
-    setIsMapInitialized(true);
+    riskZoneLayerRef.current = L.featureGroup().addTo(map);
 
     // Cleanup on unmount
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
-        mapInstanceRef.current = null; // Clear ref
-        userMarkerRef.current = null; // Clear marker ref
-        setIsMapInitialized(false);
+        mapInstanceRef.current = null;
+      }
+      if (riskZoneLayerRef.current) {
+        riskZoneLayerRef.current = null;
       }
     };
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, [initialCenter, initialZoom]); // Rerun if initial center/zoom changes (though typically they don't post-mount)
 
-  // Update map view when center or zoom props change
+
+  // Update map view (center, zoom)
   useEffect(() => {
-    if (!mapInstanceRef.current || !isMapInitialized) return;
-    
-    mapInstanceRef.current.setView(center, zoom);
-  }, [center, zoom, isMapInitialized]);
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView(initialCenter, initialZoom);
+    }
+  }, [initialCenter, initialZoom]);
 
-  // Manage user location marker
+  // Update user marker
   useEffect(() => {
-    if (!mapInstanceRef.current || !isMapInitialized) return;
+    if (!mapInstanceRef.current) return;
 
-    // Remove existing marker
     if (userMarkerRef.current) {
       userMarkerRef.current.remove();
       userMarkerRef.current = null;
     }
 
-    // Create new marker if position is available
     if (userPosition) {
-      userMarkerRef.current = L.marker(userPosition, {
-        icon: createUserIcon() // Use the custom user icon
-      })
+      userMarkerRef.current = L.marker(userPosition, { icon: userLocationIcon })
         .bindPopup('You are here.')
         .addTo(mapInstanceRef.current);
     }
-  }, [userPosition, isMapInitialized]);
+  }, [userPosition]);
+
+  // Update risk zones
+  useEffect(() => {
+    if (!mapInstanceRef.current || !riskZoneLayerRef.current) return;
+
+    riskZoneLayerRef.current.clearLayers(); // Clear previous zones
+
+    if (showRiskZones) {
+      riskZones.forEach(zone => {
+        const color = zone.level === 'high' ? 'red' : 'yellow';
+        const circle = L.circle(zone.center, {
+          color: color,
+          fillColor: color,
+          fillOpacity: 0.3,
+          radius: zone.radius
+        }).bindPopup(`<b>${zone.type}</b><br>${zone.description}`);
+        if (riskZoneLayerRef.current) {
+            riskZoneLayerRef.current.addLayer(circle);
+        }
+      });
+    }
+  }, [riskZones, showRiskZones]);
+
 
   return (
-    <div 
-      ref={mapContainerRef} 
-      style={{ 
-        height: '100%', 
-        width: '100%', 
-        zIndex: 0 
+    <div
+      ref={mapContainerRef}
+      style={{
+        height: '100%',
+        width: '100%',
+        zIndex: 0
       }}
+      // Add a key to ensure React re-renders this if necessary,
+      // although the useEffect logic should handle map re-initialization if needed.
+      key="leaflet-map-container-wrapper"
     />
   );
 }

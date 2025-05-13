@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -19,7 +20,7 @@ import {
   Phone,
   Coins,
   Headset,
-  MapIcon,
+  MapIcon, // Ensure MapIcon is imported
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -43,7 +44,7 @@ const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/insurances', label: 'My Insurances', icon: ShieldCheck },
   { href: '/recommendations', label: 'Ideas', icon: Lightbulb },
-  { href: '/map', label: 'Map', icon: MapIcon },
+  { href: '/map', label: 'Map', icon: MapIcon }, // Map navigation item
   { href: '/profile/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -252,9 +253,18 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/50 bg-background shadow-[0_-2px_4px_rgba(0,0,0,0.05)] md:hidden">
       <div className="flex h-16 items-center justify-around px-2">
         {navItems.map((item) => {
-          const isActive = (item.label === 'Home' && pathname === item.href) ||
-                           (item.label === 'Map' && pathname === item.href) ||
-                           (item.label !== 'Home' && item.label !== 'Map' && pathname.startsWith(item.href));
+          // Check if the current pathname starts with the item's href.
+          // For the "Home" item, it should only be active if the pathname is exactly "/dashboard".
+          // For "Map", it should only be active if pathname is exactly "/map".
+          // For other items, startsWith is fine.
+          let isActive = false;
+          if (item.href === '/dashboard') {
+            isActive = pathname === item.href;
+          } else if (item.href === '/map') {
+            isActive = pathname === item.href;
+          } else {
+            isActive = pathname.startsWith(item.href);
+          }
 
           return (
             <Link
