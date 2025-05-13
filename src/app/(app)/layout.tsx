@@ -20,7 +20,7 @@ import {
   Phone,
   Coins,
   Headset,
-  MapIcon, // Added MapIcon
+  MapIcon,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -38,13 +38,13 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { NotificationsProvider, useNotifications } from '@/context/notifications-context';
-import { mockPolicies } from '@/data/policies'; 
+import { mockPolicies } from '@/data/policies';
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/insurances', label: 'My Insurances', icon: ShieldCheck },
   { href: '/recommendations', label: 'Ideas', icon: Lightbulb },
-  { href: '/map', label: 'Map', icon: MapIcon }, // Added Map item
+  { href: '/map', label: 'Map', icon: MapIcon },
   { href: '/profile/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -253,9 +253,9 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/50 bg-background shadow-[0_-2px_4px_rgba(0,0,0,0.05)] md:hidden">
       <div className="flex h-16 items-center justify-around px-2">
         {navItems.map((item) => {
-          const isActive = (item.label === 'Home' && pathname === item.href) || 
-                           (item.label === 'Map' && pathname === item.href) || // Exact match for Map
-                           (item.label !== 'Home' && item.label !== 'Map' && pathname.startsWith(item.href)); 
+          const isActive = (item.label === 'Home' && pathname === item.href) ||
+                           (item.label === 'Map' && pathname === item.href) ||
+                           (item.label !== 'Home' && item.label !== 'Map' && pathname.startsWith(item.href));
 
           return (
             <Link
@@ -280,7 +280,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
    const isChatPage = pathname === '/chat';
    const fabHref = isChatPage ? '/dashboard' : '/chat';
-   const FabIcon = Bot; 
+   const FabIcon = Bot;
    const fabAriaLabel = isChatPage ? 'Go to Dashboard' : 'Chat with Zy';
 
   return (
@@ -289,22 +289,25 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
        <main className="flex-1 overflow-y-auto bg-muted/40 pb-20 md:pb-0">
          {children}
        </main>
-        <Link href={fabHref} passHref legacyBehavior>
-            <Button
-            variant="default"
-            size="icon"
-            aria-label={fabAriaLabel}
-            className={cn(
-                "fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6",
-                "flex items-center justify-center",
-                "bg-primary text-primary-foreground",
-                "hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                "transition-transform hover:scale-105"
-            )}
-            >
-            <FabIcon className="h-7 w-7" />
-            </Button>
-        </Link>
+       {/* Conditionally render Chat FAB - not on /map page */}
+       {pathname !== '/map' && (
+            <Link href={fabHref} passHref legacyBehavior>
+                <Button
+                variant="default"
+                size="icon"
+                aria-label={fabAriaLabel}
+                className={cn(
+                    "fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6",
+                    "flex items-center justify-center",
+                    "bg-primary text-primary-foreground",
+                    "hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    "transition-transform hover:scale-105"
+                )}
+                >
+                <FabIcon className="h-7 w-7" />
+                </Button>
+            </Link>
+        )}
        <BottomNavBar />
     </div>
   );
