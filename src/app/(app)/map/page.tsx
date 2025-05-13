@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -7,52 +8,52 @@ import { Button } from '@/components/ui/button';
 import { Loader2, LocateFixed, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-// Dynamically import the LeafletMap component with SSR turned off
-const LeafletMap = dynamic(() => import('@/components/map/leaflet-map'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex flex-col items-center justify-center h-full p-4">
-      <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-      <p className="text-muted-foreground">Loading map...</p>
-    </div>
-  ),
-});
+// Importación dinámica del componente mapa sin SSR
+const LeafletMap = dynamic(
+  () => import('@/components/map/leaflet-map'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex flex-col items-center justify-center h-full p-4">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Loading map...</p>
+      </div>
+    ),
+  }
+);
 
 export default function MapPage() {
   const [currentPosition, setCurrentPosition] = useState<LatLngExpression | null>(null);
   const [isLoadingInitialLocation, setIsLoadingInitialLocation] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [mapCenter, setMapCenter] = useState<LatLngExpression | null>(null);
-
-  // Default center (Cali, Colombia)
-  const defaultInitialCenter: LatLngExpression = [3.4516, -76.5320];
+  const [mapCenter, setMapCenter] = useState<LatLngExpression | undefined>(undefined); // Initialize as undefined
   const defaultZoom = 15;
+  const defaultInitialCenter: LatLngExpression = [3.4516, -76.5320]; // Cali, Colombia
 
-  // Use useEffect para configurar la geolocalización una sola vez
+  // Efecto para manejar geolocalización
   useEffect(() => {
     let isMounted = true;
     
-    // Intentar obtener la ubicación del usuario
     if (typeof navigator !== "undefined" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          if (isMounted) {
-            const { latitude, longitude } = position.coords;
-            const newPos: LatLngExpression = [latitude, longitude];
-            setCurrentPosition(newPos);
-            setMapCenter(newPos);
-            setIsLoadingInitialLocation(false);
-            setError(null);
-          }
+          if (!isMounted) return;
+          
+          const { latitude, longitude } = position.coords;
+          const newPos: LatLngExpression = [latitude, longitude];
+          setCurrentPosition(newPos);
+          setMapCenter(newPos); // Center map on user's location
+          setIsLoadingInitialLocation(false);
+          setError(null);
         },
         (err) => {
-          if (isMounted) {
-            console.error("Error getting location:", err);
-            setError(`Error getting location: ${err.message}. Displaying default location.`);
-            setCurrentPosition(defaultInitialCenter);
-            setMapCenter(defaultInitialCenter);
-            setIsLoadingInitialLocation(false);
-          }
+          if (!isMounted) return;
+          
+          console.error("Error getting location:", err);
+          setError(`Error getting location: ${err.message}. Displaying default location.`);
+          setCurrentPosition(defaultInitialCenter); // Fallback to default
+          setMapCenter(defaultInitialCenter); // Center map on default
+          setIsLoadingInitialLocation(false);
         },
         {
           enableHighAccuracy: true,
@@ -61,31 +62,18 @@ export default function MapPage() {
         }
       );
     } else {
-      if (isMounted) {
-        setError("Geolocation is not supported by this browser. Displaying default location.");
-        setCurrentPosition(defaultInitialCenter);
-        setMapCenter(defaultInitialCenter);
-        setIsLoadingInitialLocation(false);
-      }
+      if (!isMounted) return;
+      
+      setError("Geolocation is not supported by this browser. Displaying default location.");
+      setCurrentPosition(defaultInitialCenter); // Fallback to default
+      setMapCenter(defaultInitialCenter); // Center map on default
+      setIsLoadingInitialLocation(false);
     }
     
     return () => {
       isMounted = false;
     };
-  }, []);
-
-  // Memoizamos el mapa para evitar renderizados innecesarios
-  const mapComponent = useMemo(() => {
-    if (!mapCenter) return null;
-    
-    return (
-      <LeafletMap
-        center={mapCenter}
-        zoom={defaultZoom}
-        userPosition={currentPosition}
-      />
-    );
-  }, [mapCenter, currentPosition, defaultZoom]);
+  }, []); // Empty dependency array: run once on mount
 
   const handleRecenterMapToUserLocation = () => {
     if (currentPosition) {
@@ -93,15 +81,35 @@ export default function MapPage() {
     }
   };
 
-  // Show loader until initial map center is determined
-  if (isLoadingInitialLocation || !mapCenter) {
+  const mapComponent = useMemo(() => {
+    if (isLoadingInitialLocation || !mapCenter) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))]">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">Detecting your location...</p>
+        </div>
+      );
+    }
+    return (
+      <LeafletMap
+        center={mapCenter}
+        zoom={defaultZoom}
+        userPosition={currentPosition}
+      />
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoadingInitialLocation, mapCenter, currentPosition, defaultZoom]);
+
+
+  if (isLoadingInitialLocation) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Detecting your location or loading map...</p>
+        <p className="text-muted-foreground">Detecting your location...</p>
       </div>
     );
   }
+
 
   return (
     <div className="relative h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))] flex flex-col">
@@ -113,8 +121,11 @@ export default function MapPage() {
         </Alert>
       )}
 
-      {mapComponent}
+      <div className="flex-1" id="leaflet-map-wrapper">
+        {mapComponent}
+      </div>
 
+      {/* Recenter button removed as per request to leave only one circular button (Chat FAB)
       {currentPosition && (
         <Button
           onClick={handleRecenterMapToUserLocation}
@@ -126,6 +137,7 @@ export default function MapPage() {
           <LocateFixed className="h-6 w-6" />
         </Button>
       )}
+      */}
     </div>
   );
 }
