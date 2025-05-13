@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { AlertCircle, CheckCircle, Clock, History, SlidersHorizontal, Info, PlusCircle, TrendingUp, GraduationCap, ShieldCheck, HeartPulse, Home } from 'lucide-react'; // Added more icons
+import { SlidersHorizontal, Info, PlusCircle, GraduationCap, ShieldCheck, HeartPulse, Home, TrendingUp } from 'lucide-react'; // Added more icons
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -33,65 +33,58 @@ import { cn } from '@/lib/utils'; // Import cn
 // Define specific icons for policy types
 export const policyIcons: { [key in PolicyType]: React.ComponentType<{ className?: string }> } = {
     health: HeartPulse,
-    accident: ShieldCheck, // Changed from AlertCircle
+    accident: ShieldCheck,
     pension: TrendingUp,
-    renta: Home, // Placeholder, maybe a building or money icon?
+    renta: Home,
     education: GraduationCap,
 };
 
 export type PolicyType = 'health' | 'accident' | 'pension' | 'renta' | 'education';
-export type PolicyStatus = 'active' | 'manual' | 'auto-pending' | 'inactive'; // Added 'inactive'
+export type PolicyStatus = 'active' | 'manual' | 'auto-pending' | 'inactive';
 
 export interface Policy {
   id: string;
   name: string;
-  type: PolicyType; // Added type for specific icon/styling
+  type: PolicyType;
   status: PolicyStatus;
   isAutoActive: boolean;
   isAdaptivePremium: boolean;
-  premium: number;
+  creditCost: number; // Changed from premium to creditCost
   coverageAmount: number;
-  goalAmount?: number; // Optional for savings/education policies
-  nextPaymentDate?: string; // Optional
+  goalAmount?: number;
+  nextPaymentDate?: string;
   activationHistory: { reason: string; date: string }[];
-  description?: string; // Add description field
+  description?: string;
 }
 
-// Mock data with types and more details - Made Education policy active
+// Mock data with creditCost
 const mockPolicies: Policy[] = [
-  { id: 'health1', name: 'Salud Esencial', type: 'health', status: 'active', isAutoActive: true, isAdaptivePremium: true, premium: 50, coverageAmount: 10000, nextPaymentDate: '2025-06-01', activationHistory: [{ reason: 'Initial activation', date: '2023-10-01' }], description: 'Comprehensive health coverage for peace of mind.' },
-  { id: 'accident1', name: 'Accidentes Personales Plus', type: 'accident', status: 'auto-pending', isAutoActive: true, isAdaptivePremium: false, premium: 25, coverageAmount: 5000, nextPaymentDate: '2025-06-15', activationHistory: [], description: 'Protection against unexpected accidents and injuries.' },
-  { id: 'pension1', name: 'Pensión Voluntaria Futuro', type: 'pension', status: 'manual', isAutoActive: false, isAdaptivePremium: true, premium: 100, coverageAmount: 0, goalAmount: 50000, activationHistory: [{ reason: 'Manual contribution', date: '2023-11-15' }], description: 'Build your retirement savings flexibly.' },
-  // Added inactive example - Now ACTIVE
-  { id: 'edu1', name: 'Seguro Educativo Crecer', type: 'education', status: 'active', isAutoActive: true, isAdaptivePremium: true, premium: 70, coverageAmount: 0, goalAmount: 20000, nextPaymentDate: '2025-07-01', activationHistory: [{ reason: 'Initial activation', date: '2024-01-10' }], description: 'Secure the future education of your loved ones.' },
+  { id: 'health1', name: 'Salud Esencial', type: 'health', status: 'active', isAutoActive: true, isAdaptivePremium: true, creditCost: 50, coverageAmount: 10000, nextPaymentDate: '2025-06-01', activationHistory: [{ reason: 'Initial activation', date: '2023-10-01' }], description: 'Comprehensive health coverage for peace of mind.' },
+  { id: 'accident1', name: 'Accidentes Personales Plus', type: 'accident', status: 'auto-pending', isAutoActive: true, isAdaptivePremium: false, creditCost: 25, coverageAmount: 5000, nextPaymentDate: '2025-06-15', activationHistory: [], description: 'Protection against unexpected accidents and injuries.' },
+  { id: 'pension1', name: 'Pensión Voluntaria Futuro', type: 'pension', status: 'manual', isAutoActive: false, isAdaptivePremium: true, creditCost: 100, coverageAmount: 0, goalAmount: 50000, activationHistory: [{ reason: 'Manual contribution', date: '2023-11-15' }], description: 'Build your retirement savings flexibly.' },
+  { id: 'edu1', name: 'Seguro Educativo Crecer', type: 'education', status: 'active', isAutoActive: true, isAdaptivePremium: true, creditCost: 70, coverageAmount: 0, goalAmount: 20000, nextPaymentDate: '2025-07-01', activationHistory: [{ reason: 'Initial activation', date: '2024-01-10' }], description: 'Secure the future education of your loved ones.' },
 ];
 
-// Define potential policies the user doesn't have
-// Removed education as it's now active in mockPolicies
-const potentialPolicies: Pick<Policy, 'id' | 'name' | 'type' | 'description'>[] = [
-    { id: 'potential-renta', name: 'Rentas Voluntarias Tranquilidad', type: 'renta', description: 'Flexible long-term savings for retirement or other goals.' },
-    // Add others if needed, ensure 'type' is correct for policyIcons
+const potentialPolicies: Pick<Policy, 'id' | 'name' | 'type' | 'description' | 'creditCost'>[] = [
+    { id: 'potential-renta', name: 'Rentas Voluntarias Tranquilidad', type: 'renta', description: 'Flexible long-term savings for retirement or other goals.', creditCost: 60 },
 ];
 
 
 export default function InsurancesPage() {
-  const [policies, setPolicies] = useState<Policy[]>([]); // Start empty, fetch or load from mock
-  const [isLoading, setIsLoading] = useState(true); // Loading state
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
-  const [simulatedPremium, setSimulatedPremium] = useState<number | null>(null);
+  const [simulatedCost, setSimulatedCost] = useState<number | null>(null); // Changed from simulatedPremium
   const [formattedSliderAmounts, setFormattedSliderAmounts] = useState<{ min: string, max: string, current: string } | null>(null);
 
-  // Simulate fetching data
   useEffect(() => {
     setIsLoading(true);
     setTimeout(() => {
         setPolicies(mockPolicies);
         setIsLoading(false);
-    }, 1000); // Simulate network delay
+    }, 1000);
   }, []);
 
-
-  // Format numbers inside useEffect to avoid hydration issues
   useEffect(() => {
       if (selectedPolicy) {
           const coverageOrGoal = selectedPolicy.goalAmount ?? selectedPolicy.coverageAmount ?? 0;
@@ -103,8 +96,7 @@ export default function InsurancesPage() {
               max: maxVal.toLocaleString(),
               current: coverageOrGoal.toLocaleString()
           });
-          // Reset simulated premium when policy changes
-          setSimulatedPremium(null);
+          setSimulatedCost(null); // Reset simulated cost
       } else {
           setFormattedSliderAmounts(null);
       }
@@ -118,7 +110,6 @@ export default function InsurancesPage() {
     if (selectedPolicy && selectedPolicy.id === id) {
       setSelectedPolicy(prev => prev ? { ...prev, isAutoActive: checked } : null);
     }
-    // TODO: Add API call
   };
 
   const handleToggleAdaptivePremium = (id: string, checked: boolean) => {
@@ -128,51 +119,41 @@ export default function InsurancesPage() {
     if (selectedPolicy && selectedPolicy.id === id) {
       setSelectedPolicy(prev => prev ? { ...prev, isAdaptivePremium: checked } : null);
     }
-    // TODO: Add API call
   };
 
   const handleSliderChange = (value: number[]) => {
     if (selectedPolicy) {
-      const basePremium = selectedPolicy.premium;
+      const baseCost = selectedPolicy.creditCost;
       const currentVal = selectedPolicy.goalAmount ?? selectedPolicy.coverageAmount ?? 0;
       const newVal = value[0];
 
-      // Example simulation: Premium scales with coverage/goal
       const factor = currentVal > 0 ? newVal / currentVal : 1;
-      let simulated = basePremium * factor;
+      let simulated = baseCost * factor;
 
-      // Adjust simulation for premium-based policies vs savings
       if (selectedPolicy.type === 'pension' || selectedPolicy.type === 'renta' || selectedPolicy.type === 'education') {
-        // For savings, maybe slider adjusts contribution, not final premium directly
-        // This is a simplified example, real logic might differ
-        simulated = basePremium + (newVal - currentVal) * 0.005; // Example: cost per 1000 increase
+        simulated = baseCost + (newVal - currentVal) * 0.005; // Example: cost adjustment factor
       } else {
-         simulated = basePremium * factor;
+         simulated = baseCost * factor;
       }
 
-
-      setSimulatedPremium(Math.max(10, Math.round(simulated))); // Ensure minimum
+      setSimulatedCost(Math.max(5, Math.round(simulated))); // Ensure minimum cost in credits
       setFormattedSliderAmounts(prev => prev ? { ...prev, current: newVal.toLocaleString() } : null);
     }
   };
 
-  // Filter active policies
   const activePolicies = policies.filter(p => p.status !== 'inactive');
-  // Filter potential policies that the user doesn't already have active
   const availablePolicies = potentialPolicies.filter(pp =>
     !activePolicies.some(ap => ap.type === pp.type)
   );
 
-  // Get the icon component for the selected policy
   const SelectedPolicyIcon = selectedPolicy ? (policyIcons[selectedPolicy.type] || Info) : null;
 
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-8"> {/* Increased spacing */}
+    <div className="container mx-auto p-4 md:p-6 space-y-8">
       <h1 className="text-3xl font-semibold tracking-tight">My Insurances</h1>
 
       {isLoading ? (
-        // Enhanced Skeleton Loading State
         <div className="space-y-6">
             <Skeleton className="h-8 w-1/3" />
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -203,7 +184,6 @@ export default function InsurancesPage() {
         </div>
       ) : (
         <>
-          {/* Section for Active Policies */}
           <div>
             <h2 className="text-xl font-medium mb-4">Your Active Coverage</h2>
             {activePolicies.length > 0 ? (
@@ -230,13 +210,12 @@ export default function InsurancesPage() {
 
           <Separator className="my-8" />
 
-          {/* Section to Explore New Insurances */}
           <div>
             <h2 className="text-xl font-medium mb-4">Explore Other Options</h2>
             {availablePolicies.length > 0 ? (
                 <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                   {availablePolicies.map((potential) => {
-                     const Icon = policyIcons[potential.type] || Info; // Fallback icon
+                     const Icon = policyIcons[potential.type] || Info;
                      return (
                         <Card key={potential.id} className="border-dashed border-primary/50 hover:shadow-lg transition-shadow flex flex-col justify-between">
                            <CardHeader className="flex-row items-center gap-4 space-y-0">
@@ -245,10 +224,10 @@ export default function InsurancesPage() {
                            </CardHeader>
                            <CardContent>
                                 <p className="text-sm text-muted-foreground">{potential.description}</p>
+                                <p className="text-sm font-semibold mt-1">Cost: {potential.creditCost} credits</p>
                            </CardContent>
                            <CardFooter>
                                 <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/5 hover:text-primary" asChild>
-                                    {/* Link to recommendations or a specific product page */}
                                     <Link href="/recommendations">
                                        Learn More <PlusCircle className="ml-2 h-4 w-4" />
                                     </Link>
@@ -265,38 +244,33 @@ export default function InsurancesPage() {
         </>
       )}
 
-
-      {/* Dialog for Policy Details and Management */}
       <Dialog
           open={!!selectedPolicy}
           onOpenChange={(open) => {
             if (!open) {
               setSelectedPolicy(null);
-              // Reset simulated premium and slider amounts when closing
-              setSimulatedPremium(null);
+              setSimulatedCost(null);
               setFormattedSliderAmounts(null);
             }
           }}
       >
         <DialogContent className="sm:max-w-[425px] md:max-w-[600px]">
-          {selectedPolicy && SelectedPolicyIcon && ( // Ensure SelectedPolicyIcon is not null
+          {selectedPolicy && SelectedPolicyIcon && (
             <>
               <DialogHeader>
                 <div className="flex items-center gap-3">
-                    {/* Correctly render the icon component using JSX */}
                     <SelectedPolicyIcon className="h-6 w-6 text-primary" />
                     <DialogTitle className="text-xl">{selectedPolicy.name}</DialogTitle>
                 </div>
                 <DialogDescription>Manage settings and explore details for this policy.</DialogDescription>
               </DialogHeader>
               <TooltipProvider>
-                <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-1"> {/* Make content scrollable */}
-                  {/* Current Status & Key Info */}
+                <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-1">
                   <div className="border p-4 rounded-md bg-muted/30">
                      <h4 className="font-medium mb-2 flex items-center gap-2"><Info className="h-4 w-4" /> Current Status</h4>
                      <div className="space-y-1 text-sm">
                         <div className="flex justify-between"><span className="text-muted-foreground">Status:</span> <span className={cn("capitalize font-medium", selectedPolicy.status === 'active' ? 'text-green-600' : selectedPolicy.status === 'auto-pending' ? 'text-yellow-600' : 'text-muted-foreground')}>{selectedPolicy.status.replace('-', ' ')}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Current Premium:</span> <span className="font-semibold">${selectedPolicy.premium}/mo</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Cost:</span> <span className="font-semibold">{selectedPolicy.creditCost} credits</span></div>
                         {selectedPolicy.coverageAmount > 0 && (
                             <div className="flex justify-between"><span className="text-muted-foreground">Coverage Amount:</span> <span>${selectedPolicy.coverageAmount.toLocaleString()}</span></div>
                         )}
@@ -309,7 +283,6 @@ export default function InsurancesPage() {
                      </div>
                   </div>
 
-                  {/* Toggles */}
                   <div className="flex items-center justify-between space-x-4 border p-4 rounded-md">
                     <div className="flex items-center space-x-2">
                       <Label htmlFor={`auto-activate-${selectedPolicy.id}`} className="flex-1">
@@ -336,7 +309,7 @@ export default function InsurancesPage() {
                   <div className="flex items-center justify-between space-x-4 border p-4 rounded-md">
                     <div className="flex items-center space-x-2">
                       <Label htmlFor={`adaptive-premium-${selectedPolicy.id}`} className="flex-1">
-                        Adaptive Premium
+                        Adaptive Cost
                       </Label>
                       <Tooltip delayDuration={100}>
                         <TooltipTrigger asChild>
@@ -345,7 +318,7 @@ export default function InsurancesPage() {
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Allow premium adjustments based on risk factors (e.g., driving habits, wellness data).</p>
+                          <p>Allow credit cost adjustments based on risk factors (e.g., driving habits, wellness data).</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
@@ -356,7 +329,6 @@ export default function InsurancesPage() {
                     />
                   </div>
 
-                  {/* Premium/Goal Simulator */}
                   <div className="space-y-4 border p-4 rounded-md">
                     <h4 className="font-medium flex items-center gap-2"><SlidersHorizontal className="h-4 w-4" /> Simulator</h4>
                      <div className="space-y-2">
@@ -378,20 +350,19 @@ export default function InsurancesPage() {
                         </div>
                     </div>
                      <p className="text-sm font-medium">
-                         {simulatedPremium !== null ? (
-                            <span>Simulated Premium: <span className="text-primary">${simulatedPremium}/mo</span></span>
+                         {simulatedCost !== null ? (
+                            <span>Simulated Cost: <span className="text-primary">{simulatedCost} credits</span></span>
                          ) : (
-                             <span>Current Premium: ${selectedPolicy.premium}/mo</span>
+                             <span>Current Cost: {selectedPolicy.creditCost} credits</span>
                          )}
                      </p>
-                    <p className="text-xs text-muted-foreground">Note: This is an estimate. Actual premium may vary based on underwriting and other factors.</p>
+                    <p className="text-xs text-muted-foreground">Note: This is an estimate. Actual credit cost may vary based on underwriting and other factors.</p>
                   </div>
 
-                  {/* Activation History */}
                   <div className="space-y-4 border p-4 rounded-md">
                     <h4 className="font-medium flex items-center gap-2"><History className="h-4 w-4" /> Activation History</h4>
                     {selectedPolicy.activationHistory.length > 0 ? (
-                      <ul className="space-y-2 text-sm max-h-24 overflow-y-auto"> {/* Limit height */}
+                      <ul className="space-y-2 text-sm max-h-24 overflow-y-auto">
                         {selectedPolicy.activationHistory.map((item, index) => (
                           <li key={index} className="flex justify-between items-center border-b border-border/50 pb-1 last:border-b-0">
                             <span>{item.reason}</span>
@@ -412,8 +383,6 @@ export default function InsurancesPage() {
                     Close
                   </Button>
                 </DialogClose>
-                 {/* Optional Save Button - Enable if changes are made */}
-                 {/* <Button type="button" disabled={!isDirty}>Save Changes</Button> */}
               </DialogFooter>
             </>
           )}

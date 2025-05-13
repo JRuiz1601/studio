@@ -6,9 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Import Select components
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Fingerprint, Save, Info, Moon, Sun, Smartphone, Watch, Languages } from 'lucide-react'; // Added Smartphone, Watch, Languages
+import { Fingerprint, Save, Info, Moon, Sun, Smartphone, Watch, Languages, Coins, BarChart3 } from 'lucide-react'; // Added Coins, BarChart3
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
@@ -24,6 +24,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translations } from '@/lib/translations';
+import { mockPolicies } from '@/app/(app)/insurances/page'; // Import to calculate initial credits
 
 // Mock settings - fetch these from user preferences API
 const mockSettings = {
@@ -31,39 +32,45 @@ const mockSettings = {
   expertMode: false,
   facialRecognitionEnabled: true,
   darkMode: undefined,
-  language: 'en', // Default language to English ('en')
+  language: 'en',
 };
 
 
 export default function SettingsPage() {
-  // State for individual settings
   const [wearableDataEnabled, setWearableDataEnabled] = useState<boolean>(mockSettings.wearableDataEnabled);
   const [expertMode, setExpertMode] = useState<boolean>(mockSettings.expertMode);
-  const [language, setLanguage] = useState<string>(mockSettings.language); // Language state
+  const [language, setLanguage] = useState<string>(mockSettings.language);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
       if (typeof window !== 'undefined') {
           const storedTheme = localStorage.getItem('theme');
           if (storedTheme === 'dark') return true;
           if (storedTheme === 'light') return false;
-          // Ensure window.matchMedia is available before calling it
           if (window.matchMedia) {
             return window.matchMedia('(prefers-color-scheme: dark)').matches;
           }
       }
-      return false; // Default to false if window or matchMedia is not available
+      return false;
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isWearableConfirmOpen, setIsWearableConfirmOpen] = useState(false);
+  const [usedCredits, setUsedCredits] = useState(0); // State for used credits
+
   const { toast } = useToast();
   const router = useRouter();
 
-  // Get current translations based on language state
-  const t = translations[language as keyof typeof translations] || translations.en; // Default to English if lang not found
+  // Calculate initial used credits from active mock policies
+  useEffect(() => {
+    const initialCredits = mockPolicies
+      .filter(policy => policy.status === 'active')
+      .reduce((sum, policy) => sum + policy.creditCost, 0);
+    setUsedCredits(initialCredits);
+  }, []);
+
+  const t = translations[language as keyof typeof translations] || translations.en;
 
 
-   // Effect to apply dark mode class and store preference
    useEffect(() => {
-       if (typeof window !== 'undefined') { // Ensure this runs only on the client
+       if (typeof window !== 'undefined') {
         const root = window.document.documentElement;
         if (isDarkMode) {
             root.classList.add('dark');
@@ -75,16 +82,14 @@ export default function SettingsPage() {
       }
    }, [isDarkMode]);
 
-  // Effect to load language from localStorage or use mockSettings default
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedLang = localStorage.getItem('language');
       if (storedLang && (storedLang === 'en' || storedLang === 'es')) {
         setLanguage(storedLang);
       } else {
-        // If no stored language, use the default from mockSettings
         setLanguage(mockSettings.language);
-        localStorage.setItem('language', mockSettings.language); // Optionally save default to localStorage
+        localStorage.setItem('language', mockSettings.language);
       }
     }
   }, []);
@@ -92,21 +97,17 @@ export default function SettingsPage() {
 
   const handleSaveChanges = async () => {
     setIsLoading(true);
-    // Include language and wearableDataEnabled in saved settings
     const newSettings = { wearableDataEnabled, expertMode, darkMode: isDarkMode, language };
     console.log('Saving settings:', newSettings);
 
-    // TODO: Replace with actual API call to save user settings
-    // Consider storing language preference in localStorage as well for faster client-side loading
     localStorage.setItem('language', language);
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     setIsLoading(false);
     toast({
       title: t.settingsSavedTitle,
       description: t.settingsSavedDesc,
     });
-    // Update mock settings after successful save
     Object.assign(mockSettings, newSettings);
   };
 
@@ -117,15 +118,13 @@ export default function SettingsPage() {
    const handleRemoveFacialRecognition = async () => {
        setIsLoading(true);
        console.log('Removing facial recognition...');
-       // TODO: Add API call to remove facial recognition data and disable it
        await new Promise((resolve) => setTimeout(resolve, 1000));
        setIsLoading(false);
-       mockSettings.facialRecognitionEnabled = false; // Update mock state
+       mockSettings.facialRecognitionEnabled = false;
        toast({
            title: t.facialRemovedTitle,
            description: t.facialRemovedDesc,
        });
-       // Force re-render or state update if needed
    };
 
    const handleWearableSwitchChange = (checked: boolean) => {
@@ -143,19 +142,17 @@ export default function SettingsPage() {
            title: t.wearableEnabledTitle,
            description: t.wearableEnabledDesc,
        });
-       // TODO: Potentially trigger backend logic for wearable provisioning/ordering
    };
 
    const cancelWearableTerms = () => {
-       setWearableDataEnabled(false); // Ensure switch state reflects cancellation
+       setWearableDataEnabled(false);
        setIsWearableConfirmOpen(false);
    };
 
-   // Check if settings have changed
    const hasChanges = wearableDataEnabled !== mockSettings.wearableDataEnabled ||
                      expertMode !== mockSettings.expertMode ||
-                     language !== mockSettings.language || // Include language
-                     isDarkMode !== (mockSettings.darkMode === undefined ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) : mockSettings.darkMode); // Include darkMode
+                     language !== mockSettings.language ||
+                     isDarkMode !== (mockSettings.darkMode === undefined ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) : mockSettings.darkMode);
 
 
   return (
@@ -167,7 +164,6 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-8">
            <TooltipProvider>
-             {/* Dark Mode Toggle */}
              <div className="flex items-center justify-between space-x-4 border p-4 rounded-md">
                 <div className="flex items-center space-x-2">
                     {isDarkMode ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
@@ -181,7 +177,6 @@ export default function SettingsPage() {
                  />
              </div>
 
-             {/* Language Selection */}
              <div className="space-y-4 border p-4 rounded-md">
                 <div className="flex items-center space-x-2">
                    <Languages className="h-5 w-5 text-muted-foreground" />
@@ -199,8 +194,24 @@ export default function SettingsPage() {
                  </Select>
              </div>
 
+            {/* Used Credits Section */}
+            <div className="space-y-4 border p-4 rounded-md">
+                <div className="flex items-center space-x-2">
+                    <Coins className="h-5 w-5 text-amber-500" />
+                    <Label htmlFor="used-credits" className="text-base font-medium">{t.usedCreditsTitle || 'Used Credits'}</Label>
+                </div>
+                <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">{t.usedCreditsDesc || 'Total credits used across all your active policies.'}</p>
+                    <span className="text-lg font-semibold text-amber-600">{usedCredits}</span>
+                </div>
+                {/* Optional: Placeholder for a small graph or badges */}
+                {/* <div className="mt-2">
+                    <BarChart3 className="h-8 w-8 text-muted-foreground opacity-50" />
+                    <p className="text-xs text-muted-foreground">Graph coming soon</p>
+                </div> */}
+            </div>
 
-             {/* Data Sources Section */}
+
              <div className="space-y-4 border p-4 rounded-md">
                <div className="flex items-center justify-between">
                  <Label className="text-base font-medium">{t.dataSourcesTitle}</Label>
@@ -216,7 +227,6 @@ export default function SettingsPage() {
                    </Tooltip>
                </div>
 
-               {/* Mobile + Context (Always On) */}
                <div className="flex items-center justify-between space-x-4 opacity-70 cursor-not-allowed">
                    <div className="flex items-center space-x-3">
                       <Smartphone className="h-5 w-5 text-muted-foreground" />
@@ -228,7 +238,6 @@ export default function SettingsPage() {
                     <Switch id="mobile-context-info" checked={true} disabled={true} aria-readonly={true} />
                </div>
 
-                {/* Wearable Data (Toggle with Confirmation) */}
                 <div className="flex items-center justify-between space-x-4">
                      <div className="flex items-center space-x-3">
                          <Watch className="h-5 w-5 text-muted-foreground" />
@@ -247,7 +256,6 @@ export default function SettingsPage() {
              </div>
 
 
-             {/* Expert Mode Setting */}
              <div className="flex items-center justify-between space-x-4 border p-4 rounded-md">
                 <div className="space-y-1">
                    <Label htmlFor="expert-mode" className="text-base font-medium">{t.expertModeLabel}</Label>
@@ -273,7 +281,6 @@ export default function SettingsPage() {
                />
              </div>
 
-             {/* Facial Recognition Management */}
              <div className="space-y-4 border p-4 rounded-md">
                  <Label className="text-base font-medium">{t.facialRecognitionLabel}</Label>
                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -322,7 +329,6 @@ export default function SettingsPage() {
         </CardFooter>
       </Card>
 
-        {/* Wearable Data Confirmation Dialog */}
         <AlertDialog open={isWearableConfirmOpen} onOpenChange={setIsWearableConfirmOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -358,3 +364,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -14,12 +15,12 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
     ChevronLeft, ChevronRight, MapPin, Activity, ShieldQuestion, Smile, Database, Settings,
-    HeartPulse, BatteryCharging, WifiOff, FileText, Fingerprint, Check, Loader
+    HeartPulse, BatteryCharging, WifiOff, FileText, Fingerprint, Check, Loader, Coins
 } from 'lucide-react';
 import Image from 'next/image';
 import type { WearableBattery, WearableConnectionStatus } from '@/services/wearable';
 import { getWearableBatteryStatus, getWearableConnectionStatus } from '@/services/wearable';
-import { recognizeFace } from '@/services/biometrics'; // Assuming biometric service exists
+import { recognizeFace } from '@/services/biometrics';
 import { useToast } from '@/hooks/use-toast';
 
 type DataPriority = 'wearable' | 'mobile_context';
@@ -30,7 +31,7 @@ interface OnboardingState {
     dataPriority: DataPriority;
     baseInsurances: Record<InsuranceKey, boolean>;
     autoActivateAll: boolean;
-    simulatedPremium: number;
+    simulatedCreditCost: number; // Changed from simulatedPremium
     wearableStatus: WearableConnectionStatus | null;
     wearableBattery: WearableBattery | null;
 }
@@ -54,7 +55,7 @@ export default function OnboardingPage() {
         dataPriority: 'wearable',
         baseInsurances: { health: true, accident: true, pension: false, renta: false, education: false },
         autoActivateAll: true,
-        simulatedPremium: 85, // Initial simulated premium
+        simulatedCreditCost: 85, // Initial simulated credit cost
         wearableStatus: null,
         wearableBattery: null,
     });
@@ -62,7 +63,6 @@ export default function OnboardingPage() {
     const [facialRecognitionStatus, setFacialRecognitionStatus] = useState<'idle' | 'signing' | 'success' | 'error'>('idle');
     const [isFinishing, setIsFinishing] = useState(false);
 
-    // Fetch wearable status on step 5
     useEffect(() => {
         async function fetchWearable() {
             if (currentStep === 5 && onboardingState.wearableStatus === null) {
@@ -76,7 +76,7 @@ export default function OnboardingPage() {
                     }
                 } catch (error) {
                     console.error("Error fetching wearable status:", error);
-                    setOnboardingState(prev => ({ ...prev, wearableStatus: 'disconnected' })); // Assume disconnected on error
+                    setOnboardingState(prev => ({ ...prev, wearableStatus: 'disconnected' }));
                 } finally {
                     setLoadingWearable(false);
                 }
@@ -85,16 +85,15 @@ export default function OnboardingPage() {
         fetchWearable();
     }, [currentStep, onboardingState.wearableStatus]);
 
-    // Update simulated premium based on selections
     useEffect(() => {
-        let base = 50; // Base premium
-        if (onboardingState.safeDrivingDiscount) base -= 5;
-        if (onboardingState.dataPriority === 'wearable') base += 10;
+        let baseCost = 50; // Base cost in credits
+        if (onboardingState.safeDrivingDiscount) baseCost -= 5;
+        if (onboardingState.dataPriority === 'wearable') baseCost += 10;
         const selectedCount = Object.values(onboardingState.baseInsurances).filter(Boolean).length;
-        base += selectedCount * 8; // Add premium per selected insurance
-        if (onboardingState.autoActivateAll) base += 5;
+        baseCost += selectedCount * 8; // Add cost per selected insurance
+        if (onboardingState.autoActivateAll) baseCost += 5;
 
-        setOnboardingState(prev => ({ ...prev, simulatedPremium: Math.max(20, base) })); // Ensure minimum premium
+        setOnboardingState(prev => ({ ...prev, simulatedCreditCost: Math.max(20, baseCost) }));
     }, [onboardingState.safeDrivingDiscount, onboardingState.dataPriority, onboardingState.baseInsurances, onboardingState.autoActivateAll]);
 
 
@@ -111,22 +110,20 @@ export default function OnboardingPage() {
      const handleFinalSubmit = async () => {
          if (currentStep !== TOTAL_STEPS) return;
          setFacialRecognitionStatus('signing');
-         setIsFinishing(true); // Disable navigation buttons
+         setIsFinishing(true);
 
          try {
-             // Simulate final facial recognition confirmation
              const result = await recognizeFace();
              if (result.success) {
                  setFacialRecognitionStatus('success');
                  console.log('Onboarding state to save:', onboardingState);
-                 // TODO: Add API call to save onboarding state and complete profile setup
-                 await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+                 await new Promise(resolve => setTimeout(resolve, 1500));
 
                  toast({
                      title: 'Onboarding Complete!',
                      description: 'Welcome to Zyren. Redirecting to your dashboard.',
                  });
-                 router.push('/dashboard'); // Redirect to the main dashboard page
+                 router.push('/dashboard');
              } else {
                  throw new Error(result.message || 'Facial confirmation failed.');
              }
@@ -138,27 +135,26 @@ export default function OnboardingPage() {
                  description: error instanceof Error ? error.message : 'Could not confirm your identity.',
                  variant: 'destructive',
              });
-             // Re-enable buttons on error
              setIsFinishing(false);
-             setTimeout(() => setFacialRecognitionStatus('idle'), 3000); // Reset status after delay
+             setTimeout(() => setFacialRecognitionStatus('idle'), 3000);
          }
      };
 
 
     const renderStepContent = () => {
         switch (currentStep) {
-            case 1: // Welcome
+            case 1:
                 return (
                     <div className="text-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="h-24 w-24 text-primary mx-auto mb-6">
-                            <defs><linearGradient id="grad_onboarding" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 1 }} /><stop offset="100%" style={{ stopColor: 'hsl(var(--accent))', stopOpacity: 1 }} /></linearGradient></defs>
-                            <path fill="url(#grad_onboarding)" d="M50,5 C74.85,5 95,25.15 95,50 C95,74.85 74.85,95 50,95 C25.15,95 5,74.85 5,50 C5,25.15 25.15,5 50,5 Z M50,15 C30.67,15 15,30.67 15,50 C15,69.33 30.67,85 50,85 C69.33,85 85,69.33 85,50 C85,30.67 69.33,15 50,15 Z M50,30 Q60,40 50,50 Q40,60 50,70 M50,30 Q70,50 50,70 M50,30 L50,70" stroke="hsl(var(--card))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                            <defs><linearGradient id="grad_onboarding_logo" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 1 }} /><stop offset="100%" style={{ stopColor: 'hsl(var(--accent))', stopOpacity: 1 }} /></linearGradient></defs>
+                            <path fill="url(#grad_onboarding_logo)" d="M50,5 C74.85,5 95,25.15 95,50 C95,74.85 74.85,95 50,95 C25.15,95 5,74.85 5,50 C5,25.15 25.15,5 50,5 Z M50,15 C30.67,15 15,30.67 15,50 C15,69.33 30.67,85 50,85 C69.33,85 85,69.33 85,50 C85,30.67 69.33,15 50,15 Z M50,30 Q60,40 50,50 Q40,60 50,70 M50,30 Q70,50 50,70 M50,30 L50,70" stroke="hsl(var(--card))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                         <CardTitle className="text-2xl mb-2">Welcome to Zyren</CardTitle>
                         <CardDescription>Your personalized insurance companion. Let's get you set up in a few steps.</CardDescription>
                     </div>
                 );
-            case 2: // Permissions Explanation
+            case 2:
                  return (
                      <div className="text-center space-y-6">
                          <CardTitle className="text-xl">Permissions We Need</CardTitle>
@@ -187,11 +183,9 @@ export default function OnboardingPage() {
                              </div>
                          </div>
                          <p className="text-xs text-muted-foreground">You can manage these permissions anytime in your device settings and within the app.</p>
-                          {/* Placeholder for actual permission request buttons if needed on web */}
-                          {/* <Button onClick={() => alert('Requesting Location...')}>Grant Location</Button> */}
                      </div>
                  );
-            case 3: // Mini-tour
+            case 3:
                  return (
                      <div className="text-center space-y-4">
                           <Smile className="h-16 w-16 text-primary mx-auto" />
@@ -199,20 +193,20 @@ export default function OnboardingPage() {
                          <CardDescription>By analyzing data (securely and privately), Zyren adapts:</CardDescription>
                          <ul className="list-disc list-inside text-left text-sm space-y-2 text-muted-foreground max-w-md mx-auto">
                             <li>Suggests relevant insurance only when needed.</li>
-                            <li>Offers potential premium discounts for safe behavior.</li>
+                            <li>Offers potential cost reductions in credits for safe behavior.</li>
                             <li>Helps identify gaps in your financial protection.</li>
                             <li>Provides real-time risk alerts and advice.</li>
                          </ul>
                          <p className="text-xs text-muted-foreground">Your data is always handled according to our strict Privacy Policy.</p>
                      </div>
                  );
-            case 4: // Initial Preferences
+            case 4:
                  return (
                      <div className="space-y-6">
                          <CardTitle className="text-xl text-center">Initial Preferences</CardTitle>
                          <div className="flex items-center justify-between space-x-4 border p-4 rounded-md">
                              <Label htmlFor="safe-driving" className="flex-1">
-                                 Enable potential premium discount for safe driving?
+                                 Enable potential credit cost reduction for safe driving?
                                  <p className="text-xs text-muted-foreground">(Requires location/activity data)</p>
                              </Label>
                              <Switch
@@ -241,7 +235,7 @@ export default function OnboardingPage() {
                          </div>
                      </div>
                  );
-             case 5: // Wearable Config
+             case 5:
                  return (
                      <div className="space-y-6">
                          <CardTitle className="text-xl text-center">Wearable Configuration</CardTitle>
@@ -280,11 +274,11 @@ export default function OnboardingPage() {
                              </CardContent>
                          </Card>
                          <p className="text-xs text-muted-foreground text-center">
-                           Connect your wearable for the most accurate risk assessment and potential premium benefits. You can also request a Zyren wearable (if applicable).
+                           Connect your wearable for the most accurate risk assessment and potential credit cost benefits. You can also request a Zyren wearable (if applicable).
                          </p>
                      </div>
                  );
-             case 6: // Select Base Insurances
+             case 6:
                  return (
                      <div className="space-y-6">
                          <CardTitle className="text-xl text-center">Select Your Base Insurances</CardTitle>
@@ -319,10 +313,10 @@ export default function OnboardingPage() {
                          </div>
                      </div>
                  );
-             case 7: // Dynamic Contract Summary & Premium Sim
+             case 7: // Summary & Estimated Credit Cost
                  return (
                      <div className="space-y-6">
-                         <CardTitle className="text-xl text-center">Summary & Estimated Premium</CardTitle>
+                         <CardTitle className="text-xl text-center">Summary & Estimated Cost</CardTitle>
                          <Card className="p-4">
                              <CardHeader className="p-0 pb-4">
                                  <CardTitle className="text-base flex items-center gap-2"><FileText className="h-5 w-5" /> Initial Setup</CardTitle>
@@ -344,15 +338,18 @@ export default function OnboardingPage() {
                              </CardContent>
                              <CardFooter className="p-0 pt-4 mt-4 border-t">
                                  <div className="flex justify-between w-full items-center">
-                                     <span className="font-medium">Estimated Monthly Premium:</span>
-                                     <span className="text-xl font-bold text-primary">${onboardingState.simulatedPremium}</span>
+                                     <span className="font-medium">Estimated Monthly Cost:</span>
+                                     <div className="flex items-center gap-1">
+                                        <Coins className="h-5 w-5 text-amber-500" />
+                                        <span className="text-xl font-bold text-primary">{onboardingState.simulatedCreditCost} credits</span>
+                                     </div>
                                  </div>
                              </CardFooter>
                          </Card>
-                         <p className="text-xs text-muted-foreground text-center">This is an initial estimate based on your selections. Premiums may adjust based on real-time data and risk factors. Final terms apply.</p>
+                         <p className="text-xs text-muted-foreground text-center">This is an initial estimate based on your selections. Credit costs may adjust based on real-time data and risk factors. Final terms apply.</p>
                      </div>
                  );
-             case 8: // Final Facial Capture & Submit
+             case 8:
                  return (
                      <div className="text-center space-y-6">
                          <CardTitle className="text-xl">Final Confirmation</CardTitle>
@@ -386,17 +383,11 @@ export default function OnboardingPage() {
 
     return (
         <Card className="w-full max-w-xl lg:max-w-2xl relative overflow-hidden">
-            {/* Progress Bar */}
             <Progress value={(currentStep / TOTAL_STEPS) * 100} className="absolute top-0 left-0 right-0 h-1 rounded-none" />
-
-            {/* Header placeholder if needed */}
              <CardHeader className="pt-8 pb-4">
-                 {/* Optionally add a title that persists across steps */}
-                  {/* <CardTitle className="text-center text-lg font-medium">Onboarding</CardTitle> */}
              </CardHeader>
 
             <CardContent className="min-h-[400px] flex items-center justify-center px-6 md:px-10 py-8">
-                 {/* Animated Content Area - using simple key prop for transition */}
                  <div key={currentStep} className="animate-in fade-in duration-500 w-full">
                     {renderStepContent()}
                  </div>
@@ -412,7 +403,6 @@ export default function OnboardingPage() {
                          Next <ChevronRight className="h-4 w-4 ml-1" />
                      </Button>
                  ) : (
-                    // The button inside step 8 handles the final action
                      <Button disabled={true} className="opacity-0 pointer-events-none">
                          Finish
                      </Button>

@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview AI Chat flow for Zyren Assistant "Zy".
@@ -11,7 +12,6 @@
 import {ai} from '@/ai/ai-instance';
 import {z} from 'zod';
 import { getCurrentCoverageStatus, type CoverageStatus } from '@/services/insurance-service'; // Import the mock service and type
-// TODO: Import other necessary mock services (getPolicyDetails, getSavingsStatus etc.)
 
 // --- Structured Response Schemas ---
 const ButtonSchema = z.object({
@@ -24,63 +24,51 @@ const CardSchema = z.object({
     type: z.literal('card'),
     title: z.string().describe('The title of the card.'),
     description: z.string().describe('A brief description or summary for the card content.'),
-    // Optional: Add specific fields like policy details if needed
-    // policyId: z.string().optional(),
-    // coverageAmount: z.number().optional(),
     cta: ButtonSchema.optional().describe('An optional call-to-action button within the card.'),
 });
 
-// TODO: Add simulator schema if needed in the future
-// const SimulatorSchema = z.object({ ... });
-
 const StructuredResponseSchema = z.array(
-    z.union([ButtonSchema, CardSchema]) // Add SimulatorSchema here if implemented
+    z.union([ButtonSchema, CardSchema])
 ).optional().describe('Optional array of structured UI components (buttons, cards) to display alongside the text response.');
 
 
 // --- Input/Output Schemas ---
-// Define a schema for individual history messages
 const HistoryMessageSchema = z.object({
-  role: z.enum(['user', 'model']), // Use 'model' for AI responses
+  role: z.enum(['user', 'model']),
   content: z.string()
 });
 
 const ChatInputSchema = z.object({
   message: z.string().describe('The user\'s current message to the AI.'),
-  // Added conversation history field
   history: z.array(HistoryMessageSchema).optional().describe('The history of the conversation so far, excluding the current user message.'),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
 const ChatOutputSchema = z.object({
   response: z.string().describe('The AI\'s text response to the user.'),
-  // Add structured response field
   structuredResponse: StructuredResponseSchema,
 });
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
-export type StructuredResponseItem = z.infer<typeof StructuredResponseSchema>[number]; // Export the union type
+export type StructuredResponseItem = z.infer<typeof StructuredResponseSchema>[number];
 
 
 // --- Genkit Tools ---
 
-// Existing tool: Checks basic coverage status
 const getCoverageStatusTool = ai.defineTool(
   {
     name: 'getCoverageStatus',
     description: 'Revisa si tienes seguros activos en general con Global Seguros. Útil si preguntas "¿Tengo algún seguro activo?" o "¿Estoy cubierto?".',
-    inputSchema: z.object({}), // No specific input needed for this simple check
+    inputSchema: z.object({}),
     outputSchema: z.object({
         isActive: z.boolean(),
-        details: z.string().optional(), // Provides a summary like policy type or renewal if active
+        details: z.string().optional(),
     }),
   },
-  async (): Promise<CoverageStatus> => { // Ensure return type matches schema
-    // Calls the mock service function
+  async (): Promise<CoverageStatus> => {
     return await getCurrentCoverageStatus();
   }
 );
 
-// Tool for policy details
 const getPolicyDetailsTool = ai.defineTool(
   {
     name: 'getPolicyDetails',
@@ -92,27 +80,26 @@ const getPolicyDetailsTool = ai.defineTool(
         found: z.boolean(),
         policyName: z.string().optional(),
         coverageAmount: z.number().optional(),
-        paymentStatus: z.string().optional(), // e.g., "Al día", "Próximo a vencer", "Vencido"
+        creditCost: z.number().optional().describe('The cost of the policy in credits.'), // Added creditCost
+        paymentStatus: z.string().optional(),
         nextRenewalDate: z.string().optional().describe('Fecha en formato YYYY-MM-DD.'),
-        details: z.string().optional(), // Any other relevant details like benefits or exclusions.
+        details: z.string().optional(),
     }),
   },
   async (input) => {
-    // TODO: Implement by calling a mock or real service in insurance-service.ts
     console.log(`Tool Placeholder: Fetching details for policy ID: ${input.policyId || 'primary'}`);
-    // Mock response:
     return {
         found: true,
         policyName: input.policyId || 'Salud Esencial',
         coverageAmount: 10000,
-        paymentStatus: 'Al día', // Changed to simpler term
+        creditCost: 50, // Example credit cost
+        paymentStatus: 'Al día',
         nextRenewalDate: '2024-12-31',
-        details: 'Cubre hospitalización básica y urgencias. Tienes la opción de pagos flexibles activada.' // Simplified explanation
+        details: 'Cubre hospitalización básica y urgencias. Tienes la opción de pagos flexibles activada.'
     };
   }
 );
 
-// Tool for savings status
 const getSavingsStatusTool = ai.defineTool(
    {
      name: 'getSavingsStatus',
@@ -123,16 +110,14 @@ const getSavingsStatusTool = ai.defineTool(
      outputSchema: z.object({
          found: z.boolean(),
          goalType: z.string(),
-         status: z.string().optional(), // e.g., "Vas bien", "Necesita atención", "Aún no empiezas"
+         status: z.string().optional(),
          currentBalance: z.number().optional(),
          projectedValue: z.number().optional(),
-         message: z.string().optional(), // AI-friendly summary message
+         message: z.string().optional(),
      }),
    },
    async (input) => {
-     // TODO: Implement by calling a mock or real service
      console.log(`Tool Placeholder: Fetching savings status for: ${input.goalType}`);
-     // Mock response:
      let mockStatus = "Aún no empiezas";
      if (input.goalType === 'pension') mockStatus = "Necesita atención";
      if (input.goalType === 'education') mockStatus = "Vas bien";
@@ -142,14 +127,13 @@ const getSavingsStatusTool = ai.defineTool(
          goalType: input.goalType,
          status: mockStatus,
          currentBalance: input.goalType === 'education' ? 5000 : 1200,
-         message: input.goalType === 'education' ? "¡Vas muy bien con tu meta de ahorro para educación!" : "Notamos que podrías ajustar tus aportes para pensión. El sistema de ahorro inteligente te puede ayudar.", // Simplified message
+         message: input.goalType === 'education' ? "¡Vas muy bien con tu meta de ahorro para educación!" : "Notamos que podrías ajustar tus aportes para pensión. El sistema de ahorro inteligente te puede ayudar.",
      };
    }
  );
 
 // --- Main Flow Function ---
 export async function chatWithAI(input: ChatInput): Promise<ChatOutput> {
-  // The history is now passed directly in the input object
   return chatFlow(input);
 }
 
@@ -157,12 +141,11 @@ export async function chatWithAI(input: ChatInput): Promise<ChatOutput> {
 const chatPrompt = ai.definePrompt({
   name: 'chatPrompt',
   input: {
-    schema: ChatInputSchema, // Use the updated schema with history
+    schema: ChatInputSchema,
   },
   output: {
-    schema: ChatOutputSchema, // Updated schema
+    schema: ChatOutputSchema,
   },
-  // Updated prompt incorporating the knowledge base, persona, tone, capabilities, tools, limitations, HYPERLEGIBILITY, STRUCTURED OUTPUT, and HISTORY instructions
   prompt: `Soy Zy, tu Co-Piloto de Protección y Bienestar de Global Seguros, aquí en la app Zyren.
 
   **Mi Misión Principal:** Soy tu guía personal para que entiendas tus seguros fácilmente. Te doy información útil y te ayudo a estar mejor protegido, de forma sencilla y clara. Piénsame como tu asistente personal para seguros, disponible siempre que me necesites.
@@ -183,16 +166,16 @@ const chatPrompt = ai.definePrompt({
       4.  **Seguro de Renta Voluntaria:** **Beneficio:** Ahorra para tu futuro (como complemento a tu pensión) con flexibilidad. **¿Cómo?** Haces aportes a tu ritmo y tu dinero puede crecer. **Ideal para:** Quienes quieren construir un capital futuro de forma flexible.
       5.  **Seguro de Renta Vitalicia (Pensión):** **Beneficio:** Recibe un pago mensual fijo ¡de por vida! en tu jubilación. **¿Cómo?** Transformas un ahorro grande en ingresos seguros para siempre. **Ideal para:** Personas cercanas a jubilarse que buscan máxima seguridad.
   *   **Funciones Clave de la App Zyren (¡Así te ayuda la app!):**
-      *   **Pagos Flexibles (Primas Adaptativas):** **Beneficio:** Podrías pagar menos por tu seguro si te cuidas. **¿Cómo?** Si activas esta opción, el costo de tu seguro (Vida o Accidentes) puede ajustarse un poco cada mes. Por ejemplo, si manejas con cuidado (usando datos de tu celular) o haces ejercicio (si conectaste tu reloj), tu pago podría bajar. ¡Tú eliges si quieres esta opción! Siempre te explicaremos por qué cambia.
+      *   **Costos Flexibles (Costos de Créditos Adaptativos):** **Beneficio:** Podrías usar menos créditos por tu seguro si te cuidas. **¿Cómo?** Si activas esta opción, el costo en créditos de tu seguro (Vida o Accidentes) puede ajustarse un poco cada mes. Por ejemplo, si manejas con cuidado (usando datos de tu celular) o haces ejercicio (si conectaste tu reloj), tu costo en créditos podría bajar. ¡Tú eliges si quieres esta opción! Siempre te explicaremos por qué cambia.
       *   **Protección Extra Automática (Activaciones/Sugerencias):** **Beneficio:** Te protege más, justo cuando lo necesitas, sin que tengas que pensarlo. **¿Cómo?** La app puede detectar riesgos puntuales (como un viaje a una zona diferente o mal clima). Si tú lo activaste, puede añadir una protección temporal automáticamente. Si no, te lo puede sugerir. **Tu Control:** Siempre te avisaremos si algo se activa solo, y tendrás 72 horas para cancelarlo sin costo. Tú decides qué prefieres: que actúe solo o que te sugiera.
       *   **Ayuda Inteligente para tus Ahorros (Ahorro Predictivo):** **Beneficio:** Te ayuda a que sí alcances tus metas de ahorro (para educación o pensión). **¿Cómo?** La app revisa cómo vas con tus aportes. Si ve que te estás quedando un poco atrás, te avisa con tiempo y te da ideas fáciles para ponerte al día sin perder tu objetivo final.
-      *   **Entiende Siempre Por Qué (Explicabilidad):** **Beneficio:** Nunca te quedarás con la duda. **¿Cómo?** La app te mostrará de forma clara y sencilla las razones detrás de las sugerencias que te damos o si hay algún cambio en tus pagos.
+      *   **Entiende Siempre Por Qué (Explicabilidad):** **Beneficio:** Nunca te quedarás con la duda. **¿Cómo?** La app te mostrará de forma clara y sencilla las razones detrás de las sugerencias que te damos o si hay algún cambio en tus costos de créditos.
 
   **¿Qué Puedo Hacer Por Ti? (Mis Servicios):**
-  1.  **Responder tus Dudas Generales:** Te explico sobre los 5 tipos de seguros, cómo funciona la app (pagos flexibles, protección automática, ayuda para ahorros, etc.) y cómo usarla. ¡Pregúntame lo que necesites!
+  1.  **Responder tus Dudas Generales:** Te explico sobre los 5 tipos de seguros, cómo funciona la app (costos flexibles, protección automática, ayuda para ahorros, etc.) y cómo usarla. ¡Pregúntame lo que necesites!
   2.  **Consultar tu Información Personal (Usando mis herramientas):**
       *   **¿Tienes seguro activo?:** Si preguntas algo como "¿Estoy asegurado?", usaré la herramienta 'getCoverageStatus' para revisar. SIEMPRE incluye un botón 'Ver mis seguros' (href: '/insurances') en la respuesta estructurada.
-      *   **Detalles de tus seguros:** Si quieres saber detalles como "¿Cuánto me cubre el seguro de salud?", "¿Cuándo pago?", "¿Cuándo se renueva?", usaré 'getPolicyDetails'. Dime qué seguro quieres ver. Te explicaré lo importante de forma sencilla. SIEMPRE incluye una tarjeta resumen con los detalles clave (policyName, coverageAmount, paymentStatus, nextRenewalDate) y un botón 'Ver Detalles Completos' (href: '/insurances#[policyId]') en la respuesta estructurada.
+      *   **Detalles de tus seguros:** Si quieres saber detalles como "¿Cuánto me cubre el seguro de salud?", "¿Cuál es el costo en créditos?", "¿Cuándo se renueva?", usaré 'getPolicyDetails'. Dime qué seguro quieres ver. Te explicaré lo importante de forma sencilla. SIEMPRE incluye una tarjeta resumen con los detalles clave (policyName, coverageAmount, creditCost, paymentStatus, nextRenewalDate) y un botón 'Ver Detalles Completos' (href: '/insurances#[policyId]') en la respuesta estructurada.
       *   **¿Cómo van tus ahorros?:** Si preguntas por tu ahorro de pensión, educación o renta (ej. "¿Cómo va mi ahorro para la U?"), usaré 'getSavingsStatus'. Dime cuál meta quieres revisar. Si aplica, te contaré cómo la "Ayuda Inteligente para tus Ahorros" puede apoyarte. SIEMPRE incluye una tarjeta resumen con los detalles clave (goalType, status, currentBalance) y un botón 'Ver Ahorros' (href: '/insurances#[policyId]') en la respuesta estructurada.
   3.  **Guiarte en Acciones Simples:** Te puedo decir cómo reportar un accidente desde la app o dónde encontrar una configuración (ej. "Para cambiar tus datos, ve a Perfil > Editar"). Yo no hago la acción por ti, pero te guío. Cuando la guía implique navegar a otra sección, incluye un botón con el enlace adecuado (ej. label: 'Ir a Editar Perfil', href: '/profile/edit') en la respuesta estructurada.
   4.  **Darte Ideas Útiles (Sugerencias):** Si veo algo relevante para ti (basado en lo que hablamos o en datos que compartiste), te puedo dar una sugerencia útil. Seré discreto y te explicaré por qué. (Ej: "Como mencionaste que viajas pronto, ¿quieres saber cómo una protección temporal podría servirte?"). Cuando sugieras explorar una opción o seguro, incluye un botón 'Ver Recomendaciones' (href: '/recommendations') o un botón específico para esa sugerencia (ej. 'Explorar Seguro Educativo', href: '/recommendations#educativo') en la respuesta estructurada.
@@ -203,7 +186,7 @@ const chatPrompt = ai.definePrompt({
   *   **Botones:** Útiles para acciones directas o navegación (type: 'button', label: 'Texto del Botón', href: '/ruta-destino').
   *   **Tarjetas:** Útiles para resumir información clave (type: 'card', title: 'Título Tarjeta', description: 'Resumen breve', cta: { type: 'button', label: 'Ver Más', href: '/ruta-detalles' }).
   *   **Cuándo Usar:** Sigue las instrucciones específicas en la sección "¿Qué Puedo Hacer Por Ti?". SIEMPRE incluye los componentes estructurados indicados para esas funciones. Sé proactivo al añadir botones de navegación relevantes cuando guíes al usuario.
-  *   **Limitaciones:** Por ahora, solo puedes generar botones y tarjetas. No incluyas simuladores aún.
+  *   **Limitaciones:** Por ahora, solo puedes generar botones y tarjetas.
 
   **Importante - Lo que NO Hago:**
   *   NO te doy consejos financieros específicos (solo explico los seguros).
@@ -216,7 +199,7 @@ const chatPrompt = ai.definePrompt({
   **Si Acabas de Llegar:**
   Si es tu primer mensaje (o solo dices "hola"), te saludaré amablemente y te diré qué puedes preguntarme. Ejemplos:
   *   "¡Hola! Soy Zy, tu Co-Piloto de Protección y Bienestar. ¿En qué puedo ayudarte hoy? Pregúntame sobre tus seguros, cómo funciona la app, ¡lo que necesites!"
-  *   "¡Bienvenido/a a Zyren! Estoy aquí para hacer fáciles tus seguros. Puedes preguntarme, por ejemplo, '¿Qué seguros tengo activos?' o 'Explícame eso de los pagos flexibles'."
+  *   "¡Bienvenido/a a Zyren! Estoy aquí para hacer fáciles tus seguros. Puedes preguntarme, por ejemplo, '¿Qué seguros tengo activos?' o 'Explícame eso de los costos flexibles'."
 
   **Historial de Conversación (para mantener el contexto):**
   {{#if history}}
@@ -230,11 +213,9 @@ const chatPrompt = ai.definePrompt({
 
   Usuario: {{{message}}}
   Zy:`,
-  // Make tools available to the prompt
-  tools: [getCoverageStatusTool, getPolicyDetailsTool, getSavingsStatusTool], // Add new tools here
+  tools: [getCoverageStatusTool, getPolicyDetailsTool, getSavingsStatusTool],
 });
 
-// --- Genkit Flow Definition ---
 const chatFlow = ai.defineFlow<
   typeof ChatInputSchema,
   typeof ChatOutputSchema
@@ -243,34 +224,25 @@ const chatFlow = ai.defineFlow<
     name: 'chatFlow',
     inputSchema: ChatInputSchema,
     outputSchema: ChatOutputSchema,
-    // Enable tool usage
-    enableExperimentalToolStreaming: true, // Recommended for better UX with tools
+    enableExperimentalToolStreaming: true,
   },
   async (input) => {
-    // Call the prompt with the user's message and history
     const llmResponse = await chatPrompt(input);
     const output = llmResponse.output;
 
-    // Ensure output is not null or undefined and handle potential errors gracefully
     if (!output) {
       console.error('AI response was null or undefined:', llmResponse);
        return { response: "¡Ups! Algo salió mal y no pude procesar tu mensaje. ¿Intentamos de nuevo?", structuredResponse: [] };
     }
 
      if (!output.response) {
-      // Provide a user-friendly error response consistent with Zy's tone
-      console.error('AI text response was empty or invalid:', llmResponse); // Log the error for debugging
+      console.error('AI text response was empty or invalid:', llmResponse);
        return { response: "¡Ups! Parece que tuve un pequeño inconveniente para procesar tu mensaje. ¿Podrías intentar de nuevo? Si sigue pasando, dime y te ayudo a contactar a un asesor.", structuredResponse: [{ type: 'button', label: 'Contactar Asesor', href: '/support' }] };
     }
 
-     // Ensure structuredResponse is an array, even if empty or missing
      if (!Array.isArray(output.structuredResponse)) {
        output.structuredResponse = [];
      }
-
-
-    // Optional: Post-processing of the response if needed (e.g., formatting)
-    // Example: Ensure consistent list formatting or paragraph breaks
 
     return output;
   }

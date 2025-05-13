@@ -2,9 +2,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useState, useEffect } from 'react'; // Import useEffect
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
 import {
   Home,
   ShieldCheck,
@@ -13,11 +13,12 @@ import {
   Settings,
   LogOut,
   Bell,
-  Bot, // Import Bot icon
+  Bot,
   Menu,
   X,
-  LifeBuoy, // Added LifeBuoy
-  Phone, // Added Phone
+  LifeBuoy,
+  Phone,
+  Coins, // Added Coins icon
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -30,13 +31,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // For mobile menu
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast'; // Import useToast
-import { NotificationsProvider, useNotifications } from '@/context/notifications-context'; // Import context
+import { useToast } from '@/hooks/use-toast';
+import { NotificationsProvider, useNotifications } from '@/context/notifications-context';
+import { mockPolicies } from '@/app/(app)/insurances/page'; // Import mockPolicies to calculate initial credits
 
-// Updated navItems based on user specification for bottom navigation - Translated to English
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/insurances', label: 'My Insurances', icon: ShieldCheck },
@@ -47,24 +48,32 @@ const navItems = [
 const profileMenuItems = [
    { href: '/profile/edit', label: 'Edit Profile', icon: User },
    { href: '/profile/settings', label: 'Settings', icon: Settings },
-   { href: '/terms', label: 'Terms & Conditions', icon: null }, // Handled separately or link here
+   { href: '/terms', label: 'Terms & Conditions', icon: null },
 ];
 
-// Inner component to consume the context
 function AppLayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter(); // Initialize useRouter
-  const { toast } = useToast(); // Initialize useToast
-  const { unreadCount } = useNotifications(); // Get unread count from context
+  const router = useRouter();
+  const { toast } = useToast();
+  const { unreadCount } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [usedCredits, setUsedCredits] = useState(0); // State for used credits
+
+  // Calculate initial used credits from active mock policies
+  useEffect(() => {
+    const initialCredits = mockPolicies
+      .filter(policy => policy.status === 'active')
+      .reduce((sum, policy) => sum + policy.creditCost, 0);
+    setUsedCredits(initialCredits);
+  }, []);
+
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
-   // Placeholder user data
    const user = {
      name: 'Zyren User',
      email: 'usuario@example.com',
-     avatarUrl: undefined, // Use undefined for no image initially
+     avatarUrl: undefined,
    };
 
    const getInitials = (name: string) => {
@@ -79,17 +88,14 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           title: "Logged Out",
           description: "You have been successfully logged out.",
       });
-      // Redirect to login page
       router.push('/login');
-      closeMobileMenu(); // Close mobile menu if open
+      closeMobileMenu();
   };
 
 
   const Header = () => (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background px-4 md:px-6">
-       {/* Left side: Logo and Mobile Menu Trigger */}
        <div className="flex items-center gap-4">
-         {/* Mobile Menu Trigger */}
          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="md:hidden">
@@ -100,15 +106,14 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
              <SheetContent side="left" className="flex flex-col p-0">
                  <div className="flex h-16 items-center justify-between border-b px-4">
                     <Link href="/dashboard" className="flex items-center gap-2 font-semibold" onClick={closeMobileMenu}>
-                       {/* Mobile Logo */}
                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="h-6 w-6 text-primary">
                            <defs>
-                            <linearGradient id="grad1_mobile" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <linearGradient id="grad1_mobile_layout" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" style={{stopColor: 'hsl(var(--primary))', stopOpacity: 1}} />
                                 <stop offset="100%" style={{stopColor: 'hsl(var(--accent))', stopOpacity: 1}} />
                             </linearGradient>
                            </defs>
-                           <path fill="url(#grad1_mobile)" d="M50,5 C74.85,5 95,25.15 95,50 C95,74.85 74.85,95 50,95 C25.15,95 5,74.85 5,50 C5,25.15 25.15,5 50,5 Z M50,15 C30.67,15 15,30.67 15,50 C15,69.33 30.67,85 50,85 C69.33,85 85,69.33 85,50 C85,30.67 69.33,15 50,15 Z M50,30 Q60,40 50,50 Q40,60 50,70 M50,30 Q70,50 50,70 M50,30 L50,70" stroke="hsl(var(--card))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                           <path fill="url(#grad1_mobile_layout)" d="M50,5 C74.85,5 95,25.15 95,50 C95,74.85 74.85,95 50,95 C25.15,95 5,74.85 5,50 C5,25.15 25.15,5 50,5 Z M50,15 C30.67,15 15,30.67 15,50 C15,69.33 30.67,85 50,85 C69.33,85 85,69.33 85,50 C85,30.67 69.33,15 50,15 Z M50,30 Q60,40 50,50 Q40,60 50,70 M50,30 Q70,50 50,70 M50,30 L50,70" stroke="hsl(var(--card))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                        <span className="">Zyren</span>
                     </Link>
@@ -123,7 +128,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
                       <li key={item.href}>
                         <Link href={item.href} passHref>
                           <Button
-                            variant={pathname.startsWith(item.href) ? 'secondary' : 'ghost'} // Use startsWith for profile/settings matching
+                            variant={pathname.startsWith(item.href) ? 'secondary' : 'ghost'}
                             className="w-full justify-start"
                             onClick={closeMobileMenu}
                           >
@@ -134,7 +139,6 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
                       </li>
                     ))}
                      <DropdownMenuSeparator />
-                      {/* Profile items in mobile menu */}
                        <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Account</DropdownMenuLabel>
                          {profileMenuItems.map((item) => (
                             <li key={item.href}>
@@ -154,7 +158,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
                             <Button
                                 variant='ghost'
                                 className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={handleLogout} // Add logout handler here for mobile
+                                onClick={handleLogout}
                                 >
                                 <LogOut className="mr-2 h-4 w-4" />
                                 Logout
@@ -165,33 +169,35 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
               </SheetContent>
          </Sheet>
 
-        {/* Desktop Logo */}
          <Link href="/dashboard" className="hidden items-center gap-2 font-semibold md:flex">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="h-8 w-8 text-primary">
                 <defs>
-                <linearGradient id="grad1_desktop" x1="0%" y1="0%" x2="100%" y2="100%">
+                <linearGradient id="grad1_desktop_layout" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" style={{stopColor: 'hsl(var(--primary))', stopOpacity: 1}} />
                     <stop offset="100%" style={{stopColor: 'hsl(var(--accent))', stopOpacity: 1}} />
                 </linearGradient>
                 </defs>
-                <path fill="url(#grad1_desktop)" d="M50,5 C74.85,5 95,25.15 95,50 C95,74.85 74.85,95 50,95 C25.15,95 5,74.85 5,50 C5,25.15 25.15,5 50,5 Z M50,15 C30.67,15 15,30.67 15,50 C15,69.33 30.67,85 50,85 C69.33,85 85,69.33 85,50 C85,30.67 69.33,15 50,15 Z M50,30 Q60,40 50,50 Q40,60 50,70 M50,30 Q70,50 50,70 M50,30 L50,70" stroke="hsl(var(--card))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                <path fill="url(#grad1_desktop_layout)" d="M50,5 C74.85,5 95,25.15 95,50 C95,74.85 74.85,95 50,95 C25.15,95 5,74.85 5,50 C5,25.15 25.15,5 50,5 Z M50,15 C30.67,15 15,30.67 15,50 C15,69.33 30.67,85 50,85 C69.33,85 85,69.33 85,50 C85,30.67 69.33,15 50,15 Z M50,30 Q60,40 50,50 Q40,60 50,70 M50,30 Q70,50 50,70 M50,30 L50,70" stroke="hsl(var(--card))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
            <span className="text-lg">Zyren</span>
          </Link>
        </div>
 
+      <div className="flex items-center gap-2 md:gap-4"> {/* Adjusted gap */}
+        {/* Used Credits Display */}
+        <div className="flex items-center gap-1 text-sm font-medium text-amber-500">
+            <Coins className="h-5 w-5" />
+            <span>{usedCredits}</span>
+            <span className="sr-only">Used Credits</span>
+        </div>
 
-      {/* Right side: Notifications and Profile */}
-      <div className="flex items-center gap-4">
-         {/* Notification Button with Badge */}
         <Link href="/notifications" passHref legacyBehavior>
-           <Button variant="ghost" size="icon" className="relative"> {/* Added relative positioning */}
+           <Button variant="ghost" size="icon" className="relative">
              <Bell className="h-5 w-5" />
              <span className="sr-only">Notifications</span>
-              {/* Unread Count Badge */}
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                   {unreadCount > 9 ? '9+' : unreadCount} {/* Cap count display */}
+                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
            </Button>
@@ -229,8 +235,8 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer" // Added cursor-pointer
-             onClick={handleLogout} // Add logout handler here for desktop dropdown
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
+             onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
@@ -243,25 +249,23 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
 
   const BottomNavBar = () => (
-    // Fixed position, background, subtle top border/shadow for separation
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/50 bg-background shadow-[0_-2px_4px_rgba(0,0,0,0.05)] md:hidden">
       <div className="flex h-16 items-center justify-around px-2">
         {navItems.map((item) => {
-          // Determine if the current path starts with the item's href
-          const isActive = (item.href === '/dashboard' && pathname === item.href) || // Exact match for dashboard
-                           (item.href !== '/dashboard' && pathname.startsWith(item.href)); // StartsWith for others
+          const isActive = (item.href === '/dashboard' && pathname === item.href) ||
+                           (item.href !== '/dashboard' && pathname.startsWith(item.href));
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                 'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium transition-colors duration-150 ease-in-out rounded-md', // Added rounding and transition
+                 'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium transition-colors duration-150 ease-in-out rounded-md',
                 isActive
-                  ? 'text-primary font-semibold bg-primary/5' // Active state: primary color, bolder font, subtle background
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50' // Inactive state: muted color, hover effect
+                  ? 'text-primary font-semibold bg-primary/5'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
               )}
-              aria-current={isActive ? 'page' : undefined} // Improve accessibility
+              aria-current={isActive ? 'page' : undefined}
             >
               <item.icon className="h-5 w-5" />
               <span>{item.label}</span>
@@ -272,29 +276,26 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
     </nav>
   );
 
-   // Determine FAB target and icon based on current path
    const isChatPage = pathname === '/chat';
    const fabHref = isChatPage ? '/dashboard' : '/chat';
-   // Always use the Bot icon
    const FabIcon = Bot;
-   const fabAriaLabel = isChatPage ? 'Go to Dashboard' : 'Chat with Zy'; // Adjusted label for clarity
+   const fabAriaLabel = isChatPage ? 'Go to Dashboard' : 'Chat with Zy';
 
   return (
     <div className="flex min-h-screen w-full flex-col">
        <Header />
-       <main className="flex-1 overflow-y-auto bg-muted/40 pb-20 md:pb-0"> {/* Increased padding-bottom for mobile nav */}
+       <main className="flex-1 overflow-y-auto bg-muted/40 pb-20 md:pb-0">
          {children}
        </main>
-        {/* Floating Action Button */}
         <Link href={fabHref} passHref legacyBehavior>
             <a
             aria-label={fabAriaLabel}
             className={cn(
                 "fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6",
-                "flex items-center justify-center", // Center the icon
-                "bg-primary text-primary-foreground", // Use primary colors
-                "hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", // Hover/Focus states
-                "transition-transform hover:scale-105" // Add subtle scale animation on hover
+                "flex items-center justify-center",
+                "bg-primary text-primary-foreground",
+                "hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                "transition-transform hover:scale-105"
             )}
             >
             <FabIcon className="h-7 w-7" />
@@ -305,7 +306,6 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   );
 }
 
-// Main layout component that includes the provider
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <NotificationsProvider>

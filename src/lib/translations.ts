@@ -37,7 +37,7 @@ export const translations = {
     wearableConfirmDescP1: "Al habilitar esta función, aceptas permitir que Zyren acceda y analice datos de tu dispositivo wearable conectado (ej. ritmo cardíaco, niveles de actividad, indicadores de estrés).",
     wearableConfirmDescP2: "Estos datos se usarán únicamente para:",
     wearableConfirmDescLi1: "Proporcionar evaluaciones de riesgo más precisas y personalizadas.",
-    wearableConfirmDescLi2: "Habilitar funciones como Primas Adaptativas (si aplica a tus pólizas).",
+    wearableConfirmDescLi2: "Habilitar funciones como Costos Adaptativos (si aplica a tus pólizas).", // Updated
     wearableConfirmDescLi3: "Ofrecer información relevante sobre bienestar dentro de la app.",
     wearableConfirmDescP3: "Posibles Costos Adicionales:",
     wearableConfirmDescP4: "Ten en cuenta que activar el análisis de Datos de Wearable puede implicar:",
@@ -50,6 +50,9 @@ export const translations = {
     wearableEnabledDesc: "Procesando solicitud. Detalles sobre la entrega/configuración del dispositivo seguirán si aplica.",
     facialRemovedTitle: "Reconocimiento Facial Eliminado",
     facialRemovedDesc: "Puedes configurarlo de nuevo más tarde si es necesario.",
+    usedCreditsTitle: "Créditos Usados",
+    usedCreditsDesc: "Total de créditos usados en todas tus pólizas activas.",
+
 
     // Dashboard Page (existing + new)
     helloUser: (name: string) => `Hola ${name},`,
@@ -79,16 +82,16 @@ export const translations = {
     marketLabel: 'Mercado (Índice)',
     inflationAlertTitle: 'Alerta de Inflación',
     inflationAlertDesc: 'La inflación sigue en aumento. Protege tus ahorros.',
-    keyTipLabel: 'Tip Clave:', // Added colon for consistency
+    keyTipLabel: 'Tip Clave:',
     keyTipContent: 'Considera diversificar tus inversiones y revisa opciones de ahorro con protección inflacionaria.',
-    smartIdeasTitle: 'Ideas Inteligentes para tu Protección',
+    smartIdeasTitle: "Ideas Inteligentes para tu Protección",
     whyNowLabel: '¿Por qué ahora?',
-    benefitLabel: 'Beneficio:', // Added colon
+    benefitLabel: 'Beneficio:',
     maybeLaterButton: 'Quizás más tarde',
     noRecommendationsText: 'No hay ideas inteligentes para ti en este momento.',
     wellbeingTitle: '¡Tu Bienestar te Premia!',
     loadingWellbeingData: 'Cargando datos de bienestar...',
-    smartwatchLabel: 'Smartwatch:', // Added colon
+    smartwatchLabel: 'Smartwatch:',
     connectedStatus: 'Conectado',
     disconnectedStatus: 'Desconectado',
     heartRateLabel: 'Ritmo Cardíaco',
@@ -100,9 +103,9 @@ export const translations = {
     stressLevelHigh: 'Alto',
     stressIncreasedAlert: 'Estrés aumentó',
     adaptivePremiumActiveTitle: '¡Excelente!',
-    adaptivePremiumActiveDesc: (policyName: string) => `Tus niveles de actividad constantes están ayudando a optimizar la prima de tu Seguro ${policyName}. ¡Sigue así! 💪`,
-    adaptivePremiumInactiveDesc: (policyName: string) => `¿Sabías que tus datos de bienestar podrían ayudarte a pagar menos en tu seguro de ${policyName}?`,
-    activateAdaptivePremiumsButton: 'Activa las Primas Adaptativas',
+    adaptivePremiumActiveDesc: (policyName: string) => `Tus niveles de actividad constantes están ayudando a optimizar el costo en créditos de tu Seguro ${policyName}. ¡Sigue así! 💪`, // Updated
+    adaptivePremiumInactiveDesc: (policyName: string) => `¿Sabías que tus datos de bienestar podrían ayudarte a usar menos créditos en tu seguro de ${policyName}?`, // Updated
+    activateAdaptivePremiumsButton: 'Activa los Costos Adaptativos', // Updated
     wearableDisconnectedText: 'Wearable desconectado o no configurado.',
     connectNowButton: 'Conectar ahora',
 
@@ -119,7 +122,6 @@ export const translations = {
     recHeatAlertBenefit: 'Recuerda mantenerte hidratado y evitar actividades extenuantes.',
     recHeatAlertCta: 'Ver Consejos de Salud',
 
-    // Carousel (updated)
     carouselHealthMessage: 'Protege tu bienestar. Cobertura completa para imprevistos de salud.',
     carouselHealthCta: 'Ver Seguros de Salud',
     carouselAccidentMessage: 'Los accidentes suceden. Prepárate con cobertura de accidentes personales.',
@@ -128,6 +130,8 @@ export const translations = {
     carouselPensionCta: 'Conocer Pensión Voluntaria',
     carouselEducationMessage: 'Asegura su futuro. Garantiza la continuidad educativa con nuestro plan.',
     carouselEducationCta: 'Explorar Seguro Educativo',
+    costLabel: "Costo",
+    creditsLabel: "créditos",
 
   },
   en: {
@@ -166,7 +170,7 @@ export const translations = {
     wearableConfirmDescP1: "By enabling this feature, you agree to allow Zyren to access and analyze data from your connected wearable device (e.g., heart rate, activity levels, stress indicators).",
     wearableConfirmDescP2: "This data will be used solely for:",
     wearableConfirmDescLi1: "Providing more accurate and personalized risk assessments.",
-    wearableConfirmDescLi2: "Enabling features like Adaptive Premiums (if applicable to your policies).",
+    wearableConfirmDescLi2: "Enabling features like Adaptive Costs (if applicable to your policies).", // Updated
     wearableConfirmDescLi3: "Offering relevant well-being insights within the app.",
     wearableConfirmDescP3: "Potential Additional Costs:",
     wearableConfirmDescP4: "Please be aware that activating Wearable Data analysis may involve:",
@@ -179,6 +183,9 @@ export const translations = {
     wearableEnabledDesc: "Processing request. Details about device delivery/setup will follow if applicable.",
     facialRemovedTitle: "Facial Recognition Removed",
     facialRemovedDesc: "You can set it up again later if needed.",
+    usedCreditsTitle: "Used Credits",
+    usedCreditsDesc: "Total credits used across all your active policies.",
+
 
     // Dashboard Page (existing + new)
     helloUser: (name: string) => `Hello ${name},`,
@@ -208,16 +215,16 @@ export const translations = {
     marketLabel: 'Market (Index)',
     inflationAlertTitle: 'Inflation Alert',
     inflationAlertDesc: 'Inflation continues to rise. Protect your savings.',
-    keyTipLabel: 'Key Tip:', // Added colon
+    keyTipLabel: 'Key Tip:',
     keyTipContent: 'Consider diversifying your investments and review savings options with inflation protection.',
-    smartIdeasTitle: 'Smart Ideas for Your Protection', // English translation
-    whyNowLabel: 'Why now?', // English translation
-    benefitLabel: 'Benefit:', // English translation and colon
-    maybeLaterButton: 'Maybe later', // English translation
-    noRecommendationsText: 'No smart ideas for you right now.', // English translation
+    smartIdeasTitle: 'Smart Ideas for Your Protection',
+    whyNowLabel: 'Why now?',
+    benefitLabel: 'Benefit:',
+    maybeLaterButton: 'Maybe later',
+    noRecommendationsText: 'No smart ideas for you right now.',
     wellbeingTitle: 'Your Well-being Rewards You!',
     loadingWellbeingData: 'Loading well-being data...',
-    smartwatchLabel: 'Smartwatch:', // Added colon
+    smartwatchLabel: 'Smartwatch:',
     connectedStatus: 'Connected',
     disconnectedStatus: 'Disconnected',
     heartRateLabel: 'Heart Rate',
@@ -229,9 +236,9 @@ export const translations = {
     stressLevelHigh: 'High',
     stressIncreasedAlert: 'Stress Increased',
     adaptivePremiumActiveTitle: 'Excellent!',
-    adaptivePremiumActiveDesc: (policyName: string) => `Your consistent activity levels are helping optimize the premium for your ${policyName} Insurance. Keep it up! 💪`,
-    adaptivePremiumInactiveDesc: (policyName: string) => `Did you know your well-being data could help you pay less for your ${policyName} insurance?`,
-    activateAdaptivePremiumsButton: 'Activate Adaptive Premiums',
+    adaptivePremiumActiveDesc: (policyName: string) => `Your consistent activity levels are helping optimize the credit cost of your ${policyName} Insurance. Keep it up! 💪`, // Updated
+    adaptivePremiumInactiveDesc: (policyName: string) => `Did you know your well-being data could help you use fewer credits for your ${policyName} insurance?`, // Updated
+    activateAdaptivePremiumsButton: 'Activate Adaptive Costs', // Updated
     wearableDisconnectedText: 'Wearable disconnected or not set up.',
     connectNowButton: 'Connect now',
 
@@ -249,7 +256,6 @@ export const translations = {
     recHeatAlertCta: 'See Health Tips',
 
 
-    // Carousel (updated)
     carouselHealthMessage: 'Protect your well-being. Full coverage for health contingencies.',
     carouselHealthCta: 'View Health Insurance',
     carouselAccidentMessage: 'Accidents happen. Be prepared with personal accident coverage.',
@@ -258,6 +264,9 @@ export const translations = {
     carouselPensionCta: 'Learn about Voluntary Pension',
     carouselEducationMessage: 'Secure their future. Ensure education continuity with our plan.',
     carouselEducationCta: 'Explore Education Insurance',
+    costLabel: "Cost",
+    creditsLabel: "credits",
 
   }
 };
+
