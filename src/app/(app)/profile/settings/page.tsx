@@ -24,7 +24,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translations } from '@/lib/translations';
-import { mockPolicies } from '@/app/(app)/insurances/page'; // Import to calculate initial credits
+import { mockPolicies } from '@/data/policies'; // Import to calculate initial credits
 
 // Mock settings - fetch these from user preferences API
 const mockSettings = {
@@ -45,11 +45,13 @@ export default function SettingsPage() {
           const storedTheme = localStorage.getItem('theme');
           if (storedTheme === 'dark') return true;
           if (storedTheme === 'light') return false;
-          if (window.matchMedia) {
+          // Only use window.matchMedia if localStorage theme is not set
+          // This prevents hydration mismatch if server defaults to light but browser prefers dark
+          if (typeof window.matchMedia === 'function') {
             return window.matchMedia('(prefers-color-scheme: dark)').matches;
           }
       }
-      return false;
+      return false; // Default to false if no preference or window is undefined
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isWearableConfirmOpen, setIsWearableConfirmOpen] = useState(false);
@@ -88,11 +90,13 @@ export default function SettingsPage() {
       if (storedLang && (storedLang === 'en' || storedLang === 'es')) {
         setLanguage(storedLang);
       } else {
+        // Set initial language from mockSettings and store it if not already set
         setLanguage(mockSettings.language);
         localStorage.setItem('language', mockSettings.language);
       }
     }
-  }, []);
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only on mount
 
 
   const handleSaveChanges = async () => {
@@ -101,6 +105,7 @@ export default function SettingsPage() {
     console.log('Saving settings:', newSettings);
 
     localStorage.setItem('language', language);
+    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     setIsLoading(false);
@@ -108,6 +113,7 @@ export default function SettingsPage() {
       title: t.settingsSavedTitle,
       description: t.settingsSavedDesc,
     });
+    // Update mock settings to reflect changes
     Object.assign(mockSettings, newSettings);
   };
 
@@ -120,7 +126,7 @@ export default function SettingsPage() {
        console.log('Removing facial recognition...');
        await new Promise((resolve) => setTimeout(resolve, 1000));
        setIsLoading(false);
-       mockSettings.facialRecognitionEnabled = false;
+       mockSettings.facialRecognitionEnabled = false; // Update mock state
        toast({
            title: t.facialRemovedTitle,
            description: t.facialRemovedDesc,
@@ -129,8 +135,10 @@ export default function SettingsPage() {
 
    const handleWearableSwitchChange = (checked: boolean) => {
        if (checked) {
+           // If user is enabling wearable data, show confirmation dialog
            setIsWearableConfirmOpen(true);
        } else {
+           // If user is disabling, directly update state
            setWearableDataEnabled(false);
        }
    };
@@ -145,14 +153,15 @@ export default function SettingsPage() {
    };
 
    const cancelWearableTerms = () => {
-       setWearableDataEnabled(false);
+       // User cancelled, so wearable data should remain disabled (or revert to its previous state)
+       setWearableDataEnabled(false); // Ensure it's off if they were trying to enable it
        setIsWearableConfirmOpen(false);
    };
 
    const hasChanges = wearableDataEnabled !== mockSettings.wearableDataEnabled ||
                      expertMode !== mockSettings.expertMode ||
                      language !== mockSettings.language ||
-                     isDarkMode !== (mockSettings.darkMode === undefined ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) : mockSettings.darkMode);
+                     isDarkMode !== (mockSettings.darkMode === undefined ? (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches) : mockSettings.darkMode);
 
 
   return (
@@ -227,7 +236,7 @@ export default function SettingsPage() {
                    </Tooltip>
                </div>
 
-               <div className="flex items-center justify-between space-x-4 opacity-70 cursor-not-allowed">
+               <div className="flex items-center justify-between space-x-4"> {/* Mobile + Context is always active */}
                    <div className="flex items-center space-x-3">
                       <Smartphone className="h-5 w-5 text-muted-foreground" />
                       <Label htmlFor="mobile-context-info" className="flex-1">
@@ -235,7 +244,7 @@ export default function SettingsPage() {
                          <p className="text-xs text-muted-foreground">{t.mobileContextDesc}</p>
                       </Label>
                    </div>
-                    <Switch id="mobile-context-info" checked={true} disabled={true} aria-readonly={true} />
+                    <Switch id="mobile-context-info" checked={true} disabled={true} aria-readonly={true} /> {/* Always checked and disabled */}
                </div>
 
                 <div className="flex items-center justify-between space-x-4">
@@ -249,7 +258,7 @@ export default function SettingsPage() {
                      <Switch
                        id="wearable-data-switch"
                        checked={wearableDataEnabled}
-                       onCheckedChange={handleWearableSwitchChange}
+                       onCheckedChange={handleWearableSwitchChange} // Use new handler
                        disabled={isLoading}
                      />
                 </div>
