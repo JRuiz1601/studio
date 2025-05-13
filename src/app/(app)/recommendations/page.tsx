@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,15 +13,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Info, Lightbulb, BarChart, TrendingUp, Fingerprint, Check, Loader, GraduationCap, Users } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose
-} from "@/components/ui/dialog";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogFooter,
+//   DialogClose
+// } from "@/components/ui/dialog";
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -91,7 +90,7 @@ const mockRecommendations: Recommendation[] = [
 type SignatureStatus = 'idle' | 'signing' | 'success' | 'error';
 
 export default function RecommendationsPage() {
-  const [recommendations, setRecommendations] = useState<Recommendation[]>(mockRecommendations);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [selectedRec, setSelectedRec] = useState<Recommendation | null>(null);
   const [signatureStatus, setSignatureStatus] = useState<SignatureStatus>('idle');
   const { toast } = useToast();
@@ -99,6 +98,7 @@ export default function RecommendationsPage() {
 
   // Simulate fetching data
   useEffect(() => {
+    setIsLoading(true);
     setTimeout(() => {
       setRecommendations(mockRecommendations);
       setIsLoading(false);
@@ -230,6 +230,7 @@ export default function RecommendationsPage() {
         </Card>
       )}
 
+       {/* Dialog temporarily commented out for debugging
        <Dialog open={!!selectedRec} onOpenChange={(open) => { if (!open) { setSelectedRec(null); setSignatureStatus('idle'); } }}>
            <DialogContent className="sm:max-w-lg">
              {selectedRec && (
@@ -280,8 +281,7 @@ export default function RecommendationsPage() {
              )}
            </DialogContent>
         </Dialog>
-
+        */}
     </div>
   );
 }
-
