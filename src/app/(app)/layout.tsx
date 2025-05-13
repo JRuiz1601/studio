@@ -20,6 +20,7 @@ import {
   Phone,
   Coins,
   Headset,
+  MapIcon, // Added MapIcon
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'; // Added SheetHeader, SheetTitle
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -43,6 +44,7 @@ const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/insurances', label: 'My Insurances', icon: ShieldCheck },
   { href: '/recommendations', label: 'Ideas', icon: Lightbulb },
+  { href: '/map', label: 'Map', icon: MapIcon }, // Added Map item
   { href: '/profile/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -251,8 +253,9 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/50 bg-background shadow-[0_-2px_4px_rgba(0,0,0,0.05)] md:hidden">
       <div className="flex h-16 items-center justify-around px-2">
         {navItems.map((item) => {
-          const isActive = (item.label === 'Home' && pathname === item.href) || // For Home, exact match
-                           (item.label !== 'Home' && pathname.startsWith(item.href)); // For others, startsWith
+          const isActive = (item.label === 'Home' && pathname === item.href) || 
+                           (item.label === 'Map' && pathname === item.href) || // Exact match for Map
+                           (item.label !== 'Home' && item.label !== 'Map' && pathname.startsWith(item.href)); 
 
           return (
             <Link
@@ -277,7 +280,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
    const isChatPage = pathname === '/chat';
    const fabHref = isChatPage ? '/dashboard' : '/chat';
-   const FabIcon = Bot; // Always Bot icon for consistency as per previous interpretation
+   const FabIcon = Bot; 
    const fabAriaLabel = isChatPage ? 'Go to Dashboard' : 'Chat with Zy';
 
   return (
