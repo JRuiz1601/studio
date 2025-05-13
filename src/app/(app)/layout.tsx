@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -35,12 +36,12 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { NotificationsProvider, useNotifications } from '@/context/notifications-context'; // Import context
 
-// Updated navItems based on user specification for bottom navigation
+// Updated navItems based on user specification for bottom navigation - Translated to English
 const navItems = [
-  { href: '/dashboard', label: 'Inicio', icon: Home },
-  { href: '/insurances', label: 'Mis Seguros', icon: ShieldCheck },
-  { href: '/recommendations', label: 'Ideas', icon: Lightbulb }, // Changed label to "Ideas"
-  { href: '/profile/settings', label: 'Ajustes', icon: Settings }, // Changed label to "Ajustes" and icon to Settings, linking to settings page
+  { href: '/dashboard', label: 'Home', icon: Home },
+  { href: '/insurances', label: 'My Insurances', icon: ShieldCheck },
+  { href: '/recommendations', label: 'Ideas', icon: Lightbulb },
+  { href: '/profile/settings', label: 'Settings', icon: Settings },
 ];
 
 const profileMenuItems = [
@@ -61,7 +62,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
    // Placeholder user data
    const user = {
-     name: 'Usuario Zyren',
+     name: 'Zyren User',
      email: 'usuario@example.com',
      avatarUrl: undefined, // Use undefined for no image initially
    };
@@ -312,3 +313,4 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     </NotificationsProvider>
   );
 }
+
