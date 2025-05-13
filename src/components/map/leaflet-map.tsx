@@ -41,24 +41,26 @@ interface LeafletMapProps {
   onRecenter?: () => void; // Optional: If needed for more complex recenter logic
 }
 
-const RecenterAutomatically = ({ center, zoom }: { center: LatLngExpression, zoom: number }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
-  return null;
-};
+// This component is not currently used but kept for potential future use.
+// const RecenterAutomatically = ({ center, zoom }: { center: LatLngExpression, zoom: number }) => {
+//   const map = useMap();
+//   useEffect(() => {
+//     map.setView(center, zoom);
+//   }, [center, zoom, map]);
+//   return null;
+// };
 
 
 export default function LeafletMap({ center, zoom, userPosition, onRecenter }: LeafletMapProps) {
   const mapRef = useRef<LeafletMapInstance | null>(null);
 
   // Effect to handle recentering if the onRecenter prop is called or center prop changes
+  // This effect is crucial if MapContainer doesn't re-initialize on center/zoom prop change
   useEffect(() => {
     if (mapRef.current && center) {
       mapRef.current.setView(center, zoom);
     }
-  }, [center, zoom]);
+  }, [center, zoom]); // Dependencies: center, zoom
 
 
   return (
@@ -69,7 +71,7 @@ export default function LeafletMap({ center, zoom, userPosition, onRecenter }: L
       whenCreated={(mapInstance) => {
         mapRef.current = mapInstance;
       }}
-      key={`${center.toString()}-${zoom}`} // Add a key to force re-render if center/zoom changes significantly
+      // Removed dynamic key: key={`${center.toString()}-${zoom}`} to prevent re-initialization errors
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -80,3 +82,4 @@ export default function LeafletMap({ center, zoom, userPosition, onRecenter }: L
     </MapContainer>
   );
 }
+
