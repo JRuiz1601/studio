@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { ReactNode } from 'react';
@@ -18,7 +17,7 @@ import {
   X,
   LifeBuoy,
   Phone,
-  Coins, // Added Coins icon
+  Coins,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -36,7 +35,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { NotificationsProvider, useNotifications } from '@/context/notifications-context';
-import { mockPolicies } from '@/app/(app)/insurances/page'; // Import mockPolicies to calculate initial credits
+import { mockPolicies } from '@/data/policies'; // Import mockPolicies from the new data file
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
@@ -57,9 +56,8 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const { unreadCount } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [usedCredits, setUsedCredits] = useState(0); // State for used credits
+  const [usedCredits, setUsedCredits] = useState(0);
 
-  // Calculate initial used credits from active mock policies
   useEffect(() => {
     const initialCredits = mockPolicies
       .filter(policy => policy.status === 'active')
@@ -183,8 +181,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
          </Link>
        </div>
 
-      <div className="flex items-center gap-2 md:gap-4"> {/* Adjusted gap */}
-        {/* Used Credits Display */}
+      <div className="flex items-center gap-2 md:gap-4">
         <div className="flex items-center gap-1 text-sm font-medium text-amber-500">
             <Coins className="h-5 w-5" />
             <span>{usedCredits}</span>
@@ -288,7 +285,9 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
          {children}
        </main>
         <Link href={fabHref} passHref legacyBehavior>
-            <a
+            <Button
+            variant="default"
+            size="icon"
             aria-label={fabAriaLabel}
             className={cn(
                 "fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6",
@@ -299,7 +298,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
             )}
             >
             <FabIcon className="h-7 w-7" />
-            </a>
+            </Button>
         </Link>
        <BottomNavBar />
     </div>
@@ -313,4 +312,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     </NotificationsProvider>
   );
 }
-

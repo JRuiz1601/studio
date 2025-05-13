@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -15,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { SlidersHorizontal, Info, PlusCircle, GraduationCap, ShieldCheck, HeartPulse, Home, TrendingUp } from 'lucide-react'; // Added more icons
+import { SlidersHorizontal, Info, PlusCircle, History, Coins, LucideIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -26,61 +25,30 @@ import {
   DialogFooter,
   DialogClose
 } from "@/components/ui/dialog";
-import { PolicyCard } from '@/components/policy-card'; // Use the enhanced card
-import { Separator } from '@/components/ui/separator'; // Import Separator
-import { cn } from '@/lib/utils'; // Import cn
-
-// Define specific icons for policy types
-export const policyIcons: { [key in PolicyType]: React.ComponentType<{ className?: string }> } = {
-    health: HeartPulse,
-    accident: ShieldCheck,
-    pension: TrendingUp,
-    renta: Home,
-    education: GraduationCap,
-};
-
-export type PolicyType = 'health' | 'accident' | 'pension' | 'renta' | 'education';
-export type PolicyStatus = 'active' | 'manual' | 'auto-pending' | 'inactive';
-
-export interface Policy {
-  id: string;
-  name: string;
-  type: PolicyType;
-  status: PolicyStatus;
-  isAutoActive: boolean;
-  isAdaptivePremium: boolean;
-  creditCost: number; // Changed from premium to creditCost
-  coverageAmount: number;
-  goalAmount?: number;
-  nextPaymentDate?: string;
-  activationHistory: { reason: string; date: string }[];
-  description?: string;
-}
-
-// Mock data with creditCost
-const mockPolicies: Policy[] = [
-  { id: 'health1', name: 'Salud Esencial', type: 'health', status: 'active', isAutoActive: true, isAdaptivePremium: true, creditCost: 50, coverageAmount: 10000, nextPaymentDate: '2025-06-01', activationHistory: [{ reason: 'Initial activation', date: '2023-10-01' }], description: 'Comprehensive health coverage for peace of mind.' },
-  { id: 'accident1', name: 'Accidentes Personales Plus', type: 'accident', status: 'auto-pending', isAutoActive: true, isAdaptivePremium: false, creditCost: 25, coverageAmount: 5000, nextPaymentDate: '2025-06-15', activationHistory: [], description: 'Protection against unexpected accidents and injuries.' },
-  { id: 'pension1', name: 'Pensión Voluntaria Futuro', type: 'pension', status: 'manual', isAutoActive: false, isAdaptivePremium: true, creditCost: 100, coverageAmount: 0, goalAmount: 50000, activationHistory: [{ reason: 'Manual contribution', date: '2023-11-15' }], description: 'Build your retirement savings flexibly.' },
-  { id: 'edu1', name: 'Seguro Educativo Crecer', type: 'education', status: 'active', isAutoActive: true, isAdaptivePremium: true, creditCost: 70, coverageAmount: 0, goalAmount: 20000, nextPaymentDate: '2025-07-01', activationHistory: [{ reason: 'Initial activation', date: '2024-01-10' }], description: 'Secure the future education of your loved ones.' },
-];
-
-const potentialPolicies: Pick<Policy, 'id' | 'name' | 'type' | 'description' | 'creditCost'>[] = [
-    { id: 'potential-renta', name: 'Rentas Voluntarias Tranquilidad', type: 'renta', description: 'Flexible long-term savings for retirement or other goals.', creditCost: 60 },
-];
+import { PolicyCard } from '@/components/policy-card';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+import {
+  mockPolicies,
+  potentialPolicies,
+  policyIcons,
+  type Policy,
+  type PolicyType,
+  // type PolicyStatus, // PolicyStatus is defined and used in policy-card.tsx and imported there
+} from '@/data/policies';
 
 
 export default function InsurancesPage() {
-  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [policiesData, setPoliciesData] = useState<Policy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
-  const [simulatedCost, setSimulatedCost] = useState<number | null>(null); // Changed from simulatedPremium
+  const [simulatedCost, setSimulatedCost] = useState<number | null>(null);
   const [formattedSliderAmounts, setFormattedSliderAmounts] = useState<{ min: string, max: string, current: string } | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
     setTimeout(() => {
-        setPolicies(mockPolicies);
+        setPoliciesData(mockPolicies);
         setIsLoading(false);
     }, 1000);
   }, []);
@@ -96,7 +64,7 @@ export default function InsurancesPage() {
               max: maxVal.toLocaleString(),
               current: coverageOrGoal.toLocaleString()
           });
-          setSimulatedCost(null); // Reset simulated cost
+          setSimulatedCost(null);
       } else {
           setFormattedSliderAmounts(null);
       }
@@ -104,7 +72,7 @@ export default function InsurancesPage() {
 
 
   const handleToggleAutoActivate = (id: string, checked: boolean) => {
-    setPolicies(prev =>
+    setPoliciesData(prev =>
       prev.map(p => (p.id === id ? { ...p, isAutoActive: checked } : p))
     );
     if (selectedPolicy && selectedPolicy.id === id) {
@@ -113,7 +81,7 @@ export default function InsurancesPage() {
   };
 
   const handleToggleAdaptivePremium = (id: string, checked: boolean) => {
-    setPolicies(prev =>
+    setPoliciesData(prev =>
       prev.map(p => (p.id === id ? { ...p, isAdaptivePremium: checked } : p))
     );
     if (selectedPolicy && selectedPolicy.id === id) {
@@ -127,21 +95,23 @@ export default function InsurancesPage() {
       const currentVal = selectedPolicy.goalAmount ?? selectedPolicy.coverageAmount ?? 0;
       const newVal = value[0];
 
-      const factor = currentVal > 0 ? newVal / currentVal : 1;
-      let simulated = baseCost * factor;
-
-      if (selectedPolicy.type === 'pension' || selectedPolicy.type === 'renta' || selectedPolicy.type === 'education') {
-        simulated = baseCost + (newVal - currentVal) * 0.005; // Example: cost adjustment factor
-      } else {
-         simulated = baseCost * factor;
+      let simulated = baseCost;
+      if (currentVal > 0) {
+        const factor = newVal / currentVal;
+        if (selectedPolicy.type === 'pension' || selectedPolicy.type === 'renta' || selectedPolicy.type === 'education') {
+          simulated = baseCost + (newVal - currentVal) * 0.005;
+        } else {
+           simulated = baseCost * factor;
+        }
       }
 
-      setSimulatedCost(Math.max(5, Math.round(simulated))); // Ensure minimum cost in credits
+
+      setSimulatedCost(Math.max(5, Math.round(simulated)));
       setFormattedSliderAmounts(prev => prev ? { ...prev, current: newVal.toLocaleString() } : null);
     }
   };
 
-  const activePolicies = policies.filter(p => p.status !== 'inactive');
+  const activePolicies = policiesData.filter(p => p.status !== 'inactive');
   const availablePolicies = potentialPolicies.filter(pp =>
     !activePolicies.some(ap => ap.type === pp.type)
   );
@@ -215,11 +185,11 @@ export default function InsurancesPage() {
             {availablePolicies.length > 0 ? (
                 <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                   {availablePolicies.map((potential) => {
-                     const Icon = policyIcons[potential.type] || Info;
+                     const IconComponent = policyIcons[potential.type] || Info;
                      return (
                         <Card key={potential.id} className="border-dashed border-primary/50 hover:shadow-lg transition-shadow flex flex-col justify-between">
                            <CardHeader className="flex-row items-center gap-4 space-y-0">
-                                <Icon className="h-8 w-8 text-primary flex-shrink-0" />
+                                <IconComponent className="h-8 w-8 text-primary flex-shrink-0" />
                                 <CardTitle className="text-lg">{potential.name}</CardTitle>
                            </CardHeader>
                            <CardContent>
@@ -398,4 +368,3 @@ const Label = ({ children, ...props }: React.LabelHTMLAttributes<HTMLLabelElemen
     {children}
   </label>
 );
-

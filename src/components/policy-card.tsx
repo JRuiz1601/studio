@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,12 +10,12 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, SlidersHorizontal, Clock, Info, ShieldCheck, HeartPulse, Home, TrendingUp, GraduationCap, Zap, Activity, CalendarDays, Coins } from 'lucide-react'; // Added Coins
-import type { Policy, PolicyStatus, PolicyType } from '@/app/(app)/insurances/page';
-import { policyIcons } from '@/app/(app)/insurances/page';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, SlidersHorizontal, Clock, Info, Zap, Activity, CalendarDays, Coins } from 'lucide-react';
+import type { Policy, PolicyStatus } from '@/data/policies'; // Import PolicyStatus from data/policies
+import { policyIcons } from '@/data/policies'; // Import policyIcons from data/policies
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 
 interface PolicyCardProps {
   policy: Policy;
@@ -39,6 +38,9 @@ export function PolicyCard({ policy, onClick }: PolicyCardProps) {
   useEffect(() => {
     const amount = policy.goalAmount ?? policy.coverageAmount;
     if (amount !== undefined && amount !== null) {
+        // Simulate fetching or calculating formatted amount
+        // In a real app, this might involve API calls or complex formatting logic
+        // For now, directly format it
         setFormattedAmount(amount.toLocaleString());
     } else {
         setFormattedAmount(null);
