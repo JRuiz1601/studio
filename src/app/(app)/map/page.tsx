@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -145,16 +144,24 @@ export default function MapPage() {
           const { latitude, longitude } = position.coords;
           const newPos: LatLngExpression = [latitude, longitude];
           setCurrentPosition(newPos);
-          if (isLoadingInitialLocation) { // Only set mapCenter on initial load or if not set
+          if (isLoadingInitialLocation || !mapCenter) { // Only set mapCenter on initial load or if not set
             setMapCenter(newPos);
             setIsLoadingInitialLocation(false);
           }
           setError(null);
         },
-        (err) => {
+        (err: GeolocationPositionError) => { // Explicitly type err
           if (!isMounted) return;
-          console.error("Error getting location:", err);
-          setError(`Error getting location: ${err.message}. Displaying default (Cali).`);
+          const errorMessage = err.message || "An unknown error occurred";
+          console.error(
+            "Geolocation error - Code:",
+            err.code,
+            "Message:",
+            errorMessage,
+            "Full error object:",
+            err
+          );
+          setError(`Error getting location: ${errorMessage}. Displaying default (Cali).`);
           if (isLoadingInitialLocation) { // If initial load fails, center on Cali
              setCurrentPosition(null); // User location couldn't be fetched
              setMapCenter(caliCoords);
@@ -165,12 +172,14 @@ export default function MapPage() {
       );
     } else {
       if (!isMounted) return;
-      setError("Geolocation is not supported. Displaying default (Cali).");
+      const noGeoMessage = "Geolocation is not supported by this browser.";
+      console.error(noGeoMessage);
+      setError(`${noGeoMessage} Displaying default (Cali).`);
       setMapCenter(caliCoords);
       setIsLoadingInitialLocation(false);
     }
     return () => { isMounted = false; /* TODO: Clear watchPosition if navigator.geolocation.clearWatch exists */ };
-  }, [isLoadingInitialLocation]); // Rerun only on initial load status change
+  }, [isLoadingInitialLocation, mapCenter]); // Rerun if initial load status or mapCenter changes
 
   const handleRecenterMapToUserLocation = () => {
     if (currentPosition) {
@@ -268,7 +277,7 @@ export default function MapPage() {
          onClick={handleRecenterMapToUserLocation}
          variant="default"
          size="icon"
-         className="absolute bottom-20 right-4 z-[1000] h-12 w-12 rounded-full shadow-lg md:bottom-6 md:right-6"
+         className="absolute bottom-[calc(4rem+1rem)] right-4 z-[1000] h-12 w-12 rounded-full shadow-lg md:bottom-6 md:right-6" // Adjusted bottom margin
          aria-label="Recenter map"
        >
          <LocateFixed className="h-5 w-5" />
@@ -276,4 +285,3 @@ export default function MapPage() {
     </div>
   );
 }
-
