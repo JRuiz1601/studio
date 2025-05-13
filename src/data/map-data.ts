@@ -7,7 +7,7 @@ export interface RiskZone {
   center: LatLngExpression;
   radius: number; // in meters
   level: 'high' | 'medium';
-  type: string; // e.g., "Inundación", "Deslizamiento", "Actividad Sísmica"
+  type: string; // e.g., "High Crime Area", "Theft Hotspot"
   description: string; // More details for the popup
 }
 
@@ -29,23 +29,24 @@ export interface WeatherData {
   dailyTrend: Array<{ hour: number; temperature: number }>; // For the simple chart
 }
 
-// Sample Risk Zones in Cali, Colombia
+// Sample Risk Zones in Cali, Colombia - Updated for crime-related risks
 export const riskZonesCali: RiskZone[] = [
-  // High Risk Zones (5-7)
-  { id: 'hr1', center: [3.4400, -76.5200], radius: 700, level: 'high', type: 'Inundación Frecuente', description: 'Zona propensa a inundaciones durante temporada de lluvias intensas.' },
-  { id: 'hr2', center: [3.4650, -76.5450], radius: 500, level: 'high', type: 'Deslizamiento de Tierra', description: 'Ladera inestable con historial de deslizamientos.' },
-  { id: 'hr3', center: [3.4210, -76.5100], radius: 600, level: 'high', type: 'Actividad Delictiva Alta', description: 'Índices elevados de robos y hurtos reportados.' },
-  { id: 'hr4', center: [3.4800, -76.5000], radius: 800, level: 'high', type: 'Contaminación Industrial', description: 'Cercanía a fuentes de emisión contaminante.' },
-  { id: 'hr5', center: [3.4000, -76.5500], radius: 550, level: 'high', type: 'Falla Geológica Activa', description: 'Proximidad a falla con actividad sísmica registrada.' },
-  // Medium Risk Zones (8-10)
-  { id: 'mr1', center: [3.4550, -76.5050], radius: 1000, level: 'medium', type: 'Congestión Vehicular Crítica', description: 'Altos niveles de tráfico en horas pico, riesgo de accidentes.' },
-  { id: 'mr2', center: [3.4300, -76.5350], radius: 900, level: 'medium', type: 'Infraestructura Eléctrica Antigua', description: 'Posibilidad de cortes de energía o sobrecargas.' },
-  { id: 'mr3', center: [3.4700, -76.5150], radius: 850, level: 'medium', type: 'Deficiencia Drenaje Pluvial', description: 'Acumulación de agua en calles durante lluvias moderadas.' },
-  { id: 'mr4', center: [3.4100, -76.5000], radius: 1100, level: 'medium', type: 'Ruido Urbano Elevado', description: 'Niveles de ruido constantes que pueden afectar la salud.' },
-  { id: 'mr5', center: [3.4900, -76.5250], radius: 950, level: 'medium', type: 'Escasez Hídrica Ocasional', description: 'Sectores con reportes de interrupciones en el suministro de agua.' },
-  { id: 'mr6', center: [3.4250, -76.5550], radius: 800, level: 'medium', type: 'Vientos Fuertes Estacionales', description: 'Ráfagas de viento que pueden causar daños menores.' },
-  { id: 'mr7', center: [3.4600, -76.4900], radius: 1000, level: 'medium', type: 'Susceptibilidad a Incendios Forestales (Periferia)', description: 'Cercanía a zonas verdes con riesgo en temporada seca.' },
-  { id: 'mr8', center: [3.4050, -76.5280], radius: 750, level: 'medium', type: 'Calidad del Aire Moderada', description: 'Concentraciones de partículas que pueden afectar a personas sensibles.' },
+  // High Risk Zones (Crime-related)
+  { id: 'hr1', center: [3.4400, -76.5200], radius: 700, level: 'high', type: 'High Theft Zone', description: 'Area with frequent reports of pickpocketing and muggings.' },
+  { id: 'hr2', center: [3.4650, -76.5450], radius: 500, level: 'high', type: 'Assault Hotspot', description: 'High incidence of reported assaults and violent crime.' },
+  { id: 'hr3', center: [3.4210, -76.5100], radius: 600, level: 'high', type: 'Burglary Prone Area', description: 'Elevated number of residential and commercial burglaries.' },
+  { id: 'hr4', center: [3.4800, -76.5000], radius: 800, level: 'high', type: 'Vehicle Theft Zone', description: 'Frequent reports of car break-ins and vehicle theft.' },
+  { id: 'hr5', center: [3.4000, -76.5500], radius: 550, level: 'high', type: 'Gang Activity Reported', description: 'Area known for gang-related activities and associated risks.' },
+  
+  // Medium Risk Zones (Crime-related)
+  { id: 'mr1', center: [3.4550, -76.5050], radius: 1000, level: 'medium', type: 'Moderate Theft Reports', description: 'Occasional reports of theft and petty crime.' },
+  { id: 'mr2', center: [3.4300, -76.5350], radius: 900, level: 'medium', type: 'Nighttime Safety Concerns', description: 'Reduced visibility and safety concerns reported during nighttime hours.' },
+  { id: 'mr3', center: [3.4700, -76.5150], radius: 850, level: 'medium', type: 'Vandalism Reports', description: 'Area with some reports of vandalism and property damage.' },
+  { id: 'mr4', center: [3.4100, -76.5000], radius: 1100, level: 'medium', type: 'Public Disturbance Zone', description: 'Occasional public disturbances and loitering reported.' },
+  { id: 'mr5', center: [3.4900, -76.5250], radius: 950, level: 'medium', type: 'Area with Drug-Related Activity', description: 'Reports of illicit drug activity in the vicinity.' },
+  { id: 'mr6', center: [3.4250, -76.5550], radius: 800, level: 'medium', type: 'Scam/Fraud Alert Area', description: 'Some reports of scams or fraudulent activities targeting individuals.' },
+  { id: 'mr7', center: [3.4600, -76.4900], radius: 1000, level: 'medium', type: 'Property Crime Watch', description: 'Neighborhood watch active due to moderate property crime levels.' },
+  { id: 'mr8', center: [3.4050, -76.5280], radius: 750, level: 'medium', type: 'Caution Advised After Dark', description: 'General caution advised for individuals after dark in this area.' },
 ];
 
 
@@ -79,3 +80,4 @@ export const weatherDataCali: WeatherData = {
     { hour: 21, temperature: 23 }, { hour: 22, temperature: 23 }, { hour: 23, temperature: 22 },
   ]
 };
+

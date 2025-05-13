@@ -204,7 +204,7 @@ export default function MapPage() {
 
   if (isLoadingInitialLocation && !mapCenter) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-theme(spacing.16)-var(--header-height,0px))] bg-muted">
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-theme(spacing.16)-var(--header-height,4rem))] bg-muted">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground">Detecting your location...</p>
       </div>
@@ -225,8 +225,8 @@ export default function MapPage() {
         {mapComponent}
       </div>
 
-      {/* Map Controls Overlay */}
-      <div className="absolute top-4 left-4 z-[1000] space-y-2">
+      {/* Map Controls Overlay - Moved to top-right */}
+      <div className="absolute top-4 right-4 z-[1000] space-y-2">
         <Button
           onClick={() => setShowRiskZones(!showRiskZones)}
           variant="secondary"
@@ -276,3 +276,4 @@ export default function MapPage() {
     </div>
   );
 }
+
