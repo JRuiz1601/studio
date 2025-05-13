@@ -7,7 +7,6 @@ import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Loader2, LocateFixed, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Card, CardContent } from '@/components/ui/card';
 
 // Dynamically import the LeafletMap component with SSR turned off
 const LeafletMap = dynamic(() => import('@/components/map/leaflet-map'), {
@@ -22,25 +21,26 @@ const LeafletMap = dynamic(() => import('@/components/map/leaflet-map'), {
 
 export default function MapPage() {
   const [currentPosition, setCurrentPosition] = useState<LatLngExpression | null>(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [isLoadingInitialLocation, setIsLoadingInitialLocation] = useState(true); // Renamed for clarity
   const [error, setError] = useState<string | null>(null);
-  const [mapCenter, setMapCenter] = useState<LatLngExpression | null>(null);
+  const [mapCenter, setMapCenter] = useState<LatLngExpression | null>(null); // Will be set once
 
   // Default center (Cali, Colombia - will be overridden by user location if available)
-  const defaultCenter: LatLngExpression = [3.4516, -76.5320];
+  // Making it a constant as it doesn't change.
+  const defaultInitialCenter: LatLngExpression = [3.4516, -76.5320];
   const defaultZoom = 15;
 
   useEffect(() => {
     let isMounted = true;
     if (typeof navigator !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition( // Changed to getCurrentPosition for initial load
+      navigator.geolocation.getCurrentPosition(
         (position) => {
           if (isMounted) {
             const { latitude, longitude } = position.coords;
             const newPos: LatLngExpression = [latitude, longitude];
             setCurrentPosition(newPos);
             setMapCenter(newPos); // Set map center once location is fetched
-            setIsLoadingLocation(false);
+            setIsLoadingInitialLocation(false);
             setError(null);
           }
         },
@@ -48,42 +48,42 @@ export default function MapPage() {
           if (isMounted) {
             console.error("Error getting location:", err);
             setError(`Error getting location: ${err.message}. Displaying default location.`);
-            setCurrentPosition(defaultCenter); // Fallback to default if error
-            setMapCenter(defaultCenter);
-            setIsLoadingLocation(false);
+            setCurrentPosition(defaultInitialCenter); // Fallback to default if error
+            setMapCenter(defaultInitialCenter); // Set map to default on error
+            setIsLoadingInitialLocation(false);
           }
         },
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 60000, // Allow using a cached position up to 1 minute old
+          maximumAge: 60000,
         }
       );
-      return () => {
-        isMounted = false;
-      };
     } else {
       if (isMounted) {
         setError("Geolocation is not supported by this browser. Displaying default location.");
-        setCurrentPosition(defaultCenter); // Fallback to default if no geolocation
-        setMapCenter(defaultCenter);
-        setIsLoadingLocation(false);
+        setCurrentPosition(defaultInitialCenter); // Fallback to default if no geolocation
+        setMapCenter(defaultInitialCenter); // Set map to default if no geolocation support
+        setIsLoadingInitialLocation(false);
       }
-      return () => { isMounted = false; };
     }
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, []); // defaultInitialCenter is a constant, no need to list as dependency
 
-  const handleRecenter = () => {
+  const handleRecenterMapToUserLocation = () => {
     if (currentPosition) {
-      setMapCenter(currentPosition); // Trigger re-center in LeafletMap component
+      setMapCenter(currentPosition); 
     }
   };
 
-  if (isLoadingLocation && !mapCenter) { // Show loader only if mapCenter is not yet set (initial load)
+  // Show loader until initial map center is determined (either user's location or default)
+  if (isLoadingInitialLocation || !mapCenter) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-4">
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-theme(spacing.16))] md:h-[calc(100vh-theme(spacing.16))]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Detecting your location...</p>
+        <p className="text-muted-foreground">Detecting your location or loading map...</p>
       </div>
     );
   }
@@ -99,18 +99,17 @@ export default function MapPage() {
        )}
 
       <LeafletMap
-        center={mapCenter || defaultCenter}
+        center={mapCenter} // mapCenter is now guaranteed to be non-null here
         zoom={defaultZoom}
-        userPosition={currentPosition} // Pass user position separately for the marker
-        onRecenter={() => mapCenter && currentPosition && mapCenter[0] === currentPosition[0] && mapCenter[1] === currentPosition[1] ? null : handleRecenter()}
+        userPosition={currentPosition}
       />
 
       {currentPosition && (
         <Button
-          onClick={handleRecenter}
+          onClick={handleRecenterMapToUserLocation}
           variant="default"
           size="icon"
-          className="absolute bottom-24 right-4 z-[1000] md:bottom-10 md:right-10 h-12 w-12 rounded-full shadow-lg" // Increased z-index
+          className="absolute bottom-24 right-4 z-[1000] md:bottom-10 md:right-10 h-12 w-12 rounded-full shadow-lg"
           aria-label="Recenter map"
         >
           <LocateFixed className="h-6 w-6" />
@@ -119,3 +118,4 @@ export default function MapPage() {
     </div>
   );
 }
+

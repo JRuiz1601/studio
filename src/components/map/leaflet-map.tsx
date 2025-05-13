@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import type { LatLngExpression, Map as LeafletMapInstance } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -38,47 +38,33 @@ interface LeafletMapProps {
   center: LatLngExpression;
   zoom: number;
   userPosition: LatLngExpression | null;
-  onRecenter?: () => void; // Optional: If needed for more complex recenter logic
 }
 
-// This component is not currently used but kept for potential future use.
-// const RecenterAutomatically = ({ center, zoom }: { center: LatLngExpression, zoom: number }) => {
-//   const map = useMap();
-//   useEffect(() => {
-//     map.setView(center, zoom);
-//   }, [center, zoom, map]);
-//   return null;
-// };
 
-
-export default function LeafletMap({ center, zoom, userPosition, onRecenter }: LeafletMapProps) {
+export default function LeafletMap({ center, zoom, userPosition }: LeafletMapProps) {
   const mapRef = useRef<LeafletMapInstance | null>(null);
 
-  // Effect to handle recentering if the onRecenter prop is called or center prop changes
-  // This effect is crucial if MapContainer doesn't re-initialize on center/zoom prop change
   useEffect(() => {
     if (mapRef.current && center) {
       mapRef.current.setView(center, zoom);
     }
-  }, [center, zoom]); // Dependencies: center, zoom
+  }, [center, zoom]); 
 
 
   return (
     <MapContainer
-      center={center}
-      zoom={zoom}
-      style={{ height: '100%', width: '100%', flexGrow: 1, zIndex: 0 }}
       whenCreated={(mapInstance) => {
         mapRef.current = mapInstance;
       }}
-      // Removed dynamic key: key={`${center.toString()}-${zoom}`} to prevent re-initialization errors
+      center={center}
+      zoom={zoom}
+      style={{ height: '100%', width: '100%', flexGrow: 1, zIndex: 0 }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <UserLocationMarker position={userPosition} />
-      {/* <RecenterAutomatically center={center} zoom={zoom} /> */}
     </MapContainer>
   );
 }
