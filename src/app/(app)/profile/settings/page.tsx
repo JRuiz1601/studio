@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { translations } from '@/lib/translations';
 
 // Mock settings - fetch these from user preferences API
 const mockSettings = {
@@ -30,109 +31,7 @@ const mockSettings = {
   expertMode: false,
   facialRecognitionEnabled: true,
   darkMode: undefined,
-  language: 'es', // Default language to Spanish ('es') or English ('en')
-};
-
-// Simple translation object (for demonstration purposes)
-const translations = {
-  es: {
-    settingsTitle: "Ajustes",
-    settingsDescription: "Gestiona las preferencias de tu aplicación y la configuración de seguridad.",
-    darkModeLabel: "Modo Oscuro",
-    languageLabel: "Idioma",
-    languageDesc: "Selecciona el idioma de la aplicación.",
-    spanish: "Español",
-    english: "English",
-    dataSourcesTitle: "Fuentes de Datos para Análisis",
-    dataSourcesTooltip: "Selecciona las fuentes de datos que Zyren utiliza para la evaluación de riesgos y funciones personalizadas.",
-    mobileContextLabel: "Móvil + Contexto",
-    mobileContextDesc: "Análisis básico usando sensores del teléfono y contexto. Siempre activo.",
-    wearableDataLabel: "Datos de Wearable (Mejora Opcional)",
-    wearableDataDesc: "Habilita análisis mejorado usando datos del dispositivo wearable.",
-    expertModeLabel: "Modo Experto",
-    expertModeDesc: "Habilita vistas detalladas y controles avanzados.",
-    expertModeTooltip: "Muestra datos más técnicos y parámetros de simulación.",
-    facialRecognitionLabel: "Reconocimiento Facial",
-    facialRecognitionDesc: "Gestiona los datos biométricos faciales utilizados para el inicio de sesión seguro.",
-    updateScanButton: "Actualizar Escaneo",
-    setUpButton: "Configurar",
-    removeScanButton: "Eliminar Escaneo",
-    removeScanConfirmTitle: "¿Eliminar Reconocimiento Facial?",
-    removeScanConfirmDesc: "Esta acción eliminará permanentemente tus datos biométricos faciales almacenados. Necesitarás usar tu contraseña para iniciar sesión. ¿Estás seguro de que quieres continuar?",
-    cancelButton: "Cancelar",
-    removeConfirmButton: "Sí, Eliminar",
-    removingButton: "Eliminando...",
-    saveButton: "Guardar Cambios",
-    savingButton: "Guardando...",
-    settingsSavedTitle: "Ajustes Guardados",
-    settingsSavedDesc: "Tus preferencias han sido actualizadas.",
-    wearableConfirmTitle: "¿Habilitar Análisis de Datos de Wearable?",
-    wearableConfirmDescP1: "Al habilitar esta función, aceptas permitir que Zyren acceda y analice datos de tu dispositivo wearable conectado (ej. ritmo cardíaco, niveles de actividad, indicadores de estrés).",
-    wearableConfirmDescP2: "Estos datos se usarán únicamente para:",
-    wearableConfirmDescLi1: "Proporcionar evaluaciones de riesgo más precisas y personalizadas.",
-    wearableConfirmDescLi2: "Habilitar funciones como Primas Adaptativas (si aplica a tus pólizas).",
-    wearableConfirmDescLi3: "Ofrecer información relevante sobre bienestar dentro de la app.",
-    wearableConfirmDescP3: "Posibles Costos Adicionales:",
-    wearableConfirmDescP4: "Ten en cuenta que activar el análisis de Datos de Wearable puede implicar:",
-    wearableConfirmDescLi4: "Un cargo separado por el dispositivo wearable en sí, si es proporcionado por Global Seguros o un socio.",
-    wearableConfirmDescLi5: "Posibles costos asociados con la configuración del dispositivo, entrega o tarifas de suscripción, como se detalla durante el proceso de adquisición del dispositivo.",
-    wearableConfirmDescP5: "Todos los datos se manejan de forma segura según nuestra Política de Privacidad. Puedes deshabilitar esta función en cualquier momento en los ajustes.",
-    wearableConfirmDescP6: "¿Aceptas estos términos y posibles costos asociados para habilitar el análisis de Datos de Wearable?",
-    agreeEnableButton: "Aceptar y Habilitar",
-    wearableEnabledTitle: "Datos de Wearable Habilitados",
-    wearableEnabledDesc: "Procesando solicitud. Detalles sobre la entrega/configuración del dispositivo seguirán si aplica.",
-    facialRemovedTitle: "Reconocimiento Facial Eliminado",
-    facialRemovedDesc: "Puedes configurarlo de nuevo más tarde si es necesario.",
-  },
-  en: {
-    settingsTitle: "Settings",
-    settingsDescription: "Manage your application preferences and security settings.",
-    darkModeLabel: "Dark Mode",
-    languageLabel: "Language",
-    languageDesc: "Select the application language.",
-    spanish: "Español",
-    english: "English",
-    dataSourcesTitle: "Data Sources for Analysis",
-    dataSourcesTooltip: "Select the data sources Zyren uses for risk assessment and personalized features.",
-    mobileContextLabel: "Mobile + Context",
-    mobileContextDesc: "Basic analysis using phone sensors & context. Always active.",
-    wearableDataLabel: "Wearable Data (Optional Upgrade)",
-    wearableDataDesc: "Enable enhanced analysis using wearable device data.",
-    expertModeLabel: "Expert Mode",
-    expertModeDesc: "Enable detailed views and advanced controls.",
-    expertModeTooltip: "Shows more technical data and simulation parameters.",
-    facialRecognitionLabel: "Facial Recognition",
-    facialRecognitionDesc: "Manage the facial biometric data used for secure login.",
-    updateScanButton: "Update Scan",
-    setUpButton: "Set Up",
-    removeScanButton: "Remove Scan",
-    removeScanConfirmTitle: "Remove Facial Recognition?",
-    removeScanConfirmDesc: "This action will permanently delete your stored facial biometric data. You will need to use your password to log in. Are you sure you want to continue?",
-    cancelButton: "Cancel",
-    removeConfirmButton: "Yes, Remove",
-    removingButton: "Removing...",
-    saveButton: "Save Changes",
-    savingButton: "Saving...",
-    settingsSavedTitle: "Settings Saved",
-    settingsSavedDesc: "Your preferences have been updated.",
-    wearableConfirmTitle: "Enable Wearable Data Analysis?",
-    wearableConfirmDescP1: "By enabling this feature, you agree to allow Zyren to access and analyze data from your connected wearable device (e.g., heart rate, activity levels, stress indicators).",
-    wearableConfirmDescP2: "This data will be used solely for:",
-    wearableConfirmDescLi1: "Providing more accurate and personalized risk assessments.",
-    wearableConfirmDescLi2: "Enabling features like Adaptive Premiums (if applicable to your policies).",
-    wearableConfirmDescLi3: "Offering relevant well-being insights within the app.",
-    wearableConfirmDescP3: "Potential Additional Costs:",
-    wearableConfirmDescP4: "Please be aware that activating Wearable Data analysis may involve:",
-    wearableConfirmDescLi4: "A separate charge for the wearable device itself, if provided by Global Seguros or a partner.",
-    wearableConfirmDescLi5: "Potential costs associated with device setup, delivery, or subscription fees, as outlined during the device acquisition process.",
-    wearableConfirmDescP5: "All data is handled securely according to our Privacy Policy. You can disable this feature at any time in the settings.",
-    wearableConfirmDescP6: "Do you agree to these terms and potential associated costs to enable Wearable Data analysis?",
-    agreeEnableButton: "Agree & Enable",
-    wearableEnabledTitle: "Wearable Data Enabled",
-    wearableEnabledDesc: "Processing request. Details about device delivery/setup will follow if applicable.",
-    facialRemovedTitle: "Facial Recognition Removed",
-    facialRemovedDesc: "You can set it up again later if needed.",
-  }
+  language: 'en', // Default language to English ('en')
 };
 
 
@@ -146,9 +45,12 @@ export default function SettingsPage() {
           const storedTheme = localStorage.getItem('theme');
           if (storedTheme === 'dark') return true;
           if (storedTheme === 'light') return false;
-          return window.matchMedia('(prefers-color-scheme: dark)').matches;
+          // Ensure window.matchMedia is available before calling it
+          if (window.matchMedia) {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+          }
       }
-      return false;
+      return false; // Default to false if window or matchMedia is not available
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isWearableConfirmOpen, setIsWearableConfirmOpen] = useState(false);
@@ -156,28 +58,36 @@ export default function SettingsPage() {
   const router = useRouter();
 
   // Get current translations based on language state
-  const t = translations[language as keyof typeof translations] || translations.es;
+  const t = translations[language as keyof typeof translations] || translations.en; // Default to English if lang not found
 
 
    // Effect to apply dark mode class and store preference
    useEffect(() => {
-       const root = window.document.documentElement;
-       if (isDarkMode) {
-           root.classList.add('dark');
-           localStorage.setItem('theme', 'dark');
-       } else {
-           root.classList.remove('dark');
-           localStorage.setItem('theme', 'light');
-       }
+       if (typeof window !== 'undefined') { // Ensure this runs only on the client
+        const root = window.document.documentElement;
+        if (isDarkMode) {
+            root.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            root.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+      }
    }, [isDarkMode]);
 
-  // Fetch initial settings (if needed, replace mockSettings)
-  // useEffect(() => {
-  //   // Fetch settings logic here
-  //   // setWearableDataEnabled(fetchedSettings.wearableEnabled);
-  //   // setExpertMode(fetchedSettings.expertMode);
-  //   // setLanguage(fetchedSettings.language);
-  // }, []);
+  // Effect to load language from localStorage or use mockSettings default
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedLang = localStorage.getItem('language');
+      if (storedLang && (storedLang === 'en' || storedLang === 'es')) {
+        setLanguage(storedLang);
+      } else {
+        // If no stored language, use the default from mockSettings
+        setLanguage(mockSettings.language);
+        localStorage.setItem('language', mockSettings.language); // Optionally save default to localStorage
+      }
+    }
+  }, []);
 
 
   const handleSaveChanges = async () => {
@@ -237,14 +147,15 @@ export default function SettingsPage() {
    };
 
    const cancelWearableTerms = () => {
-       setWearableDataEnabled(false);
+       setWearableDataEnabled(false); // Ensure switch state reflects cancellation
        setIsWearableConfirmOpen(false);
    };
 
    // Check if settings have changed
    const hasChanges = wearableDataEnabled !== mockSettings.wearableDataEnabled ||
                      expertMode !== mockSettings.expertMode ||
-                     language !== mockSettings.language; // Include language in change check
+                     language !== mockSettings.language || // Include language
+                     isDarkMode !== (mockSettings.darkMode === undefined ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) : mockSettings.darkMode); // Include darkMode
 
 
   return (
