@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -5,7 +6,7 @@ import type { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Arreglar problema de íconos en Leaflet
+// Fix for default icon issue in Leaflet with bundlers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -13,15 +14,16 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Ícono personalizado para la ubicación del usuario
+// Custom icon for user's current location - Changed to a more vibrant red marker
 const createUserIcon = () => new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
+  iconSize: [25, 41], // Standard size
+  iconAnchor: [12, 41], // Point of the icon that corresponds to marker's location
+  popupAnchor: [1, -34], // Point from which the popup should open relative to the iconAnchor
+  shadowSize: [41, 41], // Size of the shadow
 });
+
 
 interface LeafletMapProps {
   center: LatLngExpression;
@@ -35,12 +37,12 @@ export default function LeafletMap({ center, zoom, userPosition }: LeafletMapPro
   const userMarkerRef = useRef<L.Marker | null>(null);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
 
-  // Inicializar el mapa una vez que el componente está montado en el cliente
+  // Initialize map once component is mounted client-side
   useEffect(() => {
-    // Si ya hay un mapa, no lo inicialicemos de nuevo
+    // If map is already initialized, or container ref is not set, do nothing
     if (mapInstanceRef.current || !mapContainerRef.current) return;
 
-    // Crear instancia de mapa
+    // Create map instance
     const mapInstance = L.map(mapContainerRef.current, {
       center: center,
       zoom: zoom,
@@ -51,42 +53,42 @@ export default function LeafletMap({ center, zoom, userPosition }: LeafletMapPro
       ]
     });
 
-    // Guardar referencia
+    // Store reference
     mapInstanceRef.current = mapInstance;
     setIsMapInitialized(true);
 
-    // Limpiar al desmontar
+    // Cleanup on unmount
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-        userMarkerRef.current = null;
+        mapInstanceRef.current = null; // Clear ref
+        userMarkerRef.current = null; // Clear marker ref
         setIsMapInitialized(false);
       }
     };
-  }, [center, zoom]);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
-  // Actualizar centro del mapa cuando cambian las props
+  // Update map view when center or zoom props change
   useEffect(() => {
     if (!mapInstanceRef.current || !isMapInitialized) return;
     
     mapInstanceRef.current.setView(center, zoom);
   }, [center, zoom, isMapInitialized]);
 
-  // Gestionar marcador de ubicación del usuario
+  // Manage user location marker
   useEffect(() => {
     if (!mapInstanceRef.current || !isMapInitialized) return;
 
-    // Eliminar marcador existente
+    // Remove existing marker
     if (userMarkerRef.current) {
       userMarkerRef.current.remove();
       userMarkerRef.current = null;
     }
 
-    // Crear nuevo marcador si hay posición
-    if (userPosition && mapInstanceRef.current) {
+    // Create new marker if position is available
+    if (userPosition) {
       userMarkerRef.current = L.marker(userPosition, {
-        icon: createUserIcon()
+        icon: createUserIcon() // Use the custom user icon
       })
         .bindPopup('You are here.')
         .addTo(mapInstanceRef.current);
