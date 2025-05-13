@@ -56,7 +56,7 @@ export const translations = {
     greetingMorning: 'Buenos días.',
     greetingAfternoon: 'Buenas tardes.',
     greetingEvening: 'Buenas noches.',
-    protectionStatusTitle: 'Mi Estado de Protección', // New title for the combined widget
+    protectionStatusTitle: 'Mi Estado de Protección',
     protectionLevelLabel: 'Nivel de Protección Estimado',
     viewRecommendationsButton: 'Ver Recomendaciones',
     improveProtectionButton: 'Mejorar mi Protección',
@@ -79,16 +79,16 @@ export const translations = {
     marketLabel: 'Mercado (Índice)',
     inflationAlertTitle: 'Alerta de Inflación',
     inflationAlertDesc: 'La inflación sigue en aumento. Protege tus ahorros.',
-    keyTipLabel: 'Tip Clave',
+    keyTipLabel: 'Tip Clave:', // Added colon for consistency
     keyTipContent: 'Considera diversificar tus inversiones y revisa opciones de ahorro con protección inflacionaria.',
     smartIdeasTitle: 'Ideas Inteligentes para tu Protección',
     whyNowLabel: '¿Por qué ahora?',
-    benefitLabel: 'Beneficio',
+    benefitLabel: 'Beneficio:', // Added colon
     maybeLaterButton: 'Quizás más tarde',
     noRecommendationsText: 'No hay ideas inteligentes para ti en este momento.',
     wellbeingTitle: '¡Tu Bienestar te Premia!',
     loadingWellbeingData: 'Cargando datos de bienestar...',
-    smartwatchLabel: 'Smartwatch',
+    smartwatchLabel: 'Smartwatch:', // Added colon
     connectedStatus: 'Conectado',
     disconnectedStatus: 'Desconectado',
     heartRateLabel: 'Ritmo Cardíaco',
@@ -105,10 +105,7 @@ export const translations = {
     activateAdaptivePremiumsButton: 'Activa las Primas Adaptativas',
     wearableDisconnectedText: 'Wearable desconectado o no configurado.',
     connectNowButton: 'Conectar ahora',
-    quickAccessTitle: 'Acceso Rápido',
-    payNextInstallmentButton: 'Pagar Próxima Cuota',
-    reportIncidentButton: 'Reportar Incidente',
-    viewMyInsurancesButton: 'Ver Mis Seguros',
+
     recProfileUpdateTitle: '¡Optimiza tus Recomendaciones!',
     recProfileUpdateReason: 'Un perfil completo nos ayuda a darte sugerencias más precisas.',
     recProfileUpdateBenefit: 'Asegúrate de que tu protección y consejos se ajustan perfectamente a ti.',
@@ -131,15 +128,7 @@ export const translations = {
     carouselPensionCta: 'Conocer Pensión Voluntaria',
     carouselEducationMessage: 'Asegura su futuro. Garantiza la continuidad educativa con nuestro plan.',
     carouselEducationCta: 'Explorar Seguro Educativo',
-    // Removed unused carousel translations
-    // carouselHomeMessage: 'Tu hogar, tu refugio. Asegúralo contra todo riesgo.',
-    // carouselHomeCta: 'Explorar Seguros de Hogar',
-    // carouselLifeMessage: 'El futuro de tu familia asegurado. Tranquilidad para los que más quieres.',
-    // carouselLifeCta: 'Conocer Seguro de Vida',
-    // carouselTravelMessage: 'Viaja sin preocupaciones. Asistencia completa donde quiera que vayas.',
-    // carouselTravelCta: 'Ver Seguros de Viaje',
 
-    // Add other translations as needed for other pages
   },
   en: {
     // Settings Page (existing)
@@ -196,7 +185,7 @@ export const translations = {
     greetingMorning: 'Good morning.',
     greetingAfternoon: 'Good afternoon.',
     greetingEvening: 'Good evening.',
-    protectionStatusTitle: 'My Protection Status', // New title for the combined widget
+    protectionStatusTitle: 'My Protection Status',
     protectionLevelLabel: 'Estimated Protection Level',
     viewRecommendationsButton: 'View Recommendations',
     improveProtectionButton: 'Improve My Protection',
@@ -219,16 +208,16 @@ export const translations = {
     marketLabel: 'Market (Index)',
     inflationAlertTitle: 'Inflation Alert',
     inflationAlertDesc: 'Inflation continues to rise. Protect your savings.',
-    keyTipLabel: 'Key Tip',
+    keyTipLabel: 'Key Tip:', // Added colon
     keyTipContent: 'Consider diversifying your investments and review savings options with inflation protection.',
-    smartIdeasTitle: 'Smart Ideas for Your Protection',
-    whyNowLabel: 'Why now?',
-    benefitLabel: 'Benefit',
-    maybeLaterButton: 'Maybe later',
-    noRecommendationsText: 'There are no smart ideas for you right now.',
+    smartIdeasTitle: 'Smart Ideas for Your Protection', // English translation
+    whyNowLabel: 'Why now?', // English translation
+    benefitLabel: 'Benefit:', // English translation and colon
+    maybeLaterButton: 'Maybe later', // English translation
+    noRecommendationsText: 'No smart ideas for you right now.', // English translation
     wellbeingTitle: 'Your Well-being Rewards You!',
     loadingWellbeingData: 'Loading well-being data...',
-    smartwatchLabel: 'Smartwatch',
+    smartwatchLabel: 'Smartwatch:', // Added colon
     connectedStatus: 'Connected',
     disconnectedStatus: 'Disconnected',
     heartRateLabel: 'Heart Rate',
@@ -245,10 +234,7 @@ export const translations = {
     activateAdaptivePremiumsButton: 'Activate Adaptive Premiums',
     wearableDisconnectedText: 'Wearable disconnected or not set up.',
     connectNowButton: 'Connect now',
-    quickAccessTitle: 'Quick Access',
-    payNextInstallmentButton: 'Pay Next Installment',
-    reportIncidentButton: 'Report Incident',
-    viewMyInsurancesButton: 'View My Insurances',
+
     recProfileUpdateTitle: 'Optimize Your Recommendations!',
     recProfileUpdateReason: 'A complete profile helps us give you more accurate suggestions.',
     recProfileUpdateBenefit: 'Ensure your protection and advice perfectly match you.',
@@ -262,6 +248,7 @@ export const translations = {
     recHeatAlertBenefit: 'Remember to stay hydrated and avoid strenuous activities.',
     recHeatAlertCta: 'See Health Tips',
 
+
     // Carousel (updated)
     carouselHealthMessage: 'Protect your well-being. Full coverage for health contingencies.',
     carouselHealthCta: 'View Health Insurance',
@@ -271,14 +258,6 @@ export const translations = {
     carouselPensionCta: 'Learn about Voluntary Pension',
     carouselEducationMessage: 'Secure their future. Ensure education continuity with our plan.',
     carouselEducationCta: 'Explore Education Insurance',
-    // Removed unused carousel translations
-    // carouselHomeMessage: 'Your home, your refuge. Insure it against all risks.',
-    // carouselHomeCta: 'Explore Home Insurance',
-    // carouselLifeMessage: 'Your family\'s future secured. Peace of mind for those you love most.',
-    // carouselLifeCta: 'Learn about Life Insurance',
-    // carouselTravelMessage: 'Travel without worries. Complete assistance wherever you go.',
-    // carouselTravelCta: 'View Travel Insurance',
 
-    // Add other translations as needed for other pages
   }
 };
