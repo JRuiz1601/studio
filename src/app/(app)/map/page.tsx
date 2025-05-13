@@ -131,7 +131,7 @@ export default function MapPage() {
           onClick={handleRecenterMapToUserLocation}
           variant="default"
           size="icon"
-          className="absolute bottom-6 right-6 z-[1000] h-14 w-14 rounded-full shadow-lg" // Adjusted bottom to standard FAB position
+          className="absolute bottom-20 right-6 z-[1000] h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6" // Adjusted bottom to avoid overlap
           aria-label="Recenter map"
         >
           <LocateFixed className="h-6 w-6" />
@@ -140,3 +140,4 @@ export default function MapPage() {
     </div>
   );
 }
+
